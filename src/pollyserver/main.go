@@ -49,30 +49,24 @@ func CreatePoll(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 }
 
 func GetPoll(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	//fmt.Println(pollyDb.FindUserByPhoneNumber("0612345668"))
-	/*
-		phoneNumber, _, ok := r.BasicAuth()
-		if !ok {
-			fmt.Fprintf(w, "No auth provided")
-			return
-		}
+	phoneNumber, token, ok := r.BasicAuth()
+	if !ok {
+		fmt.Fprintf(w, "No auth provided")
+		return
+	}
 
-		fmt.Printf("%T, %v", phoneNumber, phoneNumber)
+	user, err := pollyDb.FindUserByPhoneNumber(phoneNumber)
+	if err != nil {
+		fmt.Fprintf(w, "No such user")
+		return
+	}
 
-		_, err := pollyDb.FindUserByPhoneNumber("0612345667")
-		if err != nil {
-			fmt.Fprintf(w, "No such user")
-			return
-		}*/
+	if user.Token != token {
+		fmt.Fprintf(w, "Wrong token")
+		return
+	}
 
-	/*
-		if user.Token != token {
-			fmt.Fprintf(w, "Wrong token")
-			return
-		}
-
-		fmt.Fprintf(w, "POLL")
-	*/
+	fmt.Fprintf(w, "POLL")
 }
 
 func GetUser(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
