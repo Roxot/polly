@@ -11,7 +11,8 @@ import (
 var pollyDb pollydatabase.PollyDatabase
 
 func main() {
-	pollyDb, err := pollydatabase.New()
+	var err error
+	pollyDb, err = pollydatabase.New()
 	checkErr(err)
 
 	err = pollyDb.DropTables()
@@ -29,24 +30,14 @@ func main() {
 	err = pollyDb.AddUser(&newUser)
 	checkErr(err)
 
-	// THIS WORKS FINE
-	fmt.Println(pollyDb.FindUserByPhoneNumber("0612345668"))
-
-	// THIS DOESNT
-	test()
-
-	// router := httprouter.New()
-	// router.GET("/poll/:id", GetPoll)
-	// router.POST("/poll/:id/vote", Vote)
-	// router.POST("/create/poll", CreatePoll)
-	// router.POST("/create/user", CreateUser)
-	// router.GET("/user/:id/", GetUser)
-	//err = http.ListenAndServe(":8081", router)
-	//checkErr(err)
-}
-
-func test() (pollydatabase.User, error) {
-	return pollyDb.FindUserByPhoneNumber("0612345668")
+	router := httprouter.New()
+	router.GET("/poll/:id", GetPoll)
+	router.POST("/poll/:id/vote", Vote)
+	router.POST("/create/poll", CreatePoll)
+	router.POST("/create/user", CreateUser)
+	router.GET("/user/:id/", GetUser)
+	err = http.ListenAndServe(":8081", router)
+	checkErr(err)
 }
 
 func CreateUser(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
