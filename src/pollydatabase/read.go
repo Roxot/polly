@@ -1,6 +1,7 @@
 package pollydatabase
 
 import "fmt"
+
 import _ "github.com/lib/pq"
 
 type PollData struct {
@@ -20,6 +21,16 @@ func (pollyDb PollyDatabase) FindUserByPhoneNumber(phoneNumber string) (User,
 		fmt.Sprintf("select * from %s where %s=$1;", cUserTableName,
 			cPhoneNumber), phoneNumber)
 	return user, err
+}
+
+func (pollyDb PollyDatabase) FindVerificationTokenByPhoneNumber(
+	phoneNumber string) (VerificationToken, error) {
+
+	var vt VerificationToken
+	err := pollyDb.dbMap.SelectOne(&vt,
+		fmt.Sprintf("select * from %s where %s=$1;",
+			cVerificationTokensTableName, cPhoneNumber), phoneNumber)
+	return vt, err
 }
 
 func (pollyDb PollyDatabase) FindUserById(id int) (User, error) {

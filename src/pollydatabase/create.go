@@ -19,3 +19,7 @@ func (pollyDb PollyDatabase) AddOption(option *Option) error {
 func (pollyDb PollyDatabase) AddVote(vote *Vote) error {
 	return pollyDb.dbMap.Insert(vote)
 }
+
+func (pollyDb PollyDatabase) AddVerificationToken(vt *VerificationToken) error {
+	return pollyDb.dbMap.Insert(vt)
+}

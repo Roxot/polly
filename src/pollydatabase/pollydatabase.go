@@ -34,6 +34,8 @@ func New() (PollyDatabase, error) {
 
 	pollyDb.dbMap.AddTableWithName(User{}, cUserTableName).SetKeys(true, cPk).
 		ColMap(cPhoneNumber).SetUnique(true)
+	pollyDb.dbMap.AddTableWithName(VerificationToken{},
+		cVerificationTokensTableName).SetKeys(true, cPk)
 	pollyDb.dbMap.AddTableWithName(Poll{}, cPollTableName).SetKeys(true, cPk)
 	pollyDb.dbMap.AddTableWithName(Question{}, cQuestionTableName).SetKeys(true, cPk)
 	pollyDb.dbMap.AddTableWithName(Option{}, cOptionTableName).SetKeys(true, cPk)
@@ -43,11 +45,11 @@ func New() (PollyDatabase, error) {
 	return pollyDb, nil
 }
 
-func (pollyDb PollyDatabase) CreateTables() error {
+func (pollyDb PollyDatabase) CreateTablesIfNotExists() error {
 	return pollyDb.dbMap.CreateTablesIfNotExists()
 }
 
-func (pollyDb PollyDatabase) DropTables() error {
+func (pollyDb PollyDatabase) DropTablesIfExists() error {
 	return pollyDb.dbMap.DropTablesIfExists()
 }
 
