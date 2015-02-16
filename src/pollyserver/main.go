@@ -57,7 +57,10 @@ func Register(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		vt.PhoneNumber = phoneNumber
 		vt.VerificationToken = "VERIFY"
 		pollyDb.DeleteVerificationTokensByPhoneNumber(&vt)
-		pollyDb.AddVerificationToken(&vt)
+		err := pollyDb.AddVerificationToken(&vt)
+		if err != nil {
+			http.Error(w, "Database error.", 500)
+		}
 	}
 }
 
