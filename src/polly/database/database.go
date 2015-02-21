@@ -1,4 +1,4 @@
-package pollydatabase
+package database
 
 import (
 	"database/sql"
@@ -9,27 +9,31 @@ import (
 import "fmt"
 
 const (
-	cDatabaseName = "pollydb"
-	cUserName     = "polly"
-	cPassword     = "w01V3s"
-	cSSLMode      = "disable"
+	cSSLMode = "disable"
 )
 
-type PollyDatabase struct {
+type Database struct {
 	dbMap *gorp.DbMap
 }
 
-func New() (PollyDatabase, error) {
+type DbConfig struct {
+	DbName       string
+	PsqlUser     string
+	PsqlUserPass string
+}
+
+func New(dbConfig DbConfig) (Database, error) {
 
 	db, err := sql.Open("postgres",
-		fmt.Sprintf("user=%s password=%s dbname=%s sslmode=%s", cUserName,
-			cPassword, cDatabaseName, cSSLMode))
+		fmt.Sprintf("user=%s password=%s dbname=%s sslmode=%s",
+			dbConfig.PsqlUser, dbConfig.PsqlUserPass, dbConfig.DbName,
+			cSSLMode))
 
 	if err != nil {
-		return PollyDatabase{}, err
+		return Database{}, err
 	}
 
-	pollyDb := PollyDatabase{}
+	pollyDb := Database{}
 	pollyDb.dbMap = &gorp.DbMap{Db: db, Dialect: gorp.PostgresDialect{}}
 
 	pollyDb.dbMap.AddTableWithName(User{}, cUserTableName).SetKeys(true, cPk).
@@ -45,14 +49,14 @@ func New() (PollyDatabase, error) {
 	return pollyDb, nil
 }
 
-func (pollyDb PollyDatabase) CreateTablesIfNotExists() error {
+func (pollyDb Database) CreateTablesIfNotExists() error {
 	return pollyDb.dbMap.CreateTablesIfNotExists()
 }
 
-func (pollyDb PollyDatabase) DropTablesIfExists() error {
+func (pollyDb Database) DropTablesIfExists() error {
 	return pollyDb.dbMap.DropTablesIfExists()
 }
 
-func (pollyDb PollyDatabase) Close() {
+func (pollyDb Database) Close() {
 	pollyDb.dbMap.Db.Close()
 }

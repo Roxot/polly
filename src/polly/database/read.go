@@ -1,4 +1,4 @@
-package pollydatabase
+package database
 
 import "fmt"
 
@@ -13,7 +13,7 @@ type PollData struct {
 	Participants []User
 }
 
-func (pollyDb PollyDatabase) FindUserByPhoneNumber(phoneNumber string) (User,
+func (pollyDb Database) FindUserByPhoneNumber(phoneNumber string) (User,
 	error) {
 
 	var user User
@@ -23,7 +23,7 @@ func (pollyDb PollyDatabase) FindUserByPhoneNumber(phoneNumber string) (User,
 	return user, err
 }
 
-func (pollyDb PollyDatabase) FindVerificationTokenByPhoneNumber(
+func (pollyDb Database) FindVerificationTokenByPhoneNumber(
 	phoneNumber string) (VerificationToken, error) {
 
 	var vt VerificationToken
@@ -33,21 +33,21 @@ func (pollyDb PollyDatabase) FindVerificationTokenByPhoneNumber(
 	return vt, err
 }
 
-func (pollyDb PollyDatabase) FindUserById(id int) (User, error) {
+func (pollyDb Database) FindUserById(id int) (User, error) {
 	var user User
 	err := pollyDb.dbMap.SelectOne(&user,
 		fmt.Sprintf("select * from %s where %s=$1;", cUserTableName, cId), id)
 	return user, err
 }
 
-func (pollydb PollyDatabase) FindPollById(id int) (Poll, error) {
+func (pollydb Database) FindPollById(id int) (Poll, error) {
 	var poll Poll
 	err := pollydb.dbMap.SelectOne(&poll,
 		fmt.Sprintf("select * from %s where %s=$1;", cPollTableName, cId), id)
 	return poll, err
 }
 
-func (pollyDb PollyDatabase) FindQuestionsByPollId(pollId int) ([]Question,
+func (pollyDb Database) FindQuestionsByPollId(pollId int) ([]Question,
 	error) {
 
 	var questions []Question
@@ -57,7 +57,7 @@ func (pollyDb PollyDatabase) FindQuestionsByPollId(pollId int) ([]Question,
 	return questions, err
 }
 
-func (pollyDb PollyDatabase) FindOptionsByPollId(pollId int) ([]Option, error) {
+func (pollyDb Database) FindOptionsByPollId(pollId int) ([]Option, error) {
 	var options []Option
 	_, err := pollyDb.dbMap.Select(&options,
 		fmt.Sprintf("select * for %s where %s = $1;", cOptionTableName,
@@ -65,7 +65,7 @@ func (pollyDb PollyDatabase) FindOptionsByPollId(pollId int) ([]Option, error) {
 	return options, err
 }
 
-func (pollyDb PollyDatabase) FindVotesByPollId(pollId int) ([]Vote, error) {
+func (pollyDb Database) FindVotesByPollId(pollId int) ([]Vote, error) {
 	var votes []Vote
 	_, err := pollyDb.dbMap.Select(&votes,
 		fmt.Sprintf("select * for %s where %s = $1;", cVoteTableName, cPollId),
@@ -73,7 +73,7 @@ func (pollyDb PollyDatabase) FindVotesByPollId(pollId int) ([]Vote, error) {
 	return votes, err
 }
 
-func (pollyDb PollyDatabase) FindParticipantsByPollId(pollId int) (
+func (pollyDb Database) FindParticipantsByPollId(pollId int) (
 	[]Participant, error) {
 
 	var participants []Participant
@@ -83,7 +83,7 @@ func (pollyDb PollyDatabase) FindParticipantsByPollId(pollId int) (
 	return participants, err
 }
 
-func (pollyDb PollyDatabase) RetrievePollData(pollId int) (PollData, error) {
+func (pollyDb Database) RetrievePollData(pollId int) (PollData, error) {
 	pollData := PollData{}
 
 	poll, err := pollyDb.FindPollById(pollId)

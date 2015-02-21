@@ -1,4 +1,4 @@
-package pollydatabase
+package database
 
 const (
 	cVerificationTokensTableName = "verification_tokens"

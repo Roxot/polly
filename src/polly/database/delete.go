@@ -1,8 +1,8 @@
-package pollydatabase
+package database
 
 import "fmt"
 
-func (pollyDb PollyDatabase) DeleteVerificationTokensByPhoneNumber(
+func (pollyDb Database) DeleteVerificationTokensByPhoneNumber(
 	vt *VerificationToken) error {
 
 	_, err := pollyDb.dbMap.Exec(fmt.Sprintf("delete from %s where %s=$1",
