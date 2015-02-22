@@ -4,11 +4,13 @@ import (
 	"fmt"
 	"os"
 	"polly"
+	"time"
 )
 
 const (
 	cLogFile    = "server.log"
 	cBufferSize = 1024
+	cTimeFormat = "02/01 15:04:05 "
 )
 
 type Logger struct {
@@ -19,7 +21,7 @@ type Logger struct {
 
 func New() Logger {
 	logger := Logger{}
-	logger.logChan = make(chan string)
+	logger.logChan = make(chan string, cBufferSize)
 	logger.quitChan = make(chan int)
 	return logger
 }
@@ -60,5 +62,6 @@ func (logger *Logger) Stop() {
 }
 
 func (logger *Logger) Log(message string) {
-	logger.logChan <- message
+
+	logger.logChan <- time.Now().Format(cTimeFormat) + message
 }
