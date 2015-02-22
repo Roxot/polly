@@ -14,9 +14,9 @@ import (
 func (srv *HTTPServer) Register(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	phoneNumber := r.PostFormValue("phone_number")
 	if !isValidPhoneNumber(phoneNumber) {
-		srv.logger.Log("POST/REGISTER", fmt.Sprintf("Bad phonenumber: %s",
+		srv.logger.Log("POST/REGISTER", fmt.Sprintf("Bad phone number: %s",
 			phoneNumber))
-		http.Error(w, "Bad phonenumber.", 400)
+		http.Error(w, "Bad phone number.", 400)
 	} else {
 		vt := database.VerificationToken{}
 		vt.PhoneNumber = phoneNumber
