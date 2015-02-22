@@ -3,6 +3,7 @@ package httpserver
 import (
 	"net/http"
 	"polly/database"
+	"polly/logger"
 
 	"github.com/julienschmidt/httprouter"
 )
@@ -10,6 +11,7 @@ import (
 type HTTPServer struct {
 	db     database.Database
 	router *httprouter.Router
+	logger logger.Logger
 }
 
 func New(dbConfig database.DbConfig, clearDb bool) (HTTPServer, error) {
@@ -33,6 +35,7 @@ func New(dbConfig database.DbConfig, clearDb bool) (HTTPServer, error) {
 		return srv, err
 	}
 
+	srv.logger = logger.New()
 	srv.db = db
 	srv.router = httprouter.New()
 
@@ -45,8 +48,14 @@ func (srv *HTTPServer) Database() *database.Database {
 
 // sync
 func (srv *HTTPServer) Start(port string) error {
+	var err error
+	err = srv.logger.Start()
+	if err != nil {
+		return err
+	}
+
 	srv.router.POST("/register", srv.Register)
 	srv.router.POST("/register/verify", srv.VerifyRegister)
-	err := http.ListenAndServe(port, srv.router)
+	err = http.ListenAndServe(port, srv.router)
 	return err
 }
