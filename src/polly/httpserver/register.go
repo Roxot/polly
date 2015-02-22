@@ -14,8 +14,9 @@ import (
 func (srv *HTTPServer) Register(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	phoneNumber := r.PostFormValue("phone_number")
 	if !isValidPhoneNumber(phoneNumber) {
-		srv.logger.Log(fmt.Sprintf("[POST/REGISTER] invalid phonenumber %s\n", phoneNumber))
-		http.Error(w, "Invalid phonenumber.", 400)
+		srv.logger.Log("POST/REGISTER", fmt.Sprintf("Bad phonenumber: %s",
+			phoneNumber))
+		http.Error(w, "Bad phonenumber.", 400)
 	} else {
 		vt := database.VerificationToken{}
 		vt.PhoneNumber = phoneNumber
@@ -23,7 +24,8 @@ func (srv *HTTPServer) Register(w http.ResponseWriter, r *http.Request, _ httpro
 		srv.db.DeleteVerificationTokensByPhoneNumber(&vt)
 		err := srv.db.AddVerificationToken(&vt)
 		if err != nil {
-			srv.logger.Log(fmt.Sprintf("[POST/REGISTER] DATABASE ERROR %s\n", err))
+			srv.logger.Log("POST/REGISTER", fmt.Sprintf("DATABASE ERROR: %s",
+				err))
 			http.Error(w, "Database error.", 500)
 		}
 	}
@@ -34,18 +36,19 @@ func (srv *HTTPServer) VerifyRegister(w http.ResponseWriter, r *http.Request, _ 
 	phoneNumber := r.PostFormValue("phone_number")
 	vt, err := srv.db.FindVerificationTokenByPhoneNumber(phoneNumber)
 	if err != nil || vt.VerificationToken != verificationToken {
-		srv.logger.Log(
-			fmt.Sprintf("[POST/REGISTER/VERIFY] not registered / bad token %s - %s\n",
+		srv.logger.Log("POST/REGISTER/VERIFY",
+			fmt.Sprintf("Not registered or bad verification token: %s - %s",
 				phoneNumber, verificationToken))
-		http.Error(w, "Not registered / bad token.", 400)
+		http.Error(w, "Not registered or bad verification token.", 400)
 		return
 	}
 
 	deviceType, err := strconv.Atoi(r.PostFormValue("device_type"))
 	if err != nil || deviceType < 0 || deviceType > 1 {
-		srv.logger.Log(fmt.Sprintf("[POST/REGISTER/VERIFY] bad device type %s\n",
-			r.PostFormValue("device_type")))
-		http.Error(w, "Invalid device type.", 400)
+		srv.logger.Log("POST/REGISTER/VERIFY",
+			fmt.Sprintf("Bad device type: %s",
+				r.PostFormValue("device_type")))
+		http.Error(w, "Bad device type.", 400)
 		return
 	}
 
@@ -61,7 +64,8 @@ func (srv *HTTPServer) VerifyRegister(w http.ResponseWriter, r *http.Request, _ 
 		responseBody, err := json.MarshalIndent(uwt, "", "\t")
 		_, err = w.Write(responseBody)
 		if err != nil {
-			srv.logger.Log(fmt.Sprintf("[POST/REGISTER/VERIFY] MARSHALLING ERROR %s\n", err))
+			srv.logger.Log("POST/REGISTER/VERIFY",
+				fmt.Sprintf("MARSHALLING ERROR: %s\n", err))
 			http.Error(w, "Marshalling error.", 500)
 		}
 	} else {
@@ -73,7 +77,8 @@ func (srv *HTTPServer) VerifyRegister(w http.ResponseWriter, r *http.Request, _ 
 		user.DeviceType = deviceType
 		err = srv.db.AddUser(&user)
 		if err != nil {
-			srv.logger.Log(fmt.Sprintf("[POST/REGISTER/VERIFY] DATABASE ERROR %s\n", err))
+			srv.logger.Log("POST/REGISTER/VERIFY",
+				fmt.Sprintf("DATABASE ERROR: %s\n", err))
 			http.Error(w, "Database error.", 500)
 			return
 		}
@@ -83,7 +88,8 @@ func (srv *HTTPServer) VerifyRegister(w http.ResponseWriter, r *http.Request, _ 
 		responseBody, err := json.MarshalIndent(uwt, "", "\t")
 		_, err = w.Write(responseBody)
 		if err != nil {
-			srv.logger.Log(fmt.Sprintf("[POST/REGISTER/VERIFY] MARSHALLING ERROR %s\n", err))
+			srv.logger.Log("POST/REGISTER/VERIFY",
+				fmt.Sprintf("MARSHALLING ERROR: %s\n", err))
 			http.Error(w, "Marshalling error.", 500)
 		}
 	}
