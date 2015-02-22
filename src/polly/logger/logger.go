@@ -10,7 +10,7 @@ import (
 const (
 	cLogFile    = "server.log"
 	cBufferSize = 1024
-	cTimeFormat = "02/01 15:04:05 "
+	cTimeFormat = "02/01 15:04:05"
 )
 
 type Logger struct {
