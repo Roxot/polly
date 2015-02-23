@@ -57,6 +57,7 @@ func (srv *HTTPServer) Start(port string) error {
 	srv.router.POST("/register", srv.Register)
 	srv.router.POST("/register/verify", srv.VerifyRegister)
 	srv.router.POST("/poll", srv.PostPoll)
+	srv.router.GET("/poll/:id", srv.GetPoll)
 	err = http.ListenAndServe(port, srv.router)
 	return err
 }
