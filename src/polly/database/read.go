@@ -4,15 +4,6 @@ import "fmt"
 
 import _ "github.com/lib/pq"
 
-type PollData struct {
-	Poll         Poll
-	Questions    []Question
-	Options      []Option
-	Votes        []Vote
-	Creator      User
-	Participants []User
-}
-
 func (pollyDb Database) FindUserByPhoneNumber(phoneNumber string) (User,
 	error) {
 
@@ -81,56 +72,4 @@ func (pollyDb Database) FindParticipantsByPollId(pollId int) (
 		fmt.Sprintf("select * for %s where %s = $1;", cParticipantTableName,
 			cPollId), pollId)
 	return participants, err
-}
-
-func (pollyDb Database) RetrievePollData(pollId int) (PollData, error) {
-	pollData := PollData{}
-
-	poll, err := pollyDb.FindPollById(pollId)
-	pollData.Poll = poll
-	if err != nil {
-		return pollData, nil
-	}
-
-	questions, err := pollyDb.FindQuestionsByPollId(pollId)
-	pollData.Questions = questions
-	if err != nil {
-		return pollData, err
-	}
-
-	options, err := pollyDb.FindOptionsByPollId(pollId)
-	pollData.Options = options
-	if err != nil {
-		return pollData, err
-	}
-
-	votes, err := pollyDb.FindVotesByPollId(pollId)
-	pollData.Votes = votes
-	if err != nil {
-		return pollData, err
-	}
-
-	creator, err := pollyDb.FindUserById(poll.CreatorId)
-	pollData.Creator = creator
-	if err != nil {
-		return pollData, err
-	}
-
-	participants, err := pollyDb.FindParticipantsByPollId(pollId)
-	if err != nil {
-		return pollData, err
-	}
-
-	pollData.Participants = make([]User, len(participants))
-	var user User
-	for index, participant := range participants {
-		user, err = pollyDb.FindUserById(participant.UserId)
-		if err != nil {
-			return pollData, err
-		}
-
-		pollData.Participants[index] = user
-	}
-
-	return pollData, nil
 }
