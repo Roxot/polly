@@ -21,13 +21,13 @@ func (srv *HTTPServer) PostPoll(w http.ResponseWriter, r *http.Request,
 
 	user, err := srv.db.FindUserByPhoneNumber(phoneNumber)
 	if err != nil {
-		srv.logger.Log("POST/POLL", fmt.Sprintf("Unknown user: %s", phoneNumber))
+		srv.logger.Log("POST/POLL", fmt.Sprintf("Unknown user: %s.", phoneNumber))
 		http.Error(w, "Unknown user.", 400)
 		return
 	}
 
 	if user.Token != token {
-		srv.logger.Log("POST/POLL", fmt.Sprintf("Bad token: %s doesn't match %s", token, user.Token))
+		srv.logger.Log("POST/POLL", fmt.Sprintf("Bad token: %s doesn't match %s.", token, user.Token))
 		http.Error(w, "Bad token.", 400)
 		return
 	}
@@ -43,7 +43,7 @@ func (srv *HTTPServer) PostPoll(w http.ResponseWriter, r *http.Request,
 
 	if phoneNumber != pollData.Creator.PhoneNumber {
 		srv.logger.Log("POST/POLL",
-			fmt.Sprintf("Illegal operation: %s and %s don't match",
+			fmt.Sprintf("Illegal operation: %s and %s don't match.",
 				phoneNumber, pollData.Creator.PhoneNumber))
 		http.Error(w, "Illegal operation.", 400)
 		return
@@ -53,7 +53,7 @@ func (srv *HTTPServer) PostPoll(w http.ResponseWriter, r *http.Request,
 
 	err = srv.db.InsertPollData(&pollData)
 	if err != nil {
-		srv.logger.Log("POST/POLL", fmt.Sprintf("Database error: %s", err))
+		srv.logger.Log("POST/POLL", fmt.Sprintf("Database error: %s.", err))
 		http.Error(w, "Database error.", 500)
 		return
 	}
