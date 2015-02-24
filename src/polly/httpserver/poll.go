@@ -42,13 +42,15 @@ func (srv *HTTPServer) PostPoll(w http.ResponseWriter, r *http.Request,
 		return
 	}
 
-	if phoneNumber != pollData.Creator.PhoneNumber {
-		srv.logger.Log("POST/POLL",
-			fmt.Sprintf("Illegal operation: %s and %s don't match.",
-				phoneNumber, pollData.Creator.PhoneNumber))
-		http.Error(w, "Illegal operation.", 400)
-		return
-	}
+	// if phoneNumber != pollData.Creator.PhoneNumber {
+	// 	srv.logger.Log("POST/POLL",
+	// 		fmt.Sprintf("Illegal operation: %s and %s don't match.",
+	// 			phoneNumber, pollData.Creator.PhoneNumber))
+	// 	http.Error(w, "Illegal operation.", 400)
+	// 	return
+	// }
+
+	pollData.Creator.Id = user.Id
 
 	// Validate poll (non-empty title, no votes (?), etc.)
 

@@ -27,10 +27,10 @@ const (
 )
 
 type User struct {
-	Id          int
-	PhoneNumber string `db:"phone_number"`
+	Id          int    `json:id`
+	PhoneNumber string `db:"phone_number" json:"phone_number"`
 	Token       string `json:"-"`
-	DisplayName string `db:"dislay_name"`
+	DisplayName string `db:"dislay_name" json:"display_name"`
 	DeviceType  int    `db:"device_type" json:"-"`
 	DeviceGUID  string `db:"device_guid" json:"-"`
 }
@@ -43,27 +43,27 @@ type Poll struct {
 }
 
 type Question struct {
-	Id       int `json:"-"`
-	PollId   int `db:"poll_id"`
-	Type     int
-	Title    string
-	ClientId int `db:"-" json:"id"`
+	Id       int    `json:"-"`
+	PollId   int    `db:"poll_id" json:"-"`
+	Type     int    `json:"type"`
+	Title    string `json:"title"`
+	ClientId int    `db:"-" json:"id"`
 }
 
 type Option struct {
-	Id         int
-	PollId     int `db:"poll_id"`
-	QuestionId int `db:"question_id"`
-	Type       int
-	Value      string
-	OptionalId int `db:"optional_id"`
+	Id         int    `json:"id"`
+	PollId     int    `db:"poll_id" json:"-"`
+	QuestionId int    `db:"question_id" json:"question_id"`
+	Type       int    `json:"-"`
+	Value      string `json:"value"`
+	OptionalId int    `db:"optional_id" json:"-"`
 }
 
 type Vote struct {
-	Id       int
-	PollId   int `db:"poll_id"`
-	OptionId int `db:"option_id"`
-	UserId   int `db:"user_id"`
+	Id       int `json:"id"`
+	PollId   int `db:"poll_id" json:"-"`
+	OptionId int `db:"option_id json:"option_id"`
+	UserId   int `db:"user_id" json:"user_id"`
 }
 
 type Participant struct {

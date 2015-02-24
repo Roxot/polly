@@ -3,18 +3,18 @@ package database
 import "fmt"
 
 type PollMetaData struct {
-	PollId       int
-	CreationDate int64
-	Title        string
+	PollId       int    `json:"poll_id, omitempty"`
+	CreationDate int64  `json:"creation_date, omitempty"`
+	Title        string `json:"title"`
 }
 
 type PollData struct {
-	MetaData     PollMetaData
-	Questions    []Question
-	Options      []Option
-	Votes        []Vote
-	Creator      User
-	Participants []User
+	MetaData     PollMetaData `json:"meta_data"`
+	Questions    []Question   `json:"questions"`
+	Options      []Option     `json:"options"`
+	Votes        []Vote       `json:"votes, omitempty"`
+	Creator      User         `json:"creator, omitempty"`
+	Participants []User       `json:participants, omitempty`
 }
 
 func (pollyDb Database) RetrievePollData(pollId int) (PollData, error) {
