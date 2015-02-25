@@ -18,7 +18,7 @@
 #!json
         {
             "id" : 0,
-            "phone_numer" : "0612345678",
+            "phone_number" : "0612345678",
             "display_name" : "The wolf",
             "device_type" : 0,
             "token" : "9d8592a7-585c-438b-9db0-29465cd66c25"
