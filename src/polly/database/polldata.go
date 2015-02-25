@@ -93,12 +93,13 @@ func (pollyDb Database) InsertPollData(pollData *PollData) error {
 		}
 	}
 
+OuterLoop:
 	for _, option := range pollData.Options {
 		for _, question := range pollData.Questions {
 			if option.QuestionId == question.ClientId {
 				option.PollId = poll.Id
 				option.QuestionId = question.Id
-				break
+				continue OuterLoop
 			}
 		}
 
