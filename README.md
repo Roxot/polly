@@ -13,6 +13,8 @@ POST api.polly.com/register/verify:
         - [device_type] "0" for android, "1" for ios
         - [device_guid] the device guid for push messages, ignored for now
     - Returns 200 OK for success, containing the user in JSON in the response body:
+```
+#!json
         {
             "id" : 0,
             "phone_numer" : "0612345678",
@@ -20,6 +22,7 @@ POST api.polly.com/register/verify:
             "device_type" : 0,
             "token" : "9d8592a7-585c-438b-9db0-29465cd66c25"
         }
+```
     - Returns 400 BAD REQUEST when not providing all values or providing bad values
     - Returns 500 INTERNAL SERVER ERROR if one occurs
 
@@ -182,4 +185,3 @@ GET api.polly.com/poll/xx:
         }
 
     - Returns 400 BAD REQUEST if information is wrong, incomplete or absent.
-
