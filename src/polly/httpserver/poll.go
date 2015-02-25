@@ -60,6 +60,15 @@ func (srv *HTTPServer) PostPoll(w http.ResponseWriter, r *http.Request,
 		http.Error(w, "Database error.", 500)
 		return
 	}
+
+	responseBody, err := json.MarshalIndent(pollData, "", "\t")
+	_, err = w.Write(responseBody)
+	if err != nil {
+		srv.logger.Log("POST/POLL",
+			fmt.Sprintf("MARSHALLING ERROR: %s\n", err))
+		http.Error(w, "Marshalling error.", 500)
+	}
+
 }
 
 func (srv *HTTPServer) GetPoll(w http.ResponseWriter, r *http.Request,
