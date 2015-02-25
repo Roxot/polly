@@ -12,7 +12,7 @@ import (
 )
 
 func (srv *HTTPServer) Register(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	phoneNumber := r.PostFormValue("phone_number")
+	phoneNumber := r.PostFormValue(cPhoneNumber)
 	if !isValidPhoneNumber(phoneNumber) {
 		srv.logger.Log("POST/REGISTER", fmt.Sprintf("Bad phone number: %s",
 			phoneNumber))
@@ -32,8 +32,8 @@ func (srv *HTTPServer) Register(w http.ResponseWriter, r *http.Request, _ httpro
 }
 
 func (srv *HTTPServer) VerifyRegister(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	verificationToken := r.PostFormValue("verification_token")
-	phoneNumber := r.PostFormValue("phone_number")
+	verificationToken := r.PostFormValue(cVerToken)
+	phoneNumber := r.PostFormValue(cPhoneNumber)
 	vt, err := srv.db.FindVerificationTokenByPhoneNumber(phoneNumber)
 	if err != nil || vt.VerificationToken != verificationToken {
 		srv.logger.Log("POST/REGISTER/VERIFY",
@@ -43,7 +43,7 @@ func (srv *HTTPServer) VerifyRegister(w http.ResponseWriter, r *http.Request, _ 
 		return
 	}
 
-	deviceType, err := strconv.Atoi(r.PostFormValue("device_type"))
+	deviceType, err := strconv.Atoi(r.PostFormValue(cDeviceType))
 	if err != nil || deviceType < 0 || deviceType > 1 {
 		srv.logger.Log("POST/REGISTER/VERIFY",
 			fmt.Sprintf("Bad device type: %s",
@@ -52,7 +52,7 @@ func (srv *HTTPServer) VerifyRegister(w http.ResponseWriter, r *http.Request, _ 
 		return
 	}
 
-	displayName := r.PostFormValue("display_name")
+	displayName := r.PostFormValue(cDisplayName)
 
 	srv.db.DeleteVerificationTokensByPhoneNumber(&vt)
 	user, err := srv.db.FindUserByPhoneNumber(phoneNumber)

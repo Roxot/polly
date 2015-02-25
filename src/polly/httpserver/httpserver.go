@@ -1,6 +1,7 @@
 package httpserver
 
 import (
+	"fmt"
 	"net/http"
 	"polly/database"
 	"polly/logger"
@@ -57,7 +58,7 @@ func (srv *HTTPServer) Start(port string) error {
 	srv.router.POST("/register", srv.Register)
 	srv.router.POST("/register/verify", srv.VerifyRegister)
 	srv.router.POST("/poll", srv.PostPoll)
-	srv.router.GET("/poll/:id", srv.GetPoll)
+	srv.router.GET(fmt.Sprintf("/poll/:%s", cId), srv.GetPoll)
 	err = http.ListenAndServe(port, srv.router)
 	return err
 }

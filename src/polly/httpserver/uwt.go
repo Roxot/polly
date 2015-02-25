@@ -4,7 +4,7 @@ import "polly/database"
 
 type UserWithToken struct {
 	Id          int    `json:"id"`
-	PhoneNumber string `json:"phone_numer"`
+	PhoneNumber string `json:"phone_number"`
 	Token       string `json:"token"`
 	DisplayName string `json:"display_name"`
 	DeviceType  int    `json:"device_type"`

@@ -85,7 +85,7 @@ func (srv *HTTPServer) GetPoll(w http.ResponseWriter, r *http.Request,
 		return
 	}
 
-	idString := p.ByName("id")
+	idString := p.ByName(cId)
 	id, err := strconv.Atoi(idString)
 	if err != nil {
 		srv.logger.Log("GET/POLL/XX", fmt.Sprintf("Bad id: %s", idString))
