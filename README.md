@@ -1,18 +1,19 @@
-POST api.polly.com/register:
-    - Request body:
-        - [phone_number] a valid (dutch) phone number
-    - Returns 200 OK for success
-    - Returns 400 BAD REQUEST when not providing a valid phone number
-    - Returns 500 INTERNAL SERVER ERROR if one occurs
+###POST api.polly.com/register:###
 
-POST api.polly.com/register/verify:
-    - Request body:
-        - [phone_number] a valid (dutch) phone number
-        - [verification_token] the verification token (for always 'VERIFY')
-        - [display_name] the user's display name
-        - [device_type] "0" for android, "1" for ios
-        - [device_guid] the device guid for push messages, ignored for now
-    - Returns 200 OK for success, containing the user in JSON in the response body:
+* Request body:
+    * [phone_number] a valid (dutch) phone number
+* Returns 200 OK for success
+    * Returns 400 BAD REQUEST when not providing a valid phone number
+    * Returns 500 INTERNAL SERVER ERROR if one occurs
+
+###POST api.polly.com/register/verify:###
+* Request body:
+    * [phone_number] a valid (dutch) phone number
+    * [verification_token] the verification token (for always 'VERIFY')
+    * [display_name] the user's display name
+    * [device_type] "0" for android, "1" for ios
+    * [device_guid] the device guid for push messages, ignored for now
+* Returns 200 OK for success, containing the user in JSON in the response body:
 ```
 #!json
         {
@@ -23,13 +24,14 @@ POST api.polly.com/register/verify:
             "token" : "9d8592a7-585c-438b-9db0-29465cd66c25"
         }
 ```
-    - Returns 400 BAD REQUEST when not providing all values or providing bad values
-    - Returns 500 INTERNAL SERVER ERROR if one occurs
+* Returns 400 BAD REQUEST when not providing all values or providing bad values
+* Returns 500 INTERNAL SERVER ERROR if one occurs
 
-POST api.polly.com/poll:
-    - Requires the use of BasicAuth using the phone number and token as username and password.
-    - Request body should contain pure JSON of the form:
-        
+###POST api.polly.com/poll:###
+* Requires the use of BasicAuth using the phone number and token as username and password.
+* Request body should contain pure JSON of the form:
+```
+#!json
         {
             "meta_data" : {
                 "title" : "Filmpje doen"
@@ -68,9 +70,10 @@ POST api.polly.com/poll:
             ]
 
         }
-
-    - Returns 200 OK for success, containing the poll in JSON in the response body:
-        
+```
+* Returns 200 OK for success, containing the poll in JSON in the response body:
+```
+#!json        
         {
             "meta_data" : {
                 "poll_id" : 283                                              <-- Server-side id
@@ -119,14 +122,16 @@ POST api.polly.com/poll:
             ]
 
         }
+```
+* Returns 400 BAD REQUEST if information is wrong, incomplete or absent.
+* Returns 500 INTERNAL SERVER ERROR if one occurs
 
-    - Returns 400 BAD REQUEST if information is wrong, incomplete or absent.
-
-GET api.polly.com/poll/xx:
-    - Requires the use of BasicAuth using the phone number and token as username and password.
-    - Replace xx with the server-side identifier of the poll you're requesting.
-    - Returns 200 OK for success, containing the poll in JSON in the response body:
-
+###GET api.polly.com/poll/xx:###
+* Requires the use of BasicAuth using the phone number and token as username and password.
+* Replace xx with the server-side identifier of the poll you're requesting.
+* Returns 200 OK for success, containing the poll in JSON in the response body:
+```
+#!json
         {
             "meta_data" : {
                 "id" : 283
@@ -183,5 +188,5 @@ GET api.polly.com/poll/xx:
             ]
 
         }
-
-    - Returns 400 BAD REQUEST if information is wrong, incomplete or absent.
+```
+* Returns 400 BAD REQUEST if information is wrong, incomplete or absent.
