@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PROCIDS=`fuser ../server.log 2>/dev/null`
+PROCIDS=`fuser $POLLY_HOME/server.log 2>/dev/null`
 
 for PID in `echo $PROCIDS`
 do
@@ -14,6 +14,6 @@ echo "Building server..."
 go install pollyserver
 
 echo "Starting server..."
-pollyserver > /dev/null 2>&1 &
+pollyserver 2> /dev/null &
 
 echo "Server started."
