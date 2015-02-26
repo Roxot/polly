@@ -55,11 +55,17 @@ func (srv *HTTPServer) PostPoll(w http.ResponseWriter, r *http.Request,
 
 	// Validate poll (non-empty title, no votes (?), etc.)
 
-	err = srv.db.InsertPollData(&pollData)
+	err, isInternalErr := srv.db.InsertPollData(&pollData)
 	if err != nil {
-		srv.logger.Log("POST/POLL", fmt.Sprintf("Database error: %s.", err))
-		http.Error(w, "Database error.", 500)
-		return
+		if isInternalErr {
+			srv.logger.Log("POST/POLL", fmt.Sprintf("Database error: %s.", err))
+			http.Error(w, "Database error.", 500)
+			return
+		} else {
+			srv.logger.Log("POST/POLL", fmt.Sprintf("Bad poll: %s.", err))
+			http.Error(w, "Bad poll.", 400)
+			return
+		}
 	}
 
 	responseBody, err := json.MarshalIndent(pollData, "", "\t")
