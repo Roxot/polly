@@ -190,3 +190,25 @@
         }
 ```
 * Returns 400 BAD REQUEST if information is wrong, incomplete or absent.
+* Returns 500 INTERNAL SERVER ERROR if one occurs
+
+###GET api.polly.com/user/polls###
+* Requires the use of BasicAuth using the phone number and token as username and password.
+* Returns 200 OK for success, containing a list of polls and update time in JSON in the response body:
+```
+#!json
+{
+	"polls": [
+		{
+			"poll_id": 1123,
+			"last_updated": 1424980524
+		},
+
+                ....
+	]
+}
+```
+* Returns 400 BAD REQUEST if information is wrong, incomplete or absent.
+* Returns 500 INTERNAL SERVER ERROR if one occurs
+
+
