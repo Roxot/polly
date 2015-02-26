@@ -53,6 +53,8 @@ func (srv *HTTPServer) PostPoll(w http.ResponseWriter, r *http.Request,
 	// }
 
 	pollData.Creator.Id = user.Id
+	pollData.Creator.PhoneNumber = user.PhoneNumber
+	pollData.Creator.DisplayName = user.DisplayName
 	pollData.MetaData.CreationDate = time.Now().Unix()
 
 	// Validate poll (non-empty title, no votes (?), etc.)
