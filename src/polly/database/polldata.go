@@ -84,13 +84,19 @@ func (pollyDb Database) InsertPollData(pollData *PollData) error {
 		return err
 	}
 
-	for _, question := range pollData.Questions {
+	// Set server-side poll id
+	pollData.MetaData.PollId = poll.Id
+
+	for index, question := range pollData.Questions {
 		question.PollId = poll.Id
 		question.ClientId = question.Id
 		err = pollyDb.AddQuestion(&question)
 		if err != nil {
 			return err
 		}
+
+		// update question id
+		pollData.Questions[index].Id = question.Id
 	}
 
 OuterLoop:
@@ -108,11 +114,13 @@ OuterLoop:
 	}
 
 	// This is in a seperate loop so we can rollback easier later (?)
-	for _, option := range pollData.Options {
+	for index, option := range pollData.Options {
 		err = pollyDb.AddOption(&option)
 		if err != nil {
 			return err
 		}
+
+		pollData.Options[index] = option.Id
 	}
 
 	// TODO participants
