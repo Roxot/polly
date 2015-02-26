@@ -106,7 +106,7 @@ func (pollyDb Database) InsertPollData(pollData *PollData) (error, bool) {
 	for index, question := range pollData.Questions {
 		pollData.Questions[index].PollId = poll.Id
 		pollData.Questions[index].ClientId = question.Id
-		err = transaction.Insert(&(pollData.Questions[index]))
+		err = transaction.Insert(&question)
 		if err != nil {
 			rollbackErr := transaction.Rollback()
 			if rollbackErr != nil {
@@ -126,7 +126,7 @@ OuterLoop:
 			if option.QuestionId == question.ClientId {
 				pollData.Options[index].PollId = poll.Id
 				pollData.Options[index].QuestionId = question.Id
-				err = transaction.Insert(&(pollData.Options[index]))
+				err = transaction.Insert(&option)
 				if err != nil {
 					rollbackErr := transaction.Rollback()
 					if rollbackErr != nil {
@@ -135,6 +135,8 @@ OuterLoop:
 						return err, true
 					}
 				}
+
+				pollData.Options[index].Id = option.Id
 				continue OuterLoop
 			}
 		}
