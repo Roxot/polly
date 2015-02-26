@@ -72,16 +72,32 @@ func (pollyDb Database) RetrievePollData(pollId int) (PollData, error) {
 
 // TODO rollback if fails
 // Ignore votes
+// rollback err highest priority
 func (pollyDb Database) InsertPollData(pollData *PollData) (error, bool) {
 	var err error
+
+	transaction, err := pollyDb.dbMap.Begin()
+	if err != nil {
+		rollbackErr := transaction.Rollback()
+		if rollbackErr != nil {
+			return rollbackErr, true
+		} else {
+			return err, true
+		}
+	}
 
 	poll := Poll{
 		CreatorId:    pollData.Creator.Id,
 		CreationDate: pollData.MetaData.CreationDate,
 		Title:        pollData.MetaData.Title}
-	err = pollyDb.AddPoll(&poll)
+	err = transaction.Insert(&poll)
 	if err != nil {
-		return err, true
+		rollbackErr := transaction.Rollback()
+		if rollbackErr != nil {
+			return rollbackErr, true
+		} else {
+			return err, true
+		}
 	}
 
 	// Set server-side poll id
@@ -90,9 +106,14 @@ func (pollyDb Database) InsertPollData(pollData *PollData) (error, bool) {
 	for index, question := range pollData.Questions {
 		pollData.Questions[index].PollId = poll.Id
 		pollData.Questions[index].ClientId = question.Id
-		err = pollyDb.AddQuestion(&question)
+		err = transaction.Insert(&(pollData.Questions[index]))
 		if err != nil {
-			return err, true
+			rollbackErr := transaction.Rollback()
+			if rollbackErr != nil {
+				return rollbackErr, true
+			} else {
+				return err, true
+			}
 		}
 
 		// update question id
@@ -105,24 +126,36 @@ OuterLoop:
 			if option.QuestionId == question.ClientId {
 				pollData.Options[index].PollId = poll.Id
 				pollData.Options[index].QuestionId = question.Id
+				err = transaction.Insert(&(pollData.Options[index]))
+				if err != nil {
+					rollbackErr := transaction.Rollback()
+					if rollbackErr != nil {
+						return rollbackErr, true
+					} else {
+						return err, true
+					}
+				}
 				continue OuterLoop
 			}
 		}
 
 		// no matching question id found
-		return fmt.Errorf("No question found with id %d", option.Id), false
+		rollbackErr := transaction.Rollback()
+		if rollbackErr != nil {
+			return rollbackErr, true
+		} else {
+			return fmt.Errorf("No question found with id %d", option.Id), false
+		}
 	}
 
-	// This is in a seperate loop so we can rollback easier later (?)
-	for index, option := range pollData.Options {
-		err = pollyDb.AddOption(&option)
-		if err != nil {
-			return err, true
-		}
-
-		pollData.Options[index].Id = option.Id
+	// commit the transaction
+	err = transaction.Commit()
+	if err != nil {
+		return err, true
 	}
 
 	// TODO participants
+	// ...
+
 	return nil, false
 }
