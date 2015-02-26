@@ -99,6 +99,7 @@ func (srv *HTTPServer) GetPoll(w http.ResponseWriter, r *http.Request,
 	if err != nil {
 		srv.logger.Log("GET/POLL/XX", fmt.Sprintf("Bad id: %s", idString))
 		http.Error(w, "Bad id.", 400)
+		return
 	}
 
 	// TODO Maybe check whether legal more efficiently here
@@ -108,6 +109,7 @@ func (srv *HTTPServer) GetPoll(w http.ResponseWriter, r *http.Request,
 		srv.logger.Log("GET/POLL/XX", fmt.Sprintf("No poll with id %s: %s",
 			idString, err))
 		http.Error(w, "No such poll.", 400)
+		return
 	}
 
 	// TODO not only creator, also participants
@@ -116,6 +118,7 @@ func (srv *HTTPServer) GetPoll(w http.ResponseWriter, r *http.Request,
 			fmt.Sprintf("Illegal operation: retrieving poll from %s while being %s",
 				pollData.Creator.PhoneNumber, phoneNumber))
 		http.Error(w, "Illegal operation.", 400)
+		return
 	}
 
 	responseBody, err := json.MarshalIndent(pollData, "", "\t")
