@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"polly/database"
 	"strconv"
+	"time"
 
 	"github.com/julienschmidt/httprouter"
 )
@@ -52,6 +53,7 @@ func (srv *HTTPServer) PostPoll(w http.ResponseWriter, r *http.Request,
 	// }
 
 	pollData.Creator.Id = user.Id
+	pollData.MetaData.CreationDate = time.Now().Unix()
 
 	// Validate poll (non-empty title, no votes (?), etc.)
 
