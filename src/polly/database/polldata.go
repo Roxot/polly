@@ -14,7 +14,7 @@ type PollData struct {
 	Options      []Option     `json:"options"`
 	Votes        []Vote       `json:"votes, omitempty"`
 	Creator      User         `json:"creator, omitempty"`
-	Participants []User       `json:participants, omitempty`
+	Participants []User       `json:"participants, omitempty"`
 }
 
 func (pollyDb Database) RetrievePollData(pollId int) (PollData, error) {
