@@ -73,3 +73,12 @@ func (pollyDb Database) FindParticipantsByPollId(pollId int) (
 			cPollId), pollId)
 	return participants, err
 }
+
+func (pollydb Database) FindPollsByUserId(userId int) ([]Poll, error) {
+	var polls []Poll
+	_, err := pollydb.dbMap.Select(&polls,
+		fmt.Sprintf("select id from %s where %s=$1;", cPollTableName,
+			cCreatorId), userId)
+
+	return polls, err
+}
