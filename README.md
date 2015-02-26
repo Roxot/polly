@@ -204,11 +204,9 @@
 			"last_updated": 1424980524
 		},
 
-                ....
+        ...
 	]
 }
 ```
 * Returns 400 BAD REQUEST if information is wrong, incomplete or absent.
 * Returns 500 INTERNAL SERVER ERROR if one occurs
-
-
