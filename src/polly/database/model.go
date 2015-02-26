@@ -43,11 +43,11 @@ type Poll struct {
 }
 
 type Question struct {
-	Id       int    `json:"-"`
+	Id       int    `json:"id"`
 	PollId   int    `db:"poll_id" json:"-"`
 	Type     int    `json:"type"`
 	Title    string `json:"title"`
-	ClientId int    `db:"-" json:"id"`
+	ClientId int    `db:"-" json:"-"`
 }
 
 type Option struct {
