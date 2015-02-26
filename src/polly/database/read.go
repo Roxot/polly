@@ -43,7 +43,7 @@ func (pollyDb Database) FindQuestionsByPollId(pollId int) ([]Question,
 
 	var questions []Question
 	_, err := pollyDb.dbMap.Select(&questions,
-		fmt.Sprintf("select * for %s where %s = $1;", cQuestionTableName,
+		fmt.Sprintf("select * from %s where %s = $1;", cQuestionTableName,
 			cPollId), pollId)
 	return questions, err
 }
@@ -51,7 +51,7 @@ func (pollyDb Database) FindQuestionsByPollId(pollId int) ([]Question,
 func (pollyDb Database) FindOptionsByPollId(pollId int) ([]Option, error) {
 	var options []Option
 	_, err := pollyDb.dbMap.Select(&options,
-		fmt.Sprintf("select * for %s where %s = $1;", cOptionTableName,
+		fmt.Sprintf("select * from %s where %s = $1;", cOptionTableName,
 			cPollId), pollId)
 	return options, err
 }
@@ -59,7 +59,7 @@ func (pollyDb Database) FindOptionsByPollId(pollId int) ([]Option, error) {
 func (pollyDb Database) FindVotesByPollId(pollId int) ([]Vote, error) {
 	var votes []Vote
 	_, err := pollyDb.dbMap.Select(&votes,
-		fmt.Sprintf("select * for %s where %s = $1;", cVoteTableName, cPollId),
+		fmt.Sprintf("select * from %s where %s = $1;", cVoteTableName, cPollId),
 		pollId)
 	return votes, err
 }
@@ -69,7 +69,7 @@ func (pollyDb Database) FindParticipantsByPollId(pollId int) (
 
 	var participants []Participant
 	_, err := pollyDb.dbMap.Select(&participants,
-		fmt.Sprintf("select * for %s where %s = $1;", cParticipantTableName,
+		fmt.Sprintf("select * from %s where %s = $1;", cParticipantTableName,
 			cPollId), pollId)
 	return participants, err
 }
