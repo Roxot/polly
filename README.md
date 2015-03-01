@@ -210,3 +210,75 @@
 ```
 * Returns 400 BAD REQUEST if information is wrong, incomplete or absent.
 * Returns 500 INTERNAL SERVER ERROR if one occurs
+
+###GET api.polly.com/poll:###
+* Requires the use of BasicAuth using the phone number and token as username and password.
+* Reads the list of poll identifiers from the get parameter [id]. Example: GET http://api.polly.com/poll?id=0&id=1&id=2
+* Accepts a maximum of 10 poll identifiers.
+* Returns 200 OK for success, containing a list of polls and update time in JSON in the response body:
+```
+#!json
+    {
+        "polls" : [
+            {
+            "meta_data" : {
+                "id" : 283
+                "creation_date" : "1073029382"
+                "title" : "Filmpje doen"
+            },
+
+            "questions" : [
+                ...,
+
+                {
+                    "id" : 1231,
+                    "type" : 0,
+                    "title" : "Naar welke film gaan we vanavond?"
+                },
+
+                ...
+            ],
+
+            "options" : [
+                {
+                    "id" : 1923,
+                    "question_id" : 2,
+                    "value" : "The imitation game"
+                },
+
+                ...
+            ],
+
+            "creator" : {
+                "id" : 1073,                                                            <-- user id
+                "phone_number" : "0612345678",
+                "display_name" : "Polly Client"
+            },
+
+            "votes" : [
+                {
+                    "id" : 102309
+                    "option_id" : 1923
+                    "user_id" : 1073
+                },
+
+                ...
+            ],
+
+            "participants" : [
+                {
+                    "id" : 10298                                                        <-- user id
+                    "phone_number" : "0687654321"
+                    "display_name" : "Friend of Polly Client"
+                },
+
+                ...
+            ]
+
+        },
+
+        ...]
+    }
+```
+* Returns 400 BAD REQUEST if information is wrong, incomplete or absent.
+* Returns 500 INTERNAL SERVER ERROR if one occurs
