@@ -213,7 +213,7 @@
 
 ###GET api.polly.com/poll:###
 * Requires the use of BasicAuth using the phone number and token as username and password.
-* Reads the list of poll identifiers from the get parameter [id]. Example: GET http://api.polly.com/poll?id=0&id=1&id=2
+* Reads the list of poll identifiers from the GET parameter [id]. Example: GET http://api.polly.com/poll?id=0&id=1&id=2
 * Accepts a maximum of 10 poll identifiers.
 * Returns 200 OK for success, containing a list of polls and update time in JSON in the response body:
 ```
