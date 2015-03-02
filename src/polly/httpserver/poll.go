@@ -110,9 +110,9 @@ func (srv *HTTPServer) GetPollBulk(w http.ResponseWriter, r *http.Request,
 	}
 
 	ids := r.URL.Query()[cId]
-	if len(ids) > 10 {
+	if len(ids) > cBulkPollMax {
 		srv.logger.Log("GET/POLL",
-			fmt.Sprintf("Id list longer than limit: %d > %d", len(ids), 10))
+			fmt.Sprintf("Id list longer than limit: %d > %d", len(ids), cBulkPollMax))
 		http.Error(w, "Id list longer than limit", 400)
 		return
 	}
