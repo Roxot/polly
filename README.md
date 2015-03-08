@@ -77,7 +77,7 @@
         {
             "meta_data" : {
                 "poll_id" : 283                                              <-- Server-side id
-                "creation_date" : "1073029382"                          <-- Unix time
+                "creation_date" : 1073029382                          <-- Unix time
                 "title" : "Filmpje doen"
             },
 
@@ -135,7 +135,7 @@
         {
             "meta_data" : {
                 "id" : 283
-                "creation_date" : "1073029382"
+                "creation_date" : 1073029382
                 "title" : "Filmpje doen"
             },
 
@@ -223,7 +223,7 @@
             {
             "meta_data" : {
                 "id" : 283
-                "creation_date" : "1073029382"
+                "creation_date" : 1073029382
                 "title" : "Filmpje doen"
             },
 
