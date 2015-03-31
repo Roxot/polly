@@ -1,25 +1,25 @@
 package database
 
-func (pollyDb Database) AddUser(user *User) error {
-	return pollyDb.dbMap.Insert(user)
+func (db *Database) AddUser(user *PrivateUser) error {
+	return db.dbMap.Insert(user)
 }
 
-func (pollyDb Database) AddPoll(poll *Poll) error {
-	return pollyDb.dbMap.Insert(poll)
+func (db *Database) AddPoll(poll *Poll) error {
+	return db.dbMap.Insert(poll)
 }
 
-func (pollyDb Database) AddQuestion(question *Question) error {
-	return pollyDb.dbMap.Insert(question)
+func (db *Database) AddQuestion(question *Question) error {
+	return db.dbMap.Insert(question)
 }
 
-func (pollyDb Database) AddOption(option *Option) error {
-	return pollyDb.dbMap.Insert(option)
+func (db *Database) AddOption(option *Option) error {
+	return db.dbMap.Insert(option)
 }
 
-func (pollyDb Database) AddVote(vote *Vote) error {
-	return pollyDb.dbMap.Insert(vote)
+func (db *Database) AddVote(vote *Vote) error {
+	return db.dbMap.Insert(vote)
 }
 
-func (pollyDb Database) AddVerificationToken(vt *VerificationToken) error {
-	return pollyDb.dbMap.Insert(vt)
+func (db *Database) AddVerToken(vt *VerToken) error {
+	return db.dbMap.Insert(vt)
 }

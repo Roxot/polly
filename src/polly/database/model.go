@@ -1,38 +1,21 @@
 package database
 
-const (
-	cVerificationTokensTableName = "verification_tokens"
-	cUserTableName               = "users"
-	cPollTableName               = "polls"
-	cQuestionTableName           = "questions"
-	cOptionTableName             = "options"
-	cVoteTableName               = "votes"
-	cParticipantTableName        = "participants"
-	cPk                          = "Id"
-	cId                          = "id"
-	cPhoneNumber                 = "phone_number"
-	cToken                       = "token"
-	cDisplayName                 = "display_name"
-	cDeviceType                  = "device_type"
-	cDeviceGUID                  = "device_guid"
-	cCreatorId                   = "creator_id"
-	cCreationDate                = "creation_date"
-	cTitle                       = "title"
-	cPollId                      = "poll_id"
-	cQuestionId                  = "question_id"
-	cValue                       = "value"
-	cOptionalId                  = "optional_id"
-	cOptionId                    = "option_id"
-	cUserId                      = "user_id"
-)
-
-type User struct {
-	Id          int    `json:id`
+type PrivateUser struct {
+	Id          int    `json:"id"`
 	PhoneNumber string `db:"phone_number" json:"phone_number"`
-	Token       string `json:"-"`
+	Token       string `json:"token"`
 	DisplayName string `db:"dislay_name" json:"display_name"`
 	DeviceType  int    `db:"device_type" json:"-"`
 	DeviceGUID  string `db:"device_guid" json:"-"`
+}
+
+type PublicUser struct {
+	Id          int    `json:"id`
+	PhoneNumber string `json:"phone_number"`
+	Token       string `json:"-"`
+	DisplayName string `json:"display_name"`
+	DeviceType  int    `json:"-"`
+	DeviceGUID  string `json:"-"`
 }
 
 type Poll struct {
@@ -72,7 +55,7 @@ type Participant struct {
 	PollId int `db:"poll_id"`
 }
 
-type VerificationToken struct {
+type VerToken struct {
 	Id                int
 	PhoneNumber       string `db:"phone_number"`
 	VerificationToken string `db:"verification_token"`

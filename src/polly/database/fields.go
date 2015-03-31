@@ -1,0 +1,27 @@
+package database
+
+const (
+	cVerificationTokensTableName = "verification_tokens"
+	cUserTableName               = "users"
+	cPollTableName               = "polls"
+	cQuestionTableName           = "questions"
+	cOptionTableName             = "options"
+	cVoteTableName               = "votes"
+	cParticipantTableName        = "participants"
+	cPk                          = "Id"
+	cId                          = "id"
+	cPhoneNumber                 = "phone_number"
+	cToken                       = "token"
+	cDisplayName                 = "display_name"
+	cDeviceType                  = "device_type"
+	cDeviceGUID                  = "device_guid"
+	cCreatorId                   = "creator_id"
+	cCreationDate                = "creation_date"
+	cTitle                       = "title"
+	cPollId                      = "poll_id"
+	cQuestionId                  = "question_id"
+	cValue                       = "value"
+	cOptionalId                  = "optional_id"
+	cOptionId                    = "option_id"
+	cUserId                      = "user_id"
+)
