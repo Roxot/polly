@@ -69,7 +69,8 @@ func (srv *HTTPServer) VerifyRegister(w http.ResponseWriter, r *http.Request, _ 
 			http.Error(w, "Marshalling error.", 500)
 		}
 	} else {
-		// new user
+
+		/* We're dealing with a new user. */
 		user := database.User{}
 		user.PhoneNumber = phoneNumber
 		user.Token = uuid.NewV4().String()
