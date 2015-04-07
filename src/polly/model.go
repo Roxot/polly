@@ -1,4 +1,4 @@
-package database
+package polly
 
 type PrivateUser struct {
 	Id          int    `json:"id"`
@@ -12,10 +12,7 @@ type PrivateUser struct {
 type PublicUser struct {
 	Id          int    `json:"id`
 	PhoneNumber string `json:"phone_number"`
-	Token       string `json:"-"`
 	DisplayName string `json:"display_name"`
-	DeviceType  int    `json:"-"`
-	DeviceGUID  string `json:"-"`
 }
 
 type Poll struct {

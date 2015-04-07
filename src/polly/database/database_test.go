@@ -2,6 +2,7 @@ package database
 
 import (
 	"os"
+	"polly"
 	"polly/database"
 	"testing"
 )
@@ -17,7 +18,7 @@ const (
 func TestUsers(t *testing.T) {
 
 	// test adding a user
-	newUser1 := database.PrivateUser{}
+	newUser1 := polly.PrivateUser{}
 	newUser1.PhoneNumber = "0600112233"
 	newUser1.Token = "test_token"
 	newUser1.DisplayName = "Test User"
@@ -29,7 +30,7 @@ func TestUsers(t *testing.T) {
 	}
 
 	// test whether the id was set correctly
-	newUser2 := database.PrivateUser{}
+	newUser2 := polly.PrivateUser{}
 	newUser2.PhoneNumber = "061122334455"
 	newUser2.Token = "test_token_2"
 	newUser2.DisplayName = "Test User 2"
@@ -75,7 +76,7 @@ func TestUsers(t *testing.T) {
 	}
 
 	// test adding duplicate user
-	newUser3 := database.PrivateUser{}
+	newUser3 := polly.PrivateUser{}
 	newUser3.PhoneNumber = "0600112233"
 	newUser3.Token = "test_token_3"
 	newUser3.DisplayName = "Test User 3"
