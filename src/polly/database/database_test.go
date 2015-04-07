@@ -14,7 +14,7 @@ const (
 	cDbName = "pollytestdb"
 )
 
-func TestUser(t *testing.T) {
+func TestUsers(t *testing.T) {
 
 	// test adding a user
 	newUser1 := database.PrivateUser{}
@@ -77,19 +77,70 @@ func TestUser(t *testing.T) {
 	// test adding duplicate user
 	newUser3 := database.PrivateUser{}
 	newUser3.PhoneNumber = "0600112233"
-	newUser3.Token = "test_token"
-	newUser3.DisplayName = "Test User"
+	newUser3.Token = "test_token_3"
+	newUser3.DisplayName = "Test User 3"
 	newUser3.DeviceType = 1
-	newUser3.DeviceGUID = "PHONEGUID"
+	newUser3.DeviceGUID = "PHONEGUID3"
 	err = db.AddUser(&newUser3)
 	if err == nil {
 		t.Fatal("Was able to add a user with an already existing phone number.")
 	}
 
+	// test public user by id
+	gotUser3, err := db.PublicUserById(newUser2.Id)
+	if err != nil {
+		t.Fatalf("Unable to retrieve public user by id: %s.", err)
+	}
+
+	// test whether they matched
+	if (gotUser3.Id != newUser2.Id) ||
+		(gotUser3.PhoneNumber != newUser2.PhoneNumber) ||
+		(gotUser3.DisplayName != newUser2.DisplayName) {
+		t.Fatal("User found with PublicUserById did not match.")
+	}
+
+	// test public user by phone number
+	gotUser4, err := db.PublicUserByPhoneNumber(newUser2.PhoneNumber)
+	if err != nil {
+		t.Fatalf("Unable to retrieve public user by phone number: %s.", err)
+	}
+
+	// test whether they matched
+	if (gotUser4.Id != newUser2.Id) ||
+		(gotUser4.PhoneNumber != newUser2.PhoneNumber) ||
+		(gotUser4.DisplayName != newUser2.DisplayName) {
+		t.Fatal("User found with PublicUserById did not match.")
+	}
+
+	// clear the database
 	err = db.DropTablesIfExists()
 	if err != nil {
 		t.Fatal("Unable to clear database.")
 	}
+}
+
+func TestPolls(t *testing.T) {
+	t.SkipNow()
+}
+
+func TestQuestions(t *testing.T) {
+	t.SkipNow()
+}
+
+func TestOptions(t *testing.T) {
+	t.SkipNow()
+}
+
+func TestVotes(t *testing.T) {
+	t.SkipNow()
+}
+
+func TestParticipants(t *testing.T) {
+	t.SkipNow()
+}
+
+func TestVerTokens(t *testing.T) {
+	t.SkipNow()
 }
 
 func TestMain(m *testing.M) {
