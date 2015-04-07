@@ -19,6 +19,33 @@ func (db *Database) UserById(id int) (PrivateUser, error) {
 	return user, err
 }
 
+func (db *Database) PublicUserByPhoneNumber(phoneNumber string) (PublicUser,
+	error) {
+	pubUser := PublicUser{}
+	user, err := db.UserByPhoneNumber(phoneNumber)
+	if err != nil {
+		return pubUser, err
+	}
+
+	pubUser.Id = user.Id
+	pubUser.PhoneNumber = user.PhoneNumber
+	pubUser.DisplayName = user.DisplayName
+	return pubUser, nil
+}
+
+func (db *Database) PublicUserById(id int) (PublicUser, error) {
+	pubUser := PublicUser{}
+	user, err := db.UserById(id)
+	if err != nil {
+		return pubUser, err
+	}
+
+	pubUser.Id = user.Id
+	pubUser.PhoneNumber = user.PhoneNumber
+	pubUser.DisplayName = user.DisplayName
+	return pubUser, nil
+}
+
 func (db *Database) VerTokenByPhoneNumber(phoneNumber string) (VerToken,
 	error) {
 
