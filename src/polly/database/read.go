@@ -3,70 +3,87 @@ package database
 import (
 	"fmt"
 	"polly"
+
+	_ "github.com/lib/pq"
 )
 
-import _ "github.com/lib/pq"
-
-func (db *Database) UserByPhoneNumber(phoneNumber string) (polly.PrivateUser,
+func (db *Database) UserByPhoneNumber(phoneNo string) (*polly.PrivateUser,
 	error) {
 
-	var user polly.PrivateUser
-	err := db.dbMap.SelectOne(&user,
+	var usr polly.PrivateUser
+	err := db.dbMap.SelectOne(&usr,
 		fmt.Sprintf("select * from %s where %s=$1;", cUserTableName,
-			cPhoneNumber), phoneNumber)
-	return user, err
+			cPhoneNumber), phoneNo)
+	return &usr, err
 }
 
-func (db *Database) UserById(id int) (polly.PrivateUser, error) {
-	var user polly.PrivateUser
-	err := db.dbMap.SelectOne(&user,
+func (db *Database) UserById(id int) (*polly.PrivateUser, error) {
+	var usr polly.PrivateUser
+	err := db.dbMap.SelectOne(&usr,
 		fmt.Sprintf("select * from %s where %s=$1;", cUserTableName, cId), id)
-	return user, err
+	return &usr, err
 }
 
-func (db *Database) PublicUserByPhoneNumber(phoneNumber string) (
-	polly.PublicUser, error) {
+func (db *Database) PublicUserByPhoneNumber(phoneNo string) (
+	*polly.PublicUser, error) {
 
-	pubUser := polly.PublicUser{}
-	user, err := db.UserByPhoneNumber(phoneNumber)
+	pubUsr := polly.PublicUser{}
+	privUsr, err := db.UserByPhoneNumber(phoneNo)
 	if err != nil {
-		return pubUser, err
+		return nil, err
 	}
 
-	pubUser.Id = user.Id
-	pubUser.PhoneNumber = user.PhoneNumber
-	pubUser.DisplayName = user.DisplayName
-	return pubUser, nil
+	pubUsr.Id = privUsr.Id
+	pubUsr.PhoneNumber = privUsr.PhoneNumber
+	pubUsr.DisplayName = privUsr.DisplayName
+	return &pubUsr, nil
 }
 
-func (db *Database) PublicUserById(id int) (polly.PublicUser, error) {
-	pubUser := polly.PublicUser{}
-	user, err := db.UserById(id)
+func (db *Database) PublicUserById(id int) (*polly.PublicUser, error) {
+	pubUsr := polly.PublicUser{}
+	privUsr, err := db.UserById(id)
 	if err != nil {
-		return pubUser, err
+		return nil, err
 	}
 
-	pubUser.Id = user.Id
-	pubUser.PhoneNumber = user.PhoneNumber
-	pubUser.DisplayName = user.DisplayName
-	return pubUser, nil
+	pubUsr.Id = privUsr.Id
+	pubUsr.PhoneNumber = privUsr.PhoneNumber
+	pubUsr.DisplayName = privUsr.DisplayName
+	return &pubUsr, nil
 }
 
-func (db *Database) VerTokenByPhoneNumber(phoneNumber string) (polly.VerToken,
+func (db *Database) VerTokenByPhoneNumber(phoneNo string) (*polly.VerToken,
 	error) {
 
-	var vt polly.VerToken
-	err := db.dbMap.SelectOne(&vt,
+	var verTkn polly.VerToken
+	err := db.dbMap.SelectOne(&verTkn,
 		fmt.Sprintf("select * from %s where %s=$1;",
-			cVerificationTokensTableName, cPhoneNumber), phoneNumber)
-	return vt, err
+			cVerificationTokensTableName, cPhoneNumber), phoneNo)
+	return &verTkn, err
 }
 
-func (db *Database) PollById(id int) (polly.Poll, error) {
+func (db *Database) PollById(id int) (*polly.Poll, error) {
 	var poll polly.Poll
 	err := db.dbMap.SelectOne(&poll,
 		fmt.Sprintf("select * from %s where %s=$1;", cPollTableName, cId), id)
-	return poll, err
+	return &poll, err
+}
+
+/*
+ * Returns the ordered-by-last-updated list of poll objects with only the id
+ * and last updated fields filled in. Limits the results on the given limit
+ * and from the given offset.
+ */
+func (db *Database) PollSnapshotsByUserId(userId, limit, offset int) (
+	[]polly.PollSnapshot, error) {
+
+	var snapshots []polly.PollSnapshot
+	_, err := db.dbMap.Select(&snapshots, fmt.Sprintf(
+		"select %s.%s, %s.%s from %s, %s where %s.%s=%s.%s order by %s desc limit %d offset %d;",
+		cParticipantTableName, cPollId, cPollTableName, cLastUpdated,
+		cParticipantTableName, cPollTableName, cParticipantTableName,
+		cPollId, cPollTableName, cId, cLastUpdated, limit, offset))
+	return snapshots, err
 }
 
 func (db *Database) PollsByUserId(userId int) ([]polly.Poll, error) {
@@ -77,12 +94,12 @@ func (db *Database) PollsByUserId(userId int) ([]polly.Poll, error) {
 	return polls, err
 }
 
-func (db *Database) QuestionsByPollId(pollId int) ([]polly.Question, error) {
-	var questions []polly.Question
-	_, err := db.dbMap.Select(&questions,
+func (db *Database) QuestionByPollId(pollId int) (*polly.Question, error) {
+	var question polly.Question
+	err := db.dbMap.SelectOne(&question,
 		fmt.Sprintf("select * from %s where %s = $1;", cQuestionTableName,
 			cPollId), pollId)
-	return questions, err
+	return &question, err
 }
 
 func (db *Database) OptionsByPollId(pollId int) ([]polly.Option, error) {
@@ -96,11 +113,11 @@ func (db *Database) OptionsByPollId(pollId int) ([]polly.Option, error) {
 func (db *Database) ParticipantsByPollId(pollId int) (
 	[]polly.Participant, error) {
 
-	var participants []polly.Participant
-	_, err := db.dbMap.Select(&participants,
+	var partics []polly.Participant
+	_, err := db.dbMap.Select(&partics,
 		fmt.Sprintf("select * from %s where %s = $1;", cParticipantTableName,
 			cPollId), pollId)
-	return participants, err
+	return partics, err
 }
 
 func (db *Database) VotesByPollId(pollId int) ([]polly.Vote, error) {

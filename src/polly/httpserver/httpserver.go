@@ -10,41 +10,37 @@ import (
 )
 
 type HTTPServer struct {
-	db     database.Database
+	db     *database.Database
 	router *httprouter.Router
-	logger logger.Logger
+	logger *logger.Logger
 }
 
-func New(dbConfig database.DbConfig, clearDb bool) (HTTPServer, error) {
+func New(dbCfg *database.DbConfig, clearDb bool) (*HTTPServer, error) {
 	var err error
 	srv := HTTPServer{}
 
-	db, err := database.New(dbConfig)
+	db, err := database.New(dbCfg)
 	if err != nil {
-		return srv, err
+		return nil, err
 	}
 
 	if clearDb {
 		err = db.DropTablesIfExists()
 		if err != nil {
-			return srv, err
+			return nil, err
 		}
 	}
 
 	err = db.CreateTablesIfNotExists()
 	if err != nil {
-		return srv, err
+		return nil, err
 	}
 
 	srv.logger = logger.New()
 	srv.db = db
 	srv.router = httprouter.New()
 
-	return srv, nil
-}
-
-func (srv *HTTPServer) Database() *database.Database {
-	return &srv.db
+	return &srv, nil
 }
 
 // sync

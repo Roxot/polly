@@ -23,13 +23,13 @@ type DbConfig struct {
 	PsqlUserPass string
 }
 
-func New(dbConfig DbConfig) (*Database, error) {
+func New(dbCfg *DbConfig) (*Database, error) {
 	db := Database{}
 
 	// open the given postgres database
 	sqlDb, err := sql.Open("postgres",
 		fmt.Sprintf("user=%s password=%s dbname=%s sslmode=%s",
-			dbConfig.PsqlUser, dbConfig.PsqlUserPass, dbConfig.DbName,
+			dbCfg.PsqlUser, dbCfg.PsqlUserPass, dbCfg.DbName,
 			cSSLMode))
 
 	// return any errors
@@ -63,6 +63,10 @@ func (db *Database) CreateTablesIfNotExists() error {
 
 func (db *Database) DropTablesIfExists() error {
 	return db.dbMap.DropTablesIfExists()
+}
+
+func (db *Database) Begin() (*gorp.Transaction, error) {
+	return db.dbMap.Begin()
 }
 
 func (db *Database) Close() {

@@ -6,4 +6,5 @@ const (
 	cVerToken    = "verification_token"
 	cDeviceType  = "device_type"
 	cDisplayName = "display_name"
+	cPage        = "page"
 )

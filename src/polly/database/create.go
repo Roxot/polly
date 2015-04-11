@@ -22,6 +22,6 @@ func (db *Database) AddVote(vote *polly.Vote) error {
 	return db.dbMap.Insert(vote)
 }
 
-func (db *Database) AddVerToken(vt *polly.VerToken) error {
-	return db.dbMap.Insert(vt)
+func (db *Database) AddVerToken(verTkn *polly.VerToken) error {
+	return db.dbMap.Insert(verTkn)
 }

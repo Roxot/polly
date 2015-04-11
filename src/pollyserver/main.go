@@ -16,13 +16,13 @@ const (
 
 func main() {
 
-	dbConfig := database.DbConfig{}
-	dbConfig.PsqlUser = cPsqlUser
-	dbConfig.PsqlUserPass = cPsqlPass
-	dbConfig.DbName = cDbName
+	dbCfg := database.DbConfig{}
+	dbCfg.PsqlUser = cPsqlUser
+	dbCfg.PsqlUserPass = cPsqlPass
+	dbCfg.DbName = cDbName
 
 	log.Println("Opening database...")
-	srv, err := httpserver.New(dbConfig, cClearDb)
+	srv, err := httpserver.New(&dbCfg, cClearDb)
 	if err != nil {
 		panic(err)
 	} else {

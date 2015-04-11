@@ -1,5 +1,6 @@
 package httpserver
 
 const (
-	cBulkPollMax = 50
+	cBulkPollMax = 20
+	cPollListMax = 20
 )

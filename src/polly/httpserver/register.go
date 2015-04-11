@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"polly/database"
+	"polly"
 	"strconv"
 
 	"github.com/julienschmidt/httprouter"
@@ -12,39 +12,43 @@ import (
 )
 
 func (srv *HTTPServer) Register(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	phoneNumber := r.PostFormValue(cPhoneNumber)
-	if !isValidPhoneNumber(phoneNumber) {
+	phoneNo := r.PostFormValue(cPhoneNumber)
+	if !isValidPhoneNumber(phoneNo) {
 		srv.logger.Log("POST/REGISTER", fmt.Sprintf("Bad phone number: %s",
-			phoneNumber))
+			phoneNo))
 		http.Error(w, "Bad phone number.", 400)
+		return
 	} else {
-		vt := database.VerificationToken{}
-		vt.PhoneNumber = phoneNumber
-		vt.VerificationToken = "VERIFY"
-		srv.db.DeleteVerificationTokensByPhoneNumber(&vt)
-		err := srv.db.AddVerificationToken(&vt)
+		verTkn := polly.VerToken{}
+		verTkn.PhoneNumber = phoneNo
+		verTkn.VerificationToken = "VERIFY"
+		srv.db.DelVerTokensByPhoneNumber(phoneNo)
+		err := srv.db.AddVerToken(&verTkn)
 		if err != nil {
 			srv.logger.Log("POST/REGISTER", fmt.Sprintf("DATABASE ERROR: %s",
 				err))
 			http.Error(w, "Database error.", 500)
+			return
 		}
 	}
 }
 
-func (srv *HTTPServer) VerifyRegister(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	verificationToken := r.PostFormValue(cVerToken)
-	phoneNumber := r.PostFormValue(cPhoneNumber)
-	vt, err := srv.db.FindVerificationTokenByPhoneNumber(phoneNumber)
-	if err != nil || vt.VerificationToken != verificationToken {
+func (srv *HTTPServer) VerifyRegister(w http.ResponseWriter, r *http.Request,
+	_ httprouter.Params) {
+
+	retrVerTkn := r.PostFormValue(cVerToken)
+	phoneNo := r.PostFormValue(cPhoneNumber)
+	dbVerTkn, err := srv.db.VerTokenByPhoneNumber(phoneNo)
+	if err != nil || dbVerTkn.VerificationToken != retrVerTkn {
 		srv.logger.Log("POST/REGISTER/VERIFY",
 			fmt.Sprintf("Not registered or bad verification token: %s - %s",
-				phoneNumber, verificationToken))
+				phoneNo, retrVerTkn))
 		http.Error(w, "Not registered or bad verification token.", 400)
 		return
 	}
 
-	deviceType, err := strconv.Atoi(r.PostFormValue(cDeviceType))
-	if err != nil || deviceType < 0 || deviceType > 1 {
+	dvcType, err := strconv.Atoi(r.PostFormValue(cDeviceType))
+	if err != nil || dvcType < 0 || dvcType > 1 {
 		srv.logger.Log("POST/REGISTER/VERIFY",
 			fmt.Sprintf("Bad device type: %s",
 				r.PostFormValue("device_type")))
@@ -52,16 +56,13 @@ func (srv *HTTPServer) VerifyRegister(w http.ResponseWriter, r *http.Request, _ 
 		return
 	}
 
-	displayName := r.PostFormValue(cDisplayName)
-
-	srv.db.DeleteVerificationTokensByPhoneNumber(&vt)
-	user, err := srv.db.FindUserByPhoneNumber(phoneNumber)
+	dspName := r.PostFormValue(cDisplayName)
+	srv.db.DelVerTokensByPhoneNumber(phoneNo)
+	usr, err := srv.db.UserByPhoneNumber(phoneNo)
 	if err == nil {
 
 		/* We're dealing with an already existing user */
-		uwt := UserToUserWithToken(user)
-
-		responseBody, err := json.MarshalIndent(uwt, "", "\t")
+		responseBody, err := json.MarshalIndent(usr, "", "\t")
 		_, err = w.Write(responseBody)
 		if err != nil {
 			srv.logger.Log("POST/REGISTER/VERIFY",
@@ -71,12 +72,13 @@ func (srv *HTTPServer) VerifyRegister(w http.ResponseWriter, r *http.Request, _ 
 	} else {
 
 		/* We're dealing with a new user. */
-		user := database.User{}
-		user.PhoneNumber = phoneNumber
-		user.Token = uuid.NewV4().String()
-		user.DisplayName = displayName
-		user.DeviceType = deviceType
-		err = srv.db.AddUser(&user)
+		usr := polly.PrivateUser{}
+		usr.PhoneNumber = phoneNo
+		usr.Token = uuid.NewV4().String()
+		usr.DisplayName = dspName
+		usr.DeviceType = dvcType
+		usr.DeviceGUID = ""
+		err = srv.db.AddUser(&usr)
 		if err != nil {
 			srv.logger.Log("POST/REGISTER/VERIFY",
 				fmt.Sprintf("DATABASE ERROR: %s\n", err))
@@ -84,9 +86,7 @@ func (srv *HTTPServer) VerifyRegister(w http.ResponseWriter, r *http.Request, _ 
 			return
 		}
 
-		uwt := UserToUserWithToken(user)
-
-		responseBody, err := json.MarshalIndent(uwt, "", "\t")
+		responseBody, err := json.MarshalIndent(usr, "", "\t")
 		_, err = w.Write(responseBody)
 		if err != nil {
 			srv.logger.Log("POST/REGISTER/VERIFY",

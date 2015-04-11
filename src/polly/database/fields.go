@@ -17,6 +17,7 @@ const (
 	cDeviceGUID                  = "device_guid"
 	cCreatorId                   = "creator_id"
 	cCreationDate                = "creation_date"
+	cLastUpdated                 = "last_updated"
 	cTitle                       = "title"
 	cPollId                      = "poll_id"
 	cQuestionId                  = "question_id"

@@ -3,23 +3,36 @@ package httpserver
 import (
 	"fmt"
 	"net/http"
+	"polly"
 )
 
-func (srv *HTTPServer) authenticateUser(req *http.Request) error {
+func (srv *HTTPServer) authenticateRequest(req *http.Request) (
+	*polly.PrivateUser, error) {
 
-	phoneNumber, token, ok := req.BasicAuth()
+	phoneNo, tkn, ok := req.BasicAuth()
 	if !ok {
-		return fmt.Errorf("No authentication provided.")
+		return nil, fmt.Errorf("No authentication provided.")
 	}
 
-	user, err := srv.db.FindUserByPhoneNumber(phoneNumber)
+	usr, err := srv.db.UserByPhoneNumber(phoneNo)
 	if err != nil {
-		return fmt.Errorf("Unknown user: %s.", phoneNumber)
+		return nil, fmt.Errorf("Unknown user: %s.", phoneNo)
 	}
 
-	if user.Token != token {
-		return fmt.Errorf("Bad token.")
+	if usr.Token != tkn {
+		return nil, fmt.Errorf("Bad token.")
 	}
 
-	return nil
+	return usr, nil
+}
+
+func (srv *HTTPServer) hasPollAccess(usrId, pollId int) bool {
+	exists, err := srv.db.ExistsParticipant(usrId, pollId)
+	if err != nil {
+		srv.logger.Log("hasPollAccess",
+			"Somehow existsParticipant returned an error")
+		return false
+	}
+
+	return exists
 }

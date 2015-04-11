@@ -10,13 +10,14 @@ import (
 )
 
 type PollBulk struct {
-	Polls []database.PollData `json:"polls"`
+	Polls []PollMessage `json:"polls"`
 }
 
 func (srv *HTTPServer) GetPollBulk(w http.ResponseWriter, r *http.Request,
 	_ httprouter.Params) {
 
-	err := srv.authenticateUser(r)
+	// authenticate the request
+	usr, err := srv.authenticateRequest(r)
 	if err != nil {
 		srv.logger.Log("GET/POLL", fmt.Sprintf("Authentication error: %s",
 			err))
@@ -24,18 +25,21 @@ func (srv *HTTPServer) GetPollBulk(w http.ResponseWriter, r *http.Request,
 		return
 	}
 
+	// retrieve the list of identifiers
 	ids := r.URL.Query()[cId]
 	if len(ids) > cBulkPollMax {
-		srv.logger.Log("GET/POLL",
-			fmt.Sprintf("Id list longer than limit: %d > %d", len(ids), cBulkPollMax))
+		srv.logger.Log("GET/POLL", fmt.Sprintf(
+			"Id list longer than limit: %d > %d", len(ids), cBulkPollMax))
 		http.Error(w, "Id list longer than limit", 400)
 		return
 	}
 
+	// construct the PollBulk object
 	pollBulk := PollBulk{}
-	pollBulk.Polls = make([]database.PollData, len(ids))
-	for index, idString := range ids {
+	pollBulk.Polls = make([]PollMessage, len(ids))
+	for idx, idString := range ids {
 
+		// convert the id to an integer
 		id, err := strconv.Atoi(idString)
 		if err != nil {
 			srv.logger.Log("GET/POLL", fmt.Sprintf("Bad id: %s", idString))
@@ -43,7 +47,15 @@ func (srv *HTTPServer) GetPollBulk(w http.ResponseWriter, r *http.Request,
 			return
 		}
 
-		pollData, err := srv.db.RetrievePollData(id)
+		// make sure the user is authorized to receive the poll
+		if !srv.hasPollAccess(usr.Id, id) {
+			srv.logger.Log("GET/POLL", "User has no access rights to the poll.")
+			http.Error(w, "Illegal operation.", 400)
+			return
+		}
+
+		// construct the poll message
+		pollMsg, err := srv.ConstructPollMessage(id)
 		if err != nil {
 			srv.logger.Log("GET/POLL", fmt.Sprintf("No poll with id %s: %s",
 				idString, err))
@@ -51,16 +63,7 @@ func (srv *HTTPServer) GetPollBulk(w http.ResponseWriter, r *http.Request,
 			return
 		}
 
-		// TODO not only creator, also participants
-		if pollData.Creator.PhoneNumber != phoneNumber {
-			srv.logger.Log("GET/POLL",
-				fmt.Sprintf("Illegal operation: retrieving poll from %s while being %s",
-					pollData.Creator.PhoneNumber, phoneNumber))
-			http.Error(w, "Illegal operation.", 400)
-			return
-		}
-
-		pollBulk.Polls[index] = pollData
+		pollBulk.Polls[idx] = *pollMsg
 	}
 
 	responseBody, err := json.MarshalIndent(pollBulk, "", "\t")
