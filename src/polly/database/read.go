@@ -79,7 +79,8 @@ func (db *Database) PollSnapshotsByUserId(userId, limit, offset int) (
 
 	var snapshots []polly.PollSnapshot
 	_, err := db.dbMap.Select(&snapshots, fmt.Sprintf(
-		"select %s.%s, %s.%s from %s, %s where %s.%s=%s.%s order by %s desc limit %d offset %d;",
+		"select %s.%s, %s.%s from %s, %s where %s.%s=%s.%s order by %s desc "+
+			"limit %d offset %d;",
 		cParticipantTableName, cPollId, cPollTableName, cLastUpdated,
 		cParticipantTableName, cPollTableName, cParticipantTableName,
 		cPollId, cPollTableName, cId, cLastUpdated, limit, offset))
@@ -92,6 +93,14 @@ func (db *Database) PollsByUserId(userId int) ([]polly.Poll, error) {
 		fmt.Sprintf("select id from %s where %s=$1;", cPollTableName,
 			cCreatorId), userId)
 	return polls, err
+}
+
+func (db *Database) PollIdForOptionId(optionId int) (int, error) {
+	var option polly.Option
+	err := db.dbMap.SelectOne(&option,
+		fmt.Sprintf("select %s from %s where %s = $1;", cPollId,
+			cOptionTableName, cId), optionId)
+	return option.PollId, err
 }
 
 func (db *Database) QuestionByPollId(pollId int) (*polly.Question, error) {

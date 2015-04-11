@@ -1,6 +1,10 @@
 package database
 
-import "polly"
+import (
+	"polly"
+
+	"gopkg.in/gorp.v1"
+)
 
 func (db *Database) AddUser(user *polly.PrivateUser) error {
 	return db.dbMap.Insert(user)
@@ -20,6 +24,10 @@ func (db *Database) AddOption(option *polly.Option) error {
 
 func (db *Database) AddVote(vote *polly.Vote) error {
 	return db.dbMap.Insert(vote)
+}
+
+func AddVoteTx(vote *polly.Vote, transaction *gorp.Transaction) error {
+	return transaction.Insert(vote)
 }
 
 func (db *Database) AddVerToken(verTkn *polly.VerToken) error {

@@ -112,6 +112,7 @@ func (srv *HTTPServer) GetPoll(w http.ResponseWriter, r *http.Request,
 		srv.logger.Log("GET/POLL/XX",
 			fmt.Sprintf("MARSHALLING ERROR: %s\n", err))
 		http.Error(w, "Marshalling error.", 500)
+		return
 	}
 
 }

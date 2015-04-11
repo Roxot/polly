@@ -62,6 +62,7 @@ func (srv *HTTPServer) InsertPollMessage(pollMsg *PollMessage) error {
 	for i := 0; i < numOptions; i++ {
 		option := &(pollMsg.Options[i])
 		option.QuestionId = pollMsg.Question.Id
+		option.PollId = pollMsg.MetaData.Id
 		err = transaction.Insert(option)
 		if err != nil {
 			rollbackErr := transaction.Rollback()
