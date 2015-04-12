@@ -79,11 +79,12 @@ func (db *Database) PollSnapshotsByUserId(userId, limit, offset int) (
 
 	var snapshots []polly.PollSnapshot
 	_, err := db.dbMap.Select(&snapshots, fmt.Sprintf(
-		"select %s.%s, %s.%s from %s, %s where %s.%s=%s.%s order by %s desc "+
-			"limit %d offset %d;",
+		"select %s.%s, %s.%s from %s, %s where %s.%s=%s.%s and %s.%s=$1 order"+
+			" by %s desc limit %d offset %d;",
 		cParticipantTableName, cPollId, cPollTableName, cLastUpdated,
 		cParticipantTableName, cPollTableName, cParticipantTableName,
-		cPollId, cPollTableName, cId, cLastUpdated, limit, offset))
+		cPollId, cPollTableName, cId, cParticipantTableName, cUserId,
+		cLastUpdated, limit, offset), userId)
 	return snapshots, err
 }
 
