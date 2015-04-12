@@ -19,6 +19,7 @@ func (srv *HTTPServer) Vote(w http.ResponseWriter, r *http.Request,
 	if err != nil {
 		srv.logger.Log("POST/POLL", fmt.Sprintf("Authentication error: %s",
 			err))
+		w.Header().Set("WWW-authenticate", "Basic")
 		http.Error(w, "Authentication error", 401)
 		return
 	}

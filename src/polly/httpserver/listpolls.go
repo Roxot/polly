@@ -31,6 +31,7 @@ func (srv *HTTPServer) ListUserPolls(w http.ResponseWriter, r *http.Request,
 	if err != nil {
 		srv.logger.Log("USER/POLLS", fmt.Sprintf("Authentication error: %s",
 			err))
+		w.Header().Set("WWW-authenticate", "Basic")
 		http.Error(w, "Authentication error", 401)
 		return
 	}
