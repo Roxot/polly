@@ -18,7 +18,7 @@ func (srv *HTTPServer) PostPoll(w http.ResponseWriter, r *http.Request,
 	if err != nil {
 		srv.logger.Log("POST/POLL", fmt.Sprintf("Authentication error: %s",
 			err))
-		http.Error(w, "Authentication error", 400)
+		http.Error(w, "Authentication error", 401)
 		return
 	}
 
@@ -76,7 +76,7 @@ func (srv *HTTPServer) GetPoll(w http.ResponseWriter, r *http.Request,
 	if err != nil {
 		srv.logger.Log("GET/POLL/XX", fmt.Sprintf("Authentication error: %s",
 			err))
-		http.Error(w, "Authentication error", 400)
+		http.Error(w, "Authentication error", 401)
 		return
 	}
 
