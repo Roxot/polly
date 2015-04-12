@@ -51,7 +51,7 @@ func (srv *HTTPServer) GetPollBulk(w http.ResponseWriter, r *http.Request,
 		// make sure the user is authorized to receive the poll
 		if !srv.hasPollAccess(usr.Id, id) {
 			srv.logger.Log("GET/POLL", "User has no access rights to the poll.")
-			http.Error(w, "Illegal operation.", 400)
+			http.Error(w, "Illegal operation.", 403)
 			return
 		}
 

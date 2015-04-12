@@ -94,7 +94,7 @@ func (srv *HTTPServer) GetPoll(w http.ResponseWriter, r *http.Request,
 	// check whether the user has access rights to the poll
 	if !srv.hasPollAccess(usr.Id, pollId) {
 		srv.logger.Log("GET/POLL/XX", "User has no access rights to the poll.")
-		http.Error(w, "Illegal operation.", 400)
+		http.Error(w, "Illegal operation.", 403)
 		return
 	}
 

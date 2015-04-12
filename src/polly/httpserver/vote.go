@@ -46,7 +46,7 @@ func (srv *HTTPServer) Vote(w http.ResponseWriter, r *http.Request,
 	// make sure the user is allowed to vote
 	if !srv.hasPollAccess(usr.Id, pollId) {
 		srv.logger.Log("POST/VOTE", "User has no access rights to the poll.")
-		http.Error(w, "Illegal operation.", 400)
+		http.Error(w, "Illegal operation.", 403)
 		return
 	}
 
