@@ -197,59 +197,95 @@
 * Returns 200 OK for success, containing a list of polls and update time in JSON in the response body:
 ```
 #!json
-    {
-        "polls" : [
-            {
-                "meta_data": {
-                    "poll_id": 1,
-                    "creator_id": 1,
-                    "creation_date": 1428938112,
-                    "last_updated": 1428938164,
-                    "title": "Filmpje doen"
-                },
-                "question": {
-                    "id": 1,
-                    "type": 0,
-                    "title": "Naar welke film gaan we vanavond?"
-                },
-                "options": [
-                    {
-                        "id": 1,
-                        "question_id": 1,
-                        "value": "The imitation game"
+        {
+            "polls" : [
+                {
+                    "meta_data": {
+                        "poll_id": 1,
+                        "creator_id": 1,
+                        "creation_date": 1428938112,
+                        "last_updated": 1428938164,
+                        "title": "Filmpje doen"
                     },
-                    {
-                        "id": 2,
-                        "question_id": 1,
-                        "value": "American Sniper"
-                    },
-                    {
-                        "id": 3,
-                        "question_id": 1,
-                        "value": "Jupiter Ascend"
-                    }
-                ],
-                "votes": [
-                    {
-                        "id": 5,                                             <-- Server-side ID
-                        "option_id": 2,                                      <-- Corresponding server-side option ID 
-                        "user_id": 1,                                        <-- User-ID of the user who voted
-                        "creation_date": 1428938164                          <-- Unix time
-                    }
-                ],
-                "participants": [
-                    {
+                    "question": {
                         "id": 1,
-                        "phone_number": "0622197479",
-                        "display_name": "Bryan Eikema"
-                    }
-                ]
-            },   
+                        "type": 0,
+                        "title": "Naar welke film gaan we vanavond?"
+                    },
+                    "options": [
+                        {
+                            "id": 1,
+                            "question_id": 1,
+                            "value": "The imitation game"
+                        },
+                        {
+                            "id": 2,
+                            "question_id": 1,
+                            "value": "American Sniper"
+                        },
+                        {
+                            "id": 3,
+                            "question_id": 1,
+                            "value": "Jupiter Ascend"
+                        }
+                    ],
+                    "votes": [
+                        {
+                            "id": 5,                                       
+                            "option_id": 2,                                    
+                            "user_id": 1,                                  
+                            "creation_date": 1428938164                       
+                        }
+                    ],
+                    "participants": [
+                        {
+                            "id": 1,
+                            "phone_number": "0622197479",
+                            "display_name": "Bryan Eikema"
+                        }
+                    ]
+                },   
 
-        ...]
-    }
+            ...]
+        }
 ```
 * Returns 400 BAD REQUEST if information is wrong, incomplete or absent.
 * Returns 401 UNAUTHORIZED if no authentication is provided.
 * Returns 403 FORBIDDEN when trying to access a poll in which the authorized user is no participant
 * Returns 500 INTERNAL SERVER ERROR if one occurs
+
+###POST api.polly.com/vote:###
+* Requires the use of BasicAuth using the phone number and token as username and password, both preemptive and non-preemptive are supported.
+* Request body should contain JSON of the form:
+```
+#!json
+        {
+            "type" : 0,                                                       <-- 0 = new option, 1 = upvote
+            "id" : 10,                                                        <-- Contains question ID for a new option, option ID for an upvote
+            "value" : "New option"                                            <-- Contains the value of the new option, can be omitted for an upvote
+        }
+
+```
+* Returns 200 OK for success, containing inserted vote and, if appropriate, the inserted option:
+```
+#!json
+        {
+            "option": {                                                       <-- Omitted when type was 0
+                "id": 53,                                                     <-- Server-side ID of the new option
+                "question_id": 1,
+                "value": "New option"
+            },
+            "vote": {
+                "id": 1352,                                                   <-- Server-side ID of the vote
+                "option_id": 53,
+                "user_id": 1,                                                 <-- Server-side ID of the voter
+                "creation_date": 1428949613                                   <-- Unix time
+            }
+        }
+```
+* Returns 401 UNAUTHORIZED if no authentication is provided.
+* Returns 403 FORBIDDEN when trying to access a poll in which the authorized user is no participant
+* Returns 500 INTERNAL SERVER ERROR if one occurs
+
+
+
