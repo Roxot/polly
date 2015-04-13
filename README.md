@@ -170,16 +170,20 @@
 * Returns 200 OK for success, containing a list of polls and update time in JSON in the response body:
 ```
 #!json
-{
-	"polls": [
-		{
-			"poll_id": 1123,
-			"last_updated": 1424980524
-		},
-
-        ...
-	]
-}
+            {
+                "polls": [
+                    {
+                        "poll_id": 1,
+                        "last_updated": 1428938164
+                    },
+                     
+                    ...
+                ],
+                "page": 1,                       
+                "page_size": 20,
+                "num_results": 3,
+                "total": 3
+            }
 ```
 * Returns 400 BAD REQUEST if information is wrong, incomplete or absent.
 * Returns 500 INTERNAL SERVER ERROR if one occurs
