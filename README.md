@@ -65,40 +65,40 @@
 #!json        
         {
             "meta_data": {
-                "poll_id": 5,                                   <-- Server-side poll ID
-                "creator_id": 1,                                <-- Creator Id, thus the sender's user ID
-                "creation_date": 1428946988,                    <-- Unix time
-                "last_updated": 1428946988,                     <-- Unix time
+                "poll_id": 5,                                           <-- Server-side poll ID
+                "creator_id": 1,                                        <-- Creator Id, thus the sender's user ID
+                "creation_date": 1428946988,                            <-- Unix time
+                "last_updated": 1428946988,                             <-- Unix time
                 "title": "Filmpje doen"
             },
             "question": {
-                "id": 5,                                        <-- Server-side question ID
+                "id": 5,                                                <-- Server-side question ID
                 "type": 0,
                 "title": "Naar welke film gaan we vanavond?"
             },
             "options": [
                 {
-                    "id": 29,                                    <-- Server-side option ID
+                    "id": 29,                                            <-- Server-side option ID
                     "question_id": 5,
                     "value": "The imitation game"
                 },
                 {
-                    "id": 30,                                    <-- Server-side option ID
+                    "id": 30,                                            <-- Server-side option ID
                     "question_id": 5,
                     "value": "American Sniper"
                 },
                 {
-                    "id": 31,                                    <-- Server-side option ID
+                    "id": 31,                                            <-- Server-side option ID
                     "question_id": 5,
                     "value": "Jupiter Ascend"
                 }
             ],
-            "votes": [],                                         <-- Always empty
+            "votes": [],                                                 <-- Always empty
             "participants": [
                 {
                     "id": 1,                                 
-                    "phone_number": "0622197479",                <-- User's phone number filled in
-                    "display_name": "Bryan Eikema"               <-- User's display name filled in
+                    "phone_number": "0622197479",                        <-- User's phone number filled in
+                    "display_name": "Bryan Eikema"                       <-- User's display name filled in
                 }
             ]
 }
