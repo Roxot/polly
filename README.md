@@ -101,7 +101,8 @@
                     "display_name": "Bryan Eikema"               <-- User's display name filled in
                 }
             ]
-}```
+}
+```
 * Returns 400 BAD REQUEST if information is wrong, incomplete or absent.
 * Returns 401 UNAUTHORIZED if no authentication is provided.
 * Returns 500 INTERNAL SERVER ERROR if one occurs
