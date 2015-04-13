@@ -114,63 +114,55 @@
 ```
 #!json
         {
-            "meta_data" : {
-                "id" : 283
-                "creation_date" : 1073029382
-                "title" : "Filmpje doen"
+            "meta_data": {
+                "poll_id": 1,
+                "creator_id": 1,
+                "creation_date": 1428938112,
+                "last_updated": 1428938164,
+                "title": "Filmpje doen"
             },
-
-            "questions" : [
-                ...,
-
-                {
-                    "id" : 1231,
-                    "type" : 0,
-                    "title" : "Naar welke film gaan we vanavond?"
-                },
-
-                ...
-            ],
-
-            "options" : [
-                {
-                    "id" : 1923,
-                    "question_id" : 2,
-                    "value" : "The imitation game"
-                },
-
-                ...
-            ],
-
-            "creator" : {
-                "id" : 1073,                                                            <-- user id
-                "phone_number" : "0612345678",
-                "display_name" : "Polly Client"
+            "question": {
+                "id": 1,
+                "type": 0,
+                "title": "Naar welke film gaan we vanavond?"
             },
-
-            "votes" : [
+            "options": [
                 {
-                    "id" : 102309
-                    "option_id" : 1923
-                    "user_id" : 1073
+                    "id": 1,
+                    "question_id": 1,
+                    "value": "The imitation game"
                 },
-
-                ...
+                {
+                    "id": 2,
+                    "question_id": 1,
+                    "value": "American Sniper"
+                },
+                {
+                    "id": 3,
+                    "question_id": 1,
+                    "value": "Jupiter Ascend"
+                }
             ],
-
-            "participants" : [
+            "votes": [
                 {
-                    "id" : 10298                                                        <-- user id
-                    "phone_number" : "0687654321"
-                    "display_name" : "Friend of Polly Client"
-                },
-
-                ...
+                    "id": 5,                                            <-- Server-side ID
+                    "option_id": 2,                                     <-- Corresponding server-side option ID 
+                    "user_id": 1,                                       <-- User-ID of the user who voted
+                    "creation_date": 1428938164                         <-- Unix time
+                }
+            ],
+            "participants": [
+                {
+                    "id": 1,
+                    "phone_number": "0622197479",
+                    "display_name": "Bryan Eikema"
+                }
             ]
-
-        }
+        }   
 ```
 * Returns 400 BAD REQUEST if information is wrong, incomplete or absent.
+* Returns 401 UNAUTHORIZED if no authentication is provided.
+* Returns 403 FORBIDDEN when trying to access a poll in which the authorized user is no participant
 * Returns 500 INTERNAL SERVER ERROR if one occurs
 
 ###GET api.polly.com/user/polls###
