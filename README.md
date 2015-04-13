@@ -180,10 +180,10 @@
                  
                 ...
             ],
-            "page": 1,                                               <-- The page number of this response
-            "page_size": 20,                                         <-- The maximum page size
-            "num_results": 3,                                        <-- The number of results returned in this request
-            "total": 3                                               <-- The total number of results on the server
+            "page": 1,                                                   <-- The page number of this response
+            "page_size": 20,                                             <-- The maximum page size
+            "num_results": 3,                                            <-- The number of results returned in this request
+            "total": 3                                                   <-- The total number of results on the server
         }
 ```
 * Returns 400 BAD REQUEST if information is wrong, incomplete or absent.
