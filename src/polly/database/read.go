@@ -104,6 +104,14 @@ func (db *Database) PollIdForOptionId(optionId int) (int, error) {
 	return option.PollId, err
 }
 
+func (db *Database) PollIdForQuestionId(questionId int) (int, error) {
+	var question polly.Question
+	err := db.dbMap.SelectOne(&question,
+		fmt.Sprintf("select %s from %s where %s = $1;", cPollId,
+			cQuestionTableName, cId), questionId)
+	return question.PollId, err
+}
+
 func (db *Database) QuestionByPollId(pollId int) (*polly.Question, error) {
 	var question polly.Question
 	err := db.dbMap.SelectOne(&question,

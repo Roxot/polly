@@ -22,6 +22,12 @@ func (db *Database) AddOption(option *polly.Option) error {
 	return db.dbMap.Insert(option)
 }
 
+func (db *Database) AddOptionTx(option *polly.Option,
+	transaction *gorp.Transaction) error {
+
+	return transaction.Insert(option)
+}
+
 func (db *Database) AddVote(vote *polly.Vote) error {
 	return db.dbMap.Insert(vote)
 }
