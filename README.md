@@ -260,9 +260,9 @@
 ```
 #!json
         {
-            "type" : 0,                                                       <-- 0 = new option, 1 = upvote
-            "id" : 10,                                                        <-- Contains question ID for a new option, option ID for an upvote
-            "value" : "New option"                                            <-- Contains the value of the new option, can be omitted for an upvote
+            "type" : 0,                                                  <-- 0 = new option, 1 = upvote
+            "id" : 10,                                                   <-- Contains question ID for a new option, option ID for an upvote
+            "value" : "New option"                                       <-- Contains the value of the new option, can be omitted for an upvote
         }
 
 ```
@@ -270,16 +270,16 @@
 ```
 #!json
         {
-            "option": {                                                       <-- Omitted when type was 0
-                "id": 53,                                                     <-- Server-side ID of the new option
+            "option": {                                                   <-- Omitted when type was 0
+                "id": 53,                                                 <-- Server-side ID of the new option
                 "question_id": 1,
                 "value": "New option"
             },
             "vote": {
-                "id": 1352,                                                   <-- Server-side ID of the vote
+                "id": 1352,                                               <-- Server-side ID of the vote
                 "option_id": 53,
-                "user_id": 1,                                                 <-- Server-side ID of the voter
-                "creation_date": 1428949613                                   <-- Unix time
+                "user_id": 1,                                             <-- Server-side ID of the voter
+                "creation_date": 1428949613                               <-- Unix time
             }
         }
 ```
