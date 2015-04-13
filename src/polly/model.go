@@ -49,10 +49,11 @@ type Option struct {
 }
 
 type Vote struct {
-	Id       int `json:"id"`
-	PollId   int `db:"poll_id" json:"-"`
-	OptionId int `db:"option_id" json:"option_id"`
-	UserId   int `db:"user_id" json:"user_id"`
+	Id           int   `json:"id"`
+	PollId       int   `db:"poll_id" json:"-"`
+	OptionId     int   `db:"option_id" json:"option_id"`
+	UserId       int   `db:"user_id" json:"user_id"`
+	CreationDate int64 `db:"creation_date" json:"creation_date"`
 }
 
 type Participant struct {

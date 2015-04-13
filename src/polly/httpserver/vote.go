@@ -133,6 +133,7 @@ func (srv *HTTPServer) Vote(w http.ResponseWriter, r *http.Request,
 
 	// insert the vote into the database
 	vote := polly.Vote{}
+	vote.CreationDate = time.Now().Unix()
 	vote.OptionId = optionId
 	vote.PollId = pollId
 	vote.UserId = usr.Id
