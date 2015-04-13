@@ -145,10 +145,10 @@
             ],
             "votes": [
                 {
-                    "id": 5,                                            <-- Server-side ID
-                    "option_id": 2,                                     <-- Corresponding server-side option ID 
-                    "user_id": 1,                                       <-- User-ID of the user who voted
-                    "creation_date": 1428938164                         <-- Unix time
+                    "id": 5,                                             <-- Server-side ID
+                    "option_id": 2,                                      <-- Corresponding server-side option ID 
+                    "user_id": 1,                                        <-- User-ID of the user who voted
+                    "creation_date": 1428938164                          <-- Unix time
                 }
             ],
             "participants": [
