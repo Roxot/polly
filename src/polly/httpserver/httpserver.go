@@ -51,13 +51,13 @@ func (srv *HTTPServer) Start(port string) error {
 		return err
 	}
 
-	srv.router.POST("/register", srv.Register)
-	srv.router.POST("/register/verify", srv.VerifyRegister)
-	srv.router.POST("/poll", srv.PostPoll)
-	srv.router.POST("/vote", srv.Vote)
-	srv.router.GET("/user/polls", srv.ListUserPolls)
-	srv.router.GET(fmt.Sprintf("/poll/:%s", cId), srv.GetPoll)
-	srv.router.GET("/poll", srv.GetPollBulk)
+	srv.router.POST("/api/v1/register", srv.Register)
+	srv.router.POST("/api/v1/register/verify", srv.VerifyRegister)
+	srv.router.POST("/api/v1/poll", srv.PostPoll)
+	srv.router.POST("/api/v1/vote", srv.Vote)
+	srv.router.GET("/api/v1/user/polls", srv.ListUserPolls)
+	srv.router.GET(fmt.Sprintf("/api/v1/poll/:%s", cId), srv.GetPoll)
+	srv.router.GET("/api/v1/poll", srv.GetPollBulk)
 	err = http.ListenAndServe(port, srv.router)
 	return err
 }
