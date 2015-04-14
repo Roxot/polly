@@ -22,11 +22,10 @@ type PublicUser struct {
 }
 
 type Poll struct {
-	Id           int    `json:"poll_id"`
-	CreatorId    int    `db:"creator_id" json:"creator_id"`
-	CreationDate int64  `db:"creation_date" json:"creation_date"`
-	LastUpdated  int64  `db:"last_updated" json:"last_updated"`
-	Title        string `json:"title"`
+	Id           int   `json:"poll_id"`
+	CreatorId    int   `db:"creator_id" json:"creator_id"`
+	CreationDate int64 `db:"creation_date" json:"creation_date"`
+	LastUpdated  int64 `db:"last_updated" json:"last_updated"`
 }
 
 type PollSnapshot struct {

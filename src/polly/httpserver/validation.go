@@ -36,13 +36,6 @@ func isValidPhoneNumber(phoneNo string) bool {
 func isValidPollMessage(db *database.Database, pollMsg *PollMessage,
 	creatorId int) bool {
 
-	// make sure all necessary fields are not empty
-	if len(pollMsg.MetaData.Title) == 0 ||
-		pollMsg.Participants == nil || len(pollMsg.Participants) == 0 {
-
-		return false
-	}
-
 	// validate question type has fitting options
 	switch pollMsg.Question.Type {
 	case polly.QUESTION_TYPE_MC:
