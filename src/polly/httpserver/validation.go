@@ -1,6 +1,7 @@
 package httpserver
 
 import (
+	"errors"
 	"polly"
 	"polly/database"
 	"unicode"
@@ -34,26 +35,33 @@ func isValidPhoneNumber(phoneNo string) bool {
  * set in this function as well.
  */
 func isValidPollMessage(db *database.Database, pollMsg *PollMessage,
-	creatorId int) bool {
+	creatorId int) error {
 
 	// validate question type has fitting options
 	switch pollMsg.Question.Type {
 	case polly.QUESTION_TYPE_MC:
 		if pollMsg.Options == nil || len(pollMsg.Options) == 0 {
-			return false
-		}
-
-		for _, opt := range pollMsg.Options {
-			if len(opt.Value) == 0 {
-				return false
-			}
+			return errors.New("Empty options list.")
 		}
 	case polly.QUESTION_TYPE_OP:
 		if pollMsg.Options != nil && len(pollMsg.Options) > 0 {
-			return false
+			return errors.New("Non-empty option list in open question.")
 		}
 	case polly.QUESTION_TYPE_DT:
 		// TODO no support yet for date polls
+	}
+
+	// don't accept empty question titles
+	if len(pollMsg.Question.Title) == 0 {
+		return errors.New("Empty question title.")
+	}
+
+	// don't accept empty option values
+	numOptions := len(pollMsg.Options)
+	for i := 0; i < numOptions; i++ {
+		if len(pollMsg.Options[i].Value) == 0 {
+			return errors.New("Empty value field in option object.")
+		}
 	}
 
 	containsCreator := false
@@ -64,13 +72,13 @@ func isValidPollMessage(db *database.Database, pollMsg *PollMessage,
 		// check for duplicate participants
 		_, ok := particMap[pollMsg.Participants[i].Id]
 		if ok {
-			return false
+			return errors.New("Duplicate participant.")
 		}
 
 		// check if user exists
 		dbUser, err := db.UserById(pollMsg.Participants[i].Id)
 		if err != nil {
-			return false
+			return errors.New("Unknown participant.")
 		} else {
 			pollMsg.Participants[i].DisplayName = dbUser.DisplayName
 			pollMsg.Participants[i].PhoneNumber = dbUser.PhoneNumber
@@ -87,8 +95,8 @@ func isValidPollMessage(db *database.Database, pollMsg *PollMessage,
 
 	// make sure user is a participant
 	if !containsCreator {
-		return false
+		return errors.New("Creator not in participants list.")
 	}
 
-	return true
+	return nil
 }

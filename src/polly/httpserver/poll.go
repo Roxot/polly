@@ -34,8 +34,9 @@ func (srv *HTTPServer) PostPoll(w http.ResponseWriter, r *http.Request,
 	}
 
 	// validate the poll
-	if !isValidPollMessage(srv.db, &pollMsg, usr.Id) {
-		srv.logger.Log("POST/POLL", fmt.Sprintf("Invalid poll message"))
+	if err := isValidPollMessage(srv.db, &pollMsg, usr.Id); err != nil {
+		srv.logger.Log("POST/POLL", fmt.Sprintf("Invalid poll message: %s",
+			err))
 		http.Error(w, "Bad poll.", 400)
 		return
 	}
