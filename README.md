@@ -33,10 +33,6 @@
 ```
 #!json
         {
-            "meta_data" : {
-                "title" : "Filmpje doen"                                <-- May not be empty
-            },
-
             "question" : {
                     "type" : 0,                                         <-- 0 = multiple_choice, 1 = open, 2 = date
                     "title" : "Naar welke film gaan we vanavond?"       <-- May not be empty
