@@ -3,6 +3,7 @@ package httpserver
 import (
 	"encoding/json"
 	"fmt"
+	"net"
 	"net/http"
 	"polly"
 	"strconv"
@@ -29,8 +30,9 @@ func (srv *HTTPServer) ListUserPolls(w http.ResponseWriter, r *http.Request,
 	// authenticate the user
 	usr, err := srv.authenticateRequest(r)
 	if err != nil {
+		h, _, _ := net.SplitHostPort(r.RemoteAddr)
 		srv.logger.Log("USER/POLLS", fmt.Sprintf("Authentication error: %s",
-			err))
+			err), h)
 		w.Header().Set("WWW-authenticate", "Basic")
 		http.Error(w, "Authentication error", 401)
 		return
@@ -45,7 +47,9 @@ func (srv *HTTPServer) ListUserPolls(w http.ResponseWriter, r *http.Request,
 		pageStr := pageStrings[0]
 		page, err = strconv.Atoi(pageStr)
 		if err != nil {
-			srv.logger.Log("USER/POLLS", fmt.Sprintf("Bad page: %s", pageStr))
+			h, _, _ := net.SplitHostPort(r.RemoteAddr)
+			srv.logger.Log("USER/POLLS", fmt.Sprintf("Bad page: %s", pageStr),
+				h)
 			http.Error(w, "Bad page.", 400)
 			return
 		}
@@ -58,7 +62,9 @@ func (srv *HTTPServer) ListUserPolls(w http.ResponseWriter, r *http.Request,
 	snapshots, err := srv.db.PollSnapshotsByUserId(usr.Id, cPollListMax,
 		offset)
 	if err != nil {
-		srv.logger.Log("USER/POLLS", fmt.Sprintf("No polls for user: %s", err))
+		h, _, _ := net.SplitHostPort(r.RemoteAddr)
+		srv.logger.Log("USER/POLLS", fmt.Sprintf("No polls for user: %s", err),
+			h)
 		http.Error(w, "Database error.", 500) // TODO when does this happen?
 		return
 	}
@@ -75,8 +81,9 @@ func (srv *HTTPServer) ListUserPolls(w http.ResponseWriter, r *http.Request,
 	responseBody, err := json.MarshalIndent(pollList, "", "\t")
 	_, err = w.Write(responseBody)
 	if err != nil {
+		h, _, _ := net.SplitHostPort(r.RemoteAddr)
 		srv.logger.Log("USER/POLLS",
-			fmt.Sprintf("MARSHALLING ERROR: %s\n", err))
+			fmt.Sprintf("MARSHALLING ERROR: %s\n", err), h)
 		http.Error(w, "Marshalling error.", 500)
 	}
 }

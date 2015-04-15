@@ -30,7 +30,7 @@ func (srv *HTTPServer) hasPollAccess(usrId, pollId int) bool {
 	exists, err := srv.db.ExistsParticipant(usrId, pollId)
 	if err != nil {
 		srv.logger.Log("hasPollAccess",
-			"Somehow existsParticipant returned an error")
+			"Somehow existsParticipant returned an error", "hasPollAccess")
 		return false
 	}
 

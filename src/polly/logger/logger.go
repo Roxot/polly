@@ -61,7 +61,7 @@ func (logger *Logger) Stop() {
 	logger.quitChan <- 1
 }
 
-func (logger *Logger) Log(tag, message string) {
-	logger.logChan <- fmt.Sprintf("%s: [%s] %s\n",
-		time.Now().Format(cTimeFormat), tag, message)
+func (logger *Logger) Log(tag, message, origin string) {
+	logger.logChan <- fmt.Sprintf("%s: [%s] %s (%s)\n",
+		time.Now().Format(cTimeFormat), tag, message, origin)
 }

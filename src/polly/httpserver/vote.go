@@ -3,6 +3,7 @@ package httpserver
 import (
 	"encoding/json"
 	"fmt"
+	"net"
 	"net/http"
 	"polly"
 	"polly/database"
@@ -33,8 +34,9 @@ func (srv *HTTPServer) Vote(w http.ResponseWriter, r *http.Request,
 	// authenticate the user
 	usr, err := srv.authenticateRequest(r)
 	if err != nil {
+		h, _, _ := net.SplitHostPort(r.RemoteAddr)
 		srv.logger.Log("POST/POLL", fmt.Sprintf("Authentication error: %s",
-			err))
+			err), h)
 		w.Header().Set("WWW-authenticate", "Basic")
 		http.Error(w, "Authentication error", 401)
 		return
@@ -45,7 +47,8 @@ func (srv *HTTPServer) Vote(w http.ResponseWriter, r *http.Request,
 	decoder := json.NewDecoder(r.Body)
 	err = decoder.Decode(&voteMsg)
 	if err != nil {
-		srv.logger.Log("POST/POLL", fmt.Sprintf("Bad JSON: %s", err))
+		h, _, _ := net.SplitHostPort(r.RemoteAddr)
+		srv.logger.Log("POST/POLL", fmt.Sprintf("Bad JSON: %s", err), h)
 		http.Error(w, "Bad JSON.", 400)
 		return
 	}
@@ -56,36 +59,41 @@ func (srv *HTTPServer) Vote(w http.ResponseWriter, r *http.Request,
 	case VOTE_TYPE_NEW:
 		pollId, err = srv.db.PollIdForQuestionId(voteMsg.Id)
 		if err != nil {
+			h, _, _ := net.SplitHostPort(r.RemoteAddr)
 			srv.logger.Log("POST/VOTE", fmt.Sprintf(
-				"Unknown question id: %d: %s.", voteMsg.Id, err))
+				"Unknown question id: %d: %s.", voteMsg.Id, err), h)
 			http.Error(w, "Unknown question id.", 400)
 			return
 		} else if len(voteMsg.Value) == 0 {
+			h, _, _ := net.SplitHostPort(r.RemoteAddr)
 			srv.logger.Log("POST/VOTE",
 				"Invalid vote message: empty value field for vote message "+
-					"with type NEW.")
+					"with type NEW.", h)
 			http.Error(w, "Bad vote message.", 400)
 			return
 		}
 	case VOTE_TYPE_UPVOTE:
 		pollId, err = srv.db.PollIdForOptionId(voteMsg.Id)
 		if err != nil {
+			h, _, _ := net.SplitHostPort(r.RemoteAddr)
 			srv.logger.Log("POST/VOTE", fmt.Sprintf("Unknown option id: %d.",
-				voteMsg.Id))
+				voteMsg.Id), h)
 			http.Error(w, fmt.Sprintf("Unknown option id: %d: %s.", voteMsg.Id,
 				err), 400)
 			return
 		}
 	default:
+		h, _, _ := net.SplitHostPort(r.RemoteAddr)
 		srv.logger.Log("POST/VOTE", fmt.Sprintf("Bad vote type: %d.",
-			voteMsg.Type))
+			voteMsg.Type), h)
 		http.Error(w, "Bad vote type.", 400)
 		return
 	}
 
 	// make sure the user is allowed to vote
 	if !srv.hasPollAccess(usr.Id, pollId) {
-		srv.logger.Log("POST/VOTE", "User has no access rights to the poll.")
+		h, _, _ := net.SplitHostPort(r.RemoteAddr)
+		srv.logger.Log("POST/VOTE", "User has no access rights to the poll.", h)
 		http.Error(w, "Illegal operation.", 403)
 		return
 	}
@@ -94,7 +102,8 @@ func (srv *HTTPServer) Vote(w http.ResponseWriter, r *http.Request,
 	transaction, err := srv.db.Begin()
 	if err != nil {
 		transaction.Rollback()
-		srv.logger.Log("POST/VOTE", fmt.Sprintf("Database error: %s.", err))
+		h, _, _ := net.SplitHostPort(r.RemoteAddr)
+		srv.logger.Log("POST/VOTE", fmt.Sprintf("Database error: %s.", err), h)
 		http.Error(w, "Database error", 500)
 		return
 	}
@@ -103,7 +112,8 @@ func (srv *HTTPServer) Vote(w http.ResponseWriter, r *http.Request,
 	err = database.DelVotesForUserTx(usr.Id, pollId, transaction)
 	if err != nil {
 		transaction.Rollback()
-		srv.logger.Log("POST/VOTE", fmt.Sprintf("Database error: %s.", err))
+		h, _, _ := net.SplitHostPort(r.RemoteAddr)
+		srv.logger.Log("POST/VOTE", fmt.Sprintf("Database error: %s.", err), h)
 		http.Error(w, "Database error", 500)
 		return
 	}
@@ -123,7 +133,9 @@ func (srv *HTTPServer) Vote(w http.ResponseWriter, r *http.Request,
 		err = srv.db.AddOptionTx(&option, transaction)
 		if err != nil {
 			transaction.Rollback()
-			srv.logger.Log("POST/VOTE", fmt.Sprintf("Database error: %s.", err))
+			h, _, _ := net.SplitHostPort(r.RemoteAddr)
+			srv.logger.Log("POST/VOTE", fmt.Sprintf("Database error: %s.", err),
+				h)
 			http.Error(w, "Database error", 500)
 			return
 		}
@@ -140,7 +152,8 @@ func (srv *HTTPServer) Vote(w http.ResponseWriter, r *http.Request,
 	err = database.AddVoteTx(&vote, transaction)
 	if err != nil {
 		transaction.Rollback()
-		srv.logger.Log("POST/VOTE", fmt.Sprintf("Database error: %s.", err))
+		h, _, _ := net.SplitHostPort(r.RemoteAddr)
+		srv.logger.Log("POST/VOTE", fmt.Sprintf("Database error: %s.", err), h)
 		http.Error(w, "Database error", 500)
 		return
 	}
@@ -150,7 +163,8 @@ func (srv *HTTPServer) Vote(w http.ResponseWriter, r *http.Request,
 		transaction)
 	if err != nil {
 		transaction.Rollback()
-		srv.logger.Log("POST/VOTE", fmt.Sprintf("Database error: %s.", err))
+		h, _, _ := net.SplitHostPort(r.RemoteAddr)
+		srv.logger.Log("POST/VOTE", fmt.Sprintf("Database error: %s.", err), h)
 		http.Error(w, "Database error", 500)
 		return
 	}
@@ -159,7 +173,8 @@ func (srv *HTTPServer) Vote(w http.ResponseWriter, r *http.Request,
 	err = transaction.Commit()
 	if err != nil {
 		transaction.Rollback()
-		srv.logger.Log("POST/VOTE", fmt.Sprintf("Database error: %s.", err))
+		h, _, _ := net.SplitHostPort(r.RemoteAddr)
+		srv.logger.Log("POST/VOTE", fmt.Sprintf("Database error: %s.", err), h)
 		http.Error(w, "Database error", 500)
 		return
 	}
@@ -175,8 +190,9 @@ func (srv *HTTPServer) Vote(w http.ResponseWriter, r *http.Request,
 	responseBody, err := json.MarshalIndent(response, "", "\t")
 	_, err = w.Write(responseBody)
 	if err != nil {
+		h, _, _ := net.SplitHostPort(r.RemoteAddr)
 		srv.logger.Log("POST/VOTE",
-			fmt.Sprintf("MARSHALLING ERROR: %s\n", err))
+			fmt.Sprintf("MARSHALLING ERROR: %s\n", err), h)
 		http.Error(w, "Marshalling error.", 500)
 		return
 	}
