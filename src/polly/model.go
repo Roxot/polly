@@ -1,6 +1,9 @@
 package polly
 
 const (
+	DEVICE_TYPE_AD = 0
+	DEVICE_TYPE_IP = 1
+
 	QUESTION_TYPE_MC = 0
 	QUESTION_TYPE_OP = 1
 	QUESTION_TYPE_DT = 2

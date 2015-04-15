@@ -52,7 +52,9 @@ func (srv *HTTPServer) VerifyRegister(w http.ResponseWriter, r *http.Request,
 	}
 
 	dvcType, err := strconv.Atoi(r.PostFormValue(cDeviceType))
-	if err != nil || dvcType < 0 || dvcType > 1 {
+	if err != nil || (dvcType != polly.DEVICE_TYPE_AD &&
+		dvcType != polly.DEVICE_TYPE_IP) {
+
 		h, _, _ := net.SplitHostPort(r.RemoteAddr)
 		srv.logger.Log("POST/REGISTER/VERIFY",
 			fmt.Sprintf("Bad device type: %s",
