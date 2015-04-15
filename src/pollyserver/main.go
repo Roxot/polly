@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"log"
 	"polly/database"
 	"polly/httpserver"
@@ -11,10 +12,16 @@ const (
 	cPsqlPass = "w01V3s"
 	cDbName   = "pollydb"
 	cPort     = ":8080"
-	cClearDb  = false
+
+	cFlagClearDB = "cleardb"
 )
 
 func main() {
+
+	var clearDB bool
+	flag.BoolVar(&clearDB, cFlagClearDB, false,
+		"Set to true to reset the database.")
+	flag.Parse()
 
 	dbCfg := database.DbConfig{}
 	dbCfg.PsqlUser = cPsqlUser
@@ -22,7 +29,7 @@ func main() {
 	dbCfg.DbName = cDbName
 
 	log.Println("Opening database...")
-	srv, err := httpserver.New(&dbCfg, cClearDb)
+	srv, err := httpserver.New(&dbCfg, clearDB)
 	if err != nil {
 		panic(err)
 	} else {
