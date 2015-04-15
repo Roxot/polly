@@ -33,7 +33,7 @@ func (srv *HTTPServer) InsertPollMessage(pollMsg *PollMessage) error {
 	pollMsg.MetaData.LastUpdated = now
 
 	// insert the poll object
-	err = transaction.Insert(&pollMsg.MetaData)
+	err = srv.db.AddPollTx(&pollMsg.MetaData, transaction)
 	if err != nil {
 		rollbackErr := transaction.Rollback()
 		if rollbackErr != nil {
@@ -47,7 +47,7 @@ func (srv *HTTPServer) InsertPollMessage(pollMsg *PollMessage) error {
 	pollMsg.Question.PollId = pollMsg.MetaData.Id
 
 	// insert the question
-	err = transaction.Insert(&pollMsg.Question)
+	err = srv.db.AddQuestionTx(&pollMsg.Question, transaction)
 	if err != nil {
 		rollbackErr := transaction.Rollback()
 		if rollbackErr != nil {
@@ -63,7 +63,7 @@ func (srv *HTTPServer) InsertPollMessage(pollMsg *PollMessage) error {
 		option := &(pollMsg.Options[i])
 		option.QuestionId = pollMsg.Question.Id
 		option.PollId = pollMsg.MetaData.Id
-		err = transaction.Insert(option)
+		err = srv.db.AddOptionTx(option, transaction)
 		if err != nil {
 			rollbackErr := transaction.Rollback()
 			if rollbackErr != nil {
@@ -81,7 +81,15 @@ func (srv *HTTPServer) InsertPollMessage(pollMsg *PollMessage) error {
 		partic := polly.Participant{}
 		partic.UserId = usr.Id
 		partic.PollId = pollMsg.MetaData.Id
-		transaction.Insert(&partic)
+		err = srv.db.AddParticipantTx(&partic, transaction)
+		if err != nil {
+			rollbackErr := transaction.Rollback()
+			if rollbackErr != nil {
+				return rollbackErr
+			} else {
+				return err
+			}
+		}
 	}
 
 	// commit the transaction
