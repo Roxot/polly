@@ -11,7 +11,7 @@ const (
 
 type PrivateUser struct {
 	Id          int    `json:"id"`
-	PhoneNumber string `db:"phone_number" json:"phone_number"`
+	Email       string `db:"email" json:"email"`
 	Token       string `json:"token"`
 	DisplayName string `db:"dislay_name" json:"display_name"`
 	DeviceType  int    `db:"device_type" json:"-"`
@@ -20,7 +20,7 @@ type PrivateUser struct {
 
 type PublicUser struct {
 	Id          int    `json:"id"`
-	PhoneNumber string `json:"phone_number"`
+	Email       string `json:"email"`
 	DisplayName string `json:"display_name"`
 }
 
@@ -66,6 +66,6 @@ type Participant struct {
 
 type VerToken struct {
 	Id                int
-	PhoneNumber       string `db:"phone_number"`
+	Email             string `db:"email"`
 	VerificationToken string `db:"verification_token"`
 }

@@ -2,37 +2,21 @@ package httpserver
 
 import (
 	"errors"
+	"net/mail"
 	"polly"
 	"polly/database"
-	"unicode"
 )
 
-func isValidPhoneNumber(phoneNo string) bool {
-	if len(phoneNo) != 10 {
-		return false
-	}
-
-	for idx, val := range phoneNo {
-		if idx == 0 {
-			if val != '0' {
-				return false
-			}
-		} else if idx == 1 {
-			if val != '6' {
-				return false
-			}
-		} else if !unicode.IsNumber(val) {
-			return false
-		}
-	}
-
-	return true
+/* Validates an e-mail address to be correct according to RFC 5322. */
+func isValidEmail(email string) bool {
+	_, err := mail.ParseAddress(email)
+	return (err == nil)
 }
 
 /*
  * Validates a poll message by checking the questions, options and participants.
- * In the case of participants their correct display names and phone numbers are
- * set in this function as well.
+ * In the case of participants their correct display names and email addresses
+ * are set in this function as well.
  */
 func isValidPollMessage(db *database.Database, pollMsg *PollMessage,
 	creatorId int) error {
@@ -81,7 +65,7 @@ func isValidPollMessage(db *database.Database, pollMsg *PollMessage,
 			return errors.New("Unknown participant.")
 		} else {
 			pollMsg.Participants[i].DisplayName = dbUser.DisplayName
-			pollMsg.Participants[i].PhoneNumber = dbUser.PhoneNumber
+			pollMsg.Participants[i].Email = dbUser.Email
 		}
 
 		// check if user is creator

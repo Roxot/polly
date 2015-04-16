@@ -40,7 +40,7 @@ func New(dbCfg *DbConfig) (*Database, error) {
 	// add the tables used, don't yet create them
 	db.dbMap = gorp.DbMap{Db: sqlDb, Dialect: gorp.PostgresDialect{}}
 	db.dbMap.AddTableWithName(polly.PrivateUser{}, cUserTableName).
-		SetKeys(true, cPk).ColMap(cPhoneNumber).SetUnique(true)
+		SetKeys(true, cPk).ColMap(cEmail).SetUnique(true)
 	db.dbMap.AddTableWithName(polly.VerToken{},
 		cVerificationTokensTableName).SetKeys(true, cPk)
 	db.dbMap.AddTableWithName(polly.Poll{}, cPollTableName).

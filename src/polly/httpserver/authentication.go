@@ -9,14 +9,14 @@ import (
 func (srv *HTTPServer) authenticateRequest(req *http.Request) (
 	*polly.PrivateUser, error) {
 
-	phoneNo, tkn, ok := req.BasicAuth()
+	email, tkn, ok := req.BasicAuth()
 	if !ok {
 		return nil, fmt.Errorf("No authentication provided.")
 	}
 
-	usr, err := srv.db.UserByPhoneNumber(phoneNo)
+	usr, err := srv.db.UserByEmail(email)
 	if err != nil {
-		return nil, fmt.Errorf("Unknown user: %s.", phoneNo)
+		return nil, fmt.Errorf("Unknown user: %s.", email)
 	}
 
 	if usr.Token != tkn {

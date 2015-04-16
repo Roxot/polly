@@ -7,13 +7,13 @@ import (
 	_ "github.com/lib/pq"
 )
 
-func (db *Database) UserByPhoneNumber(phoneNo string) (*polly.PrivateUser,
+func (db *Database) UserByEmail(email string) (*polly.PrivateUser,
 	error) {
 
 	var usr polly.PrivateUser
 	err := db.dbMap.SelectOne(&usr,
 		fmt.Sprintf("select * from %s where %s=$1;", cUserTableName,
-			cPhoneNumber), phoneNo)
+			cEmail), email)
 	return &usr, err
 }
 
@@ -24,17 +24,17 @@ func (db *Database) UserById(id int) (*polly.PrivateUser, error) {
 	return &usr, err
 }
 
-func (db *Database) PublicUserByPhoneNumber(phoneNo string) (
+func (db *Database) PublicUserByEmail(email string) (
 	*polly.PublicUser, error) {
 
 	pubUsr := polly.PublicUser{}
-	privUsr, err := db.UserByPhoneNumber(phoneNo)
+	privUsr, err := db.UserByEmail(email)
 	if err != nil {
 		return nil, err
 	}
 
 	pubUsr.Id = privUsr.Id
-	pubUsr.PhoneNumber = privUsr.PhoneNumber
+	pubUsr.Email = privUsr.Email
 	pubUsr.DisplayName = privUsr.DisplayName
 	return &pubUsr, nil
 }
@@ -47,18 +47,18 @@ func (db *Database) PublicUserById(id int) (*polly.PublicUser, error) {
 	}
 
 	pubUsr.Id = privUsr.Id
-	pubUsr.PhoneNumber = privUsr.PhoneNumber
+	pubUsr.Email = privUsr.Email
 	pubUsr.DisplayName = privUsr.DisplayName
 	return &pubUsr, nil
 }
 
-func (db *Database) VerTokenByPhoneNumber(phoneNo string) (*polly.VerToken,
+func (db *Database) VerTokenByEmail(email string) (*polly.VerToken,
 	error) {
 
 	var verTkn polly.VerToken
 	err := db.dbMap.SelectOne(&verTkn,
 		fmt.Sprintf("select * from %s where %s=$1;",
-			cVerificationTokensTableName, cPhoneNumber), phoneNo)
+			cVerificationTokensTableName, cEmail), email)
 	return &verTkn, err
 }
 

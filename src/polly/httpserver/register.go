@@ -13,18 +13,18 @@ import (
 )
 
 func (srv *HTTPServer) Register(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	phoneNo := r.PostFormValue(cPhoneNumber)
-	if !isValidPhoneNumber(phoneNo) {
+	email := r.PostFormValue(cEmail)
+	if !isValidEmail(email) {
 		h, _, _ := net.SplitHostPort(r.RemoteAddr)
-		srv.logger.Log("POST/REGISTER", fmt.Sprintf("Bad phone number: %s",
-			phoneNo), h)
-		http.Error(w, "Bad phone number.", 400)
+		srv.logger.Log("POST/REGISTER", fmt.Sprintf("Bad email address: %s",
+			email), h)
+		http.Error(w, "Bad email address.", 400)
 		return
 	} else {
 		verTkn := polly.VerToken{}
-		verTkn.PhoneNumber = phoneNo
+		verTkn.Email = email
 		verTkn.VerificationToken = "VERIFY"
-		srv.db.DelVerTokensByPhoneNumber(phoneNo)
+		srv.db.DelVerTokensByEmail(email)
 		err := srv.db.AddVerToken(&verTkn)
 		if err != nil {
 			h, _, _ := net.SplitHostPort(r.RemoteAddr)
@@ -40,13 +40,13 @@ func (srv *HTTPServer) VerifyRegister(w http.ResponseWriter, r *http.Request,
 	_ httprouter.Params) {
 
 	retrVerTkn := r.PostFormValue(cVerToken)
-	phoneNo := r.PostFormValue(cPhoneNumber)
-	dbVerTkn, err := srv.db.VerTokenByPhoneNumber(phoneNo)
+	email := r.PostFormValue(cEmail)
+	dbVerTkn, err := srv.db.VerTokenByEmail(email)
 	if err != nil || dbVerTkn.VerificationToken != retrVerTkn {
 		h, _, _ := net.SplitHostPort(r.RemoteAddr)
 		srv.logger.Log("POST/REGISTER/VERIFY",
 			fmt.Sprintf("Not registered or bad verification token: %s - %s",
-				phoneNo, retrVerTkn), h)
+				email, retrVerTkn), h)
 		http.Error(w, "Not registered or bad verification token.", 400)
 		return
 	}
@@ -64,8 +64,8 @@ func (srv *HTTPServer) VerifyRegister(w http.ResponseWriter, r *http.Request,
 	}
 
 	dspName := r.PostFormValue(cDisplayName)
-	srv.db.DelVerTokensByPhoneNumber(phoneNo)
-	usr, err := srv.db.UserByPhoneNumber(phoneNo)
+	srv.db.DelVerTokensByEmail(email)
+	usr, err := srv.db.UserByEmail(email)
 	if err == nil {
 
 		/* We're dealing with an already existing user */
@@ -81,7 +81,7 @@ func (srv *HTTPServer) VerifyRegister(w http.ResponseWriter, r *http.Request,
 
 		/* We're dealing with a new user. */
 		usr := polly.PrivateUser{}
-		usr.PhoneNumber = phoneNo
+		usr.Email = email
 		usr.Token = uuid.NewV4().String()
 		usr.DisplayName = dspName
 		usr.DeviceType = dvcType
