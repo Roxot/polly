@@ -34,7 +34,6 @@ func (db *Database) PublicUserByEmail(email string) (
 	}
 
 	pubUsr.Id = privUsr.Id
-	pubUsr.Email = privUsr.Email
 	pubUsr.DisplayName = privUsr.DisplayName
 	return &pubUsr, nil
 }
@@ -47,7 +46,6 @@ func (db *Database) PublicUserById(id int) (*polly.PublicUser, error) {
 	}
 
 	pubUsr.Id = privUsr.Id
-	pubUsr.Email = privUsr.Email
 	pubUsr.DisplayName = privUsr.DisplayName
 	return &pubUsr, nil
 }

@@ -65,7 +65,6 @@ func isValidPollMessage(db *database.Database, pollMsg *PollMessage,
 			return errors.New("Unknown participant.")
 		} else {
 			pollMsg.Participants[i].DisplayName = dbUser.DisplayName
-			pollMsg.Participants[i].Email = dbUser.Email
 		}
 
 		// check if user is creator

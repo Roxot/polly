@@ -20,7 +20,6 @@ type PrivateUser struct {
 
 type PublicUser struct {
 	Id          int    `json:"id"`
-	Email       string `json:"email"`
 	DisplayName string `json:"display_name"`
 }
 
