@@ -58,6 +58,7 @@ func (srv *HTTPServer) Start(port string) error {
 	srv.router.GET("/api/v1/user/polls", srv.ListUserPolls)
 	srv.router.GET(fmt.Sprintf("/api/v1/poll/:%s", cId), srv.GetPoll)
 	srv.router.GET("/api/v1/poll", srv.GetPollBulk)
+	srv.router.GET(fmt.Sprintf("/api/v1/user/lookup/:%s", cEmail), srv.GetUser)
 	err = http.ListenAndServe(port, srv.router)
 	return err
 }
