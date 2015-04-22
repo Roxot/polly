@@ -63,6 +63,16 @@ func (srv *HTTPServer) VerifyRegister(w http.ResponseWriter, r *http.Request,
 		return
 	}
 
+	dvcGUID := r.PostFormValue(cDeviceGUID)
+	if len(dvcGUID) == 0 {
+		h, _, _ := net.SplitHostPort(r.RemoteAddr)
+		srv.logger.Log("POST/REGISTER/VERIFY",
+			fmt.Sprintf("Bad device GUID: %s",
+				r.PostFormValue(cDeviceGUID)), h)
+		http.Error(w, "Bad device GUID.", 400)
+		return
+	}
+
 	dspName := r.PostFormValue(cDisplayName)
 	srv.db.DelVerTokensByEmail(email)
 	usr, err := srv.db.UserByEmail(email)
@@ -85,7 +95,7 @@ func (srv *HTTPServer) VerifyRegister(w http.ResponseWriter, r *http.Request,
 		usr.Token = uuid.NewV4().String()
 		usr.DisplayName = dspName
 		usr.DeviceType = dvcType
-		usr.DeviceGUID = ""
+		usr.DeviceGUID = dvcGUID
 		err = srv.db.AddUser(&usr)
 		if err != nil {
 			h, _, _ := net.SplitHostPort(r.RemoteAddr)
