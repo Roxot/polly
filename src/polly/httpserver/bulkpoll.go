@@ -3,38 +3,35 @@ package httpserver
 import (
 	"encoding/json"
 	"fmt"
-	"net"
 	"net/http"
 	"strconv"
 
 	"github.com/julienschmidt/httprouter"
 )
 
+const (
+	cGetPollBulkTag = "GET/POLL"
+)
+
 type PollBulk struct {
 	Polls []PollMessage `json:"polls"`
 }
 
-func (srv *HTTPServer) GetPollBulk(w http.ResponseWriter, r *http.Request,
-	_ httprouter.Params) {
+func (srv *HTTPServer) GetPollBulk(writer http.ResponseWriter,
+	req *http.Request, _ httprouter.Params) {
 
 	// authenticate the request
-	usr, err := srv.authenticateRequest(r)
+	usr, err := srv.authenticateRequest(req)
 	if err != nil {
-		h, _, _ := net.SplitHostPort(r.RemoteAddr)
-		srv.logger.Log("GET/POLL", fmt.Sprintf("Authentication error: %s",
-			err), h)
-		w.Header().Set("WWW-authenticate", "Basic")
-		http.Error(w, "Authentication error", 401)
+		srv.handleAuthError(cGetPollBulkTag, err, writer, req)
 		return
 	}
 
 	// retrieve the list of identifiers
-	ids := r.URL.Query()[cId]
+	ids := req.URL.Query()[cId]
 	if len(ids) > cBulkPollMax {
-		h, _, _ := net.SplitHostPort(r.RemoteAddr)
-		srv.logger.Log("GET/POLL", fmt.Sprintf(
-			"Id list longer than limit: %d > %d", len(ids), cBulkPollMax), h)
-		http.Error(w, "Id list longer than limit", 400)
+		srv.handleErr(cGetPollBulkTag, cIdListLengthErr,
+			fmt.Sprintf("%s: %d", cIdListLengthErr, len(ids)), 400, writer, req)
 		return
 	}
 
@@ -46,28 +43,22 @@ func (srv *HTTPServer) GetPollBulk(w http.ResponseWriter, r *http.Request,
 		// convert the id to an integer
 		id, err := strconv.Atoi(idString)
 		if err != nil {
-			h, _, _ := net.SplitHostPort(r.RemoteAddr)
-			srv.logger.Log("GET/POLL", fmt.Sprintf("Bad id: %s", idString), h)
-			http.Error(w, "Bad id.", 400)
+			srv.handleBadRequest(cGetPollBulkTag, cBadIdErr, err, writer, req)
 			return
 		}
 
 		// make sure the user is authorized to receive the poll
 		if !srv.hasPollAccess(usr.Id, id) {
-			h, _, _ := net.SplitHostPort(r.RemoteAddr)
-			srv.logger.Log("GET/POLL", "User has no access rights to the poll.",
-				h)
-			http.Error(w, "Illegal operation.", 403)
+			srv.handleIllegalOperation(cGetPollBulkTag, cAccessRightsErr,
+				writer, req)
 			return
 		}
 
 		// construct the poll message
 		pollMsg, err := srv.ConstructPollMessage(id)
 		if err != nil {
-			h, _, _ := net.SplitHostPort(r.RemoteAddr)
-			srv.logger.Log("GET/POLL", fmt.Sprintf("No poll with id %s: %s",
-				idString, err), h)
-			http.Error(w, "No such poll.", 400)
+			srv.handleErr(cGetPollBulkTag, cNoPollErr, cNoPollErr, 400,
+				writer, req)
 			return
 		}
 
@@ -75,11 +66,9 @@ func (srv *HTTPServer) GetPollBulk(w http.ResponseWriter, r *http.Request,
 	}
 
 	responseBody, err := json.MarshalIndent(pollBulk, "", "\t")
-	_, err = w.Write(responseBody)
+	_, err = writer.Write(responseBody)
 	if err != nil {
-		h, _, _ := net.SplitHostPort(r.RemoteAddr)
-		srv.logger.Log("GET/POLL",
-			fmt.Sprintf("MARSHALLING ERROR: %s\n", err), h)
-		http.Error(w, "Marshalling error.", 500)
+		srv.handleWritingError(cGetPollBulkTag, err, writer, req)
+		return
 	}
 }

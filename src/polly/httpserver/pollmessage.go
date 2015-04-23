@@ -19,12 +19,8 @@ func (srv *HTTPServer) InsertPollMessage(pollMsg *PollMessage) error {
 	// start the transaction
 	transaction, err := srv.db.Begin()
 	if err != nil {
-		rollbackErr := transaction.Rollback()
-		if rollbackErr != nil {
-			return rollbackErr
-		} else {
-			return err
-		}
+		transaction.Rollback()
+		return err
 	}
 
 	// set the time creation date and last update time to now
@@ -35,12 +31,8 @@ func (srv *HTTPServer) InsertPollMessage(pollMsg *PollMessage) error {
 	// insert the poll object
 	err = srv.db.AddPollTx(&pollMsg.MetaData, transaction)
 	if err != nil {
-		rollbackErr := transaction.Rollback()
-		if rollbackErr != nil {
-			return rollbackErr
-		} else {
-			return err
-		}
+		transaction.Rollback()
+		return err
 	}
 
 	// update the poll message
@@ -49,12 +41,8 @@ func (srv *HTTPServer) InsertPollMessage(pollMsg *PollMessage) error {
 	// insert the question
 	err = srv.db.AddQuestionTx(&pollMsg.Question, transaction)
 	if err != nil {
-		rollbackErr := transaction.Rollback()
-		if rollbackErr != nil {
-			return rollbackErr
-		} else {
-			return err
-		}
+		transaction.Rollback()
+		return err
 	}
 
 	// insert the options
@@ -65,12 +53,8 @@ func (srv *HTTPServer) InsertPollMessage(pollMsg *PollMessage) error {
 		option.PollId = pollMsg.MetaData.Id
 		err = srv.db.AddOptionTx(option, transaction)
 		if err != nil {
-			rollbackErr := transaction.Rollback()
-			if rollbackErr != nil {
-				return rollbackErr
-			} else {
-				return err
-			}
+			transaction.Rollback()
+			return err
 		}
 	}
 
@@ -83,12 +67,8 @@ func (srv *HTTPServer) InsertPollMessage(pollMsg *PollMessage) error {
 		partic.PollId = pollMsg.MetaData.Id
 		err = srv.db.AddParticipantTx(&partic, transaction)
 		if err != nil {
-			rollbackErr := transaction.Rollback()
-			if rollbackErr != nil {
-				return rollbackErr
-			} else {
-				return err
-			}
+			transaction.Rollback()
+			return err
 		}
 	}
 

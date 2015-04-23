@@ -3,7 +3,6 @@ package httpserver
 import (
 	"encoding/json"
 	"fmt"
-	"net"
 	"net/http"
 	"polly"
 	"strconv"
@@ -12,81 +11,77 @@ import (
 	"github.com/satori/go.uuid"
 )
 
-func (srv *HTTPServer) Register(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	email := r.PostFormValue(cEmail)
-	if !isValidEmail(email) {
-		h, _, _ := net.SplitHostPort(r.RemoteAddr)
-		srv.logger.Log("POST/REGISTER", fmt.Sprintf("Bad email address: %s",
-			email), h)
-		http.Error(w, "Bad email address.", 400)
-		return
-	} else {
-		verTkn := polly.VerToken{}
-		verTkn.Email = email
-		verTkn.VerificationToken = "VERIFY"
-		srv.db.DelVerTokensByEmail(email)
-		err := srv.db.AddVerToken(&verTkn)
-		if err != nil {
-			h, _, _ := net.SplitHostPort(r.RemoteAddr)
-			srv.logger.Log("POST/REGISTER", fmt.Sprintf("DATABASE ERROR: %s",
-				err), h)
-			http.Error(w, "Database error.", 500)
-			return
-		}
-	}
-}
+const (
+	cRegisterTag       = "POST/REGISTER"
+	cVerifyRegisterTag = "POST/REGISTER/VERIFY"
+)
 
-func (srv *HTTPServer) VerifyRegister(w http.ResponseWriter, r *http.Request,
+func (srv *HTTPServer) Register(writer http.ResponseWriter, req *http.Request,
 	_ httprouter.Params) {
 
-	retrVerTkn := r.PostFormValue(cVerToken)
-	email := r.PostFormValue(cEmail)
-	dbVerTkn, err := srv.db.VerTokenByEmail(email)
-	if err != nil || dbVerTkn.VerificationToken != retrVerTkn {
-		h, _, _ := net.SplitHostPort(r.RemoteAddr)
-		srv.logger.Log("POST/REGISTER/VERIFY",
-			fmt.Sprintf("Not registered or bad verification token: %s - %s",
-				email, retrVerTkn), h)
-		http.Error(w, "Not registered or bad verification token.", 400)
+	// validate the provided email address
+	email := req.PostFormValue(cEmail)
+	if !isValidEmail(email) {
+		srv.handleErr(cRegisterTag, cBadEmailErr,
+			fmt.Sprintf(cLogFmt, cBadEmailErr, email), 400, writer, req)
 		return
 	}
 
-	dvcType, err := strconv.Atoi(r.PostFormValue(cDeviceType))
+	// create a new verification token
+	verTkn := polly.VerToken{}
+	verTkn.Email = email
+	verTkn.VerificationToken = "VERIFY"
+
+	// remove existing verification tokens
+	srv.db.DelVerTokensByEmail(email)
+
+	// add the verification token to the database
+	err := srv.db.AddVerToken(&verTkn)
+	if err != nil {
+		srv.handleDatabaseError(cRegisterTag, err, writer, req)
+		return
+	}
+
+}
+
+func (srv *HTTPServer) VerifyRegister(writer http.ResponseWriter,
+	req *http.Request, _ httprouter.Params) {
+
+	retrVerTkn := req.PostFormValue(cVerToken)
+	email := req.PostFormValue(cEmail)
+	dbVerTkn, err := srv.db.VerTokenByEmail(email)
+	if err != nil || dbVerTkn.VerificationToken != retrVerTkn {
+		srv.handleErr(cVerifyRegisterTag, cNotRegOrBadTknErr,
+			cNotRegOrBadTknErr, 400, writer, req)
+		return
+	}
+
+	dvcTypeStr := req.PostFormValue(cDeviceType)
+	dvcType, err := strconv.Atoi(dvcTypeStr)
 	if err != nil || (dvcType != polly.DEVICE_TYPE_AD &&
 		dvcType != polly.DEVICE_TYPE_IP) {
 
-		h, _, _ := net.SplitHostPort(r.RemoteAddr)
-		srv.logger.Log("POST/REGISTER/VERIFY",
-			fmt.Sprintf("Bad device type: %s",
-				r.PostFormValue("device_type")), h)
-		http.Error(w, "Bad device type.", 400)
+		srv.handleErr(cVerifyRegisterTag, cBadDvcTypeErr,
+			fmt.Sprintf(cLogFmt, cBadDvcTypeErr, dvcTypeStr), 400, writer, req)
 		return
 	}
 
-	dvcGUID := r.PostFormValue(cDeviceGUID)
-	if len(dvcGUID) == 0 {
-		h, _, _ := net.SplitHostPort(r.RemoteAddr)
-		srv.logger.Log("POST/REGISTER/VERIFY",
-			fmt.Sprintf("Bad device GUID: %s",
-				r.PostFormValue(cDeviceGUID)), h)
-		http.Error(w, "Bad device GUID.", 400)
-		return
-	}
+	// device GUID may be empty
+	dvcGUID := req.PostFormValue(cDeviceGUID) // TODO validate
 
-	dspName := r.PostFormValue(cDisplayName)
+	dspName := req.PostFormValue(cDisplayName)
 	srv.db.DelVerTokensByEmail(email)
-	usr, err := srv.db.UserByEmail(email)
+	usr, err := srv.db.UserByEmail(email) // TODO userExists
 	if err == nil {
 
 		/* We're dealing with an already existing user */
 		responseBody, err := json.MarshalIndent(usr, "", "\t")
-		_, err = w.Write(responseBody)
+		_, err = writer.Write(responseBody)
 		if err != nil {
-			h, _, _ := net.SplitHostPort(r.RemoteAddr)
-			srv.logger.Log("POST/REGISTER/VERIFY",
-				fmt.Sprintf("MARSHALLING ERROR: %s\n", err), h)
-			http.Error(w, "Marshalling error.", 500)
+			srv.handleWritingError(cVerifyRegisterTag, err, writer, req)
+			return
 		}
+
 	} else {
 
 		/* We're dealing with a new user. */
@@ -98,20 +93,15 @@ func (srv *HTTPServer) VerifyRegister(w http.ResponseWriter, r *http.Request,
 		usr.DeviceGUID = dvcGUID
 		err = srv.db.AddUser(&usr)
 		if err != nil {
-			h, _, _ := net.SplitHostPort(r.RemoteAddr)
-			srv.logger.Log("POST/REGISTER/VERIFY",
-				fmt.Sprintf("DATABASE ERROR: %s\n", err), h)
-			http.Error(w, "Database error.", 500)
+			srv.handleDatabaseError(cVerifyRegisterTag, err, writer, req)
 			return
 		}
 
 		responseBody, err := json.MarshalIndent(usr, "", "\t")
-		_, err = w.Write(responseBody)
+		_, err = writer.Write(responseBody)
 		if err != nil {
-			h, _, _ := net.SplitHostPort(r.RemoteAddr)
-			srv.logger.Log("POST/REGISTER/VERIFY",
-				fmt.Sprintf("MARSHALLING ERROR: %s\n", err), h)
-			http.Error(w, "Marshalling error.", 500)
+			srv.handleWritingError(cVerifyRegisterTag, err, writer, req)
+			return
 		}
 	}
 }

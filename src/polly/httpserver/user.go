@@ -3,53 +3,39 @@ package httpserver
 import (
 	"encoding/json"
 	"fmt"
-	"net"
 	"net/http"
 
 	"github.com/julienschmidt/httprouter"
 )
 
-func (srv *HTTPServer) GetUser(w http.ResponseWriter, r *http.Request,
-	p httprouter.Params) {
+const (
+	cGetUserTag = "GET/USER/XX"
+)
+
+func (srv *HTTPServer) GetUser(writer http.ResponseWriter, req *http.Request,
+	params httprouter.Params) {
 
 	// authenticate the user
-	_, err := srv.authenticateRequest(r)
+	_, err := srv.authenticateRequest(req)
 	if err != nil {
-		h, _, _ := net.SplitHostPort(r.RemoteAddr)
-		srv.logger.Log("GET/USER/XX", fmt.Sprintf("Authentication error: %s",
-			err), h)
-		w.Header().Set("WWW-authenticate", "Basic")
-		http.Error(w, "Authentication error", 401)
-		return
-	}
-
-	// retrieve the email parameter
-	email := p.ByName(cEmail)
-	if len(email) == 0 {
-		h, _, _ := net.SplitHostPort(r.RemoteAddr)
-		srv.logger.Log("GET/USER/XX", "Empty email.", h)
-		http.Error(w, "Bad email.", 400)
+		srv.handleAuthError(cGetUserTag, err, writer, req)
 		return
 	}
 
 	// load the user from the database
+	email := params.ByName(cEmail)
 	usr, err := srv.db.PublicUserByEmail(email)
 	if err != nil {
-		h, _, _ := net.SplitHostPort(r.RemoteAddr)
-		srv.logger.Log("GET/USER/XX", fmt.Sprintf("User not found: %s.",
-			email), h)
-		http.Error(w, "Unkown user.", 400)
+		srv.handleErr(cGetUserTag, cNoUserErr,
+			fmt.Sprintf(cLogFmt, cNoUserErr, email), 400, writer, req)
 		return
 	}
 
 	// send the response
 	responseBody, err := json.MarshalIndent(usr, "", "\t")
-	_, err = w.Write(responseBody)
+	_, err = writer.Write(responseBody)
 	if err != nil {
-		h, _, _ := net.SplitHostPort(r.RemoteAddr)
-		srv.logger.Log("GET/USER/XX",
-			fmt.Sprintf("MARSHALLING ERROR: %s\n", err), h)
-		http.Error(w, "Marshalling error.", 500)
+		srv.handleWritingError(cGetUserTag, err, writer, req)
 		return
 	}
 
