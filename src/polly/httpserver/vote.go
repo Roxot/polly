@@ -2,6 +2,8 @@ package httpserver
 
 import (
 	"encoding/json"
+	"fmt"
+	"net"
 	"net/http"
 	"polly"
 	"polly/database"
@@ -144,6 +146,13 @@ func (srv *HTTPServer) Vote(writer http.ResponseWriter, req *http.Request,
 		transaction.Rollback()
 		srv.handleDatabaseError(cVoteTag, err, writer, req)
 		return
+	}
+
+	// push a notification to all participants of the poll TODO other type of vote
+	err = srv.pushSrv.NotifyForUpvote(srv.db, usr, optionId)
+	if err != nil {
+		host, _, _ := net.SplitHostPort(req.RemoteAddr)
+		srv.logger.Log(cVoteTag, fmt.Sprintf(cDatabaseErrLog, err), host)
 	}
 
 	// construct the response message

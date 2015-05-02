@@ -50,6 +50,27 @@ func (db *Database) PublicUserById(id int) (*polly.PublicUser, error) {
 	return &pubUsr, nil
 }
 
+func (db *Database) OptionById(id int) (*polly.Option, error) {
+	var option polly.Option
+	err := db.dbMap.SelectOne(&option,
+		fmt.Sprintf("select * from %s where %s=$1;", cOptionTableName, cId), id)
+	return &option, err
+}
+
+func (db *Database) DeviceInfosForPollExcludeCreator(pollID int,
+	creatorID int) ([]polly.DeviceInfo, error) {
+
+	var dvcInfos []polly.DeviceInfo
+	_, err := db.dbMap.Select(&dvcInfos, fmt.Sprintf("select %s.%s, %s.%s "+
+		"from %s, %s where %s.%s=%s.%s and %s.%s=$1 and %s.%s!=$2;",
+		cUserTableName, cDeviceType, cUserTableName, cDeviceGUID,
+		cUserTableName, cParticipantTableName, cUserTableName, cId,
+		cParticipantTableName, cUserId, cParticipantTableName, cPollId,
+		cUserTableName, cId), pollID, creatorID)
+
+	return dvcInfos, err
+}
+
 func (db *Database) VerTokenByEmail(email string) (*polly.VerToken,
 	error) {
 

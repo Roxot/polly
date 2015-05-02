@@ -35,6 +35,11 @@ type PollSnapshot struct {
 	LastUpdated int `db:"last_updated" json:"last_updated"`
 }
 
+type DeviceInfo struct {
+	DeviceType int    `db:"device_type"`
+	DeviceGUID string `db:"device_guid"`
+}
+
 type Question struct {
 	Id     int    `json:"id"`
 	PollId int    `db:"poll_id" json:"-"`
