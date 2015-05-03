@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"polly"
 
 	"github.com/julienschmidt/httprouter"
 )
@@ -13,6 +12,11 @@ const (
 	cGetUserTag    = "GET/USER/XX"
 	cUpdateUserTag = "PUT/USER"
 )
+
+type updateUserFields struct {
+	DeviceGUID  *string `json:"device_guid"`
+	DisplayName *string `json:"display_name"`
+}
 
 func (srv *HTTPServer) GetUser(writer http.ResponseWriter, req *http.Request,
 	params httprouter.Params) {
@@ -55,20 +59,28 @@ func (srv *HTTPServer) UpdateUser(writer http.ResponseWriter, req *http.Request,
 	}
 
 	// decode the given user
-	var updatedUsr polly.PrivateUser
+	var fields updateUserFields
 	decoder := json.NewDecoder(req.Body)
-	err = decoder.Decode(&updatedUsr)
+	err = decoder.Decode(&fields)
 	if err != nil {
 		srv.handleBadRequest(cUpdateUserTag, cBadJSONErr, err, writer, req)
 		return
 	}
 
-	// update user
-	err = srv.db.UpdateUser(usr.Id, updatedUsr.DisplayName,
-		updatedUsr.DeviceGUID)
-	if err != nil {
-		srv.handleDatabaseError(cUpdateUserTag, err, writer, req)
-		return
+	// update display name
+	if fields.DeviceGUID != nil {
+		err = srv.db.UpdateDeviceGUID(usr.Id, *(fields.DeviceGUID))
+		if err != nil {
+			srv.handleDatabaseError(cUpdateUserTag, err, writer, req)
+		}
+	}
+
+	// update device GUID
+	if fields.DisplayName != nil {
+		err = srv.db.UpdateDisplayName(usr.Id, *(fields.DisplayName))
+		if err != nil {
+			srv.handleDatabaseError(cUpdateUserTag, err, writer, req)
+		}
 	}
 
 }
