@@ -9,17 +9,19 @@ import (
 	"polly"
 	"polly/database"
 	"polly/logger"
+	"polly/push/android"
 	"text/template"
 
 	"github.com/timehop/apns"
 )
 
 const (
-	cIosGateway       = apns.SandboxGateway
-	cCertDir          = "certs/"
-	cIosCertFile      = cCertDir + "apns-dev-cert.pem"
-	cIosKeyFile       = cCertDir + "apns-dev-key.key"
-	cVoteTemplateText = "{{.Voter}} voted for {{.Option}}."
+	cIosGateway         = apns.SandboxGateway
+	cCertDir            = "certs/"
+	cIosCertFile        = cCertDir + "apns-dev-cert.pem"
+	cIosKeyFile         = cCertDir + "apns-dev-key.key"
+	cVoteTemplateText   = "{{.Voter}} voted for {{.Option}}."
+	cAndroidServerToken = "AIzaSyCi-zeWU_moOdFtUWggHXMulWGQK72wBuk"
 
 	cPushServerTag    = "PUSHSERVER"
 	cPushServerLogFmt = "Failed to send notification %d: %s"
@@ -39,6 +41,8 @@ type notificationData struct {
 
 type PushServer struct {
 	iosClient           *apns.Client
+	androidClient       *android.Client
+	logger              *logger.Logger
 	notificationChannel chan *notificationData
 	voteTemplate        *template.Template
 }
@@ -67,6 +71,7 @@ func New() (*PushServer, error) {
 		return nil, err
 	}
 
+	pushSrv.androidClient = android.New(cAndroidServerToken)
 	pushSrv.voteTemplate = template
 	pushSrv.startNotificationHandling()
 
@@ -84,6 +89,8 @@ func (pushSrv *PushServer) StartErrorLogger(logger *logger.Logger) error {
 				failures.Notif.ID, failures.Err.Error()), "::1")
 		}
 	}()
+
+	pushSrv.logger = logger
 
 	return nil
 }
@@ -106,9 +113,13 @@ func (pushSrv *PushServer) startNotificationHandling() {
 				}
 
 				if notData.DeviceInfos[i].DeviceType == polly.DEVICE_TYPE_AD {
-					fmt.Println("We don't support Android yet.")
+					fmt.Println("Notifying (and):",
+						notData.DeviceInfos[i].DeviceGUID)
+					pushSrv.sendAndroidNotification(
+						notData.DeviceInfos[i].DeviceGUID, notData.Message)
 				} else {
-					log.Println("Notifying (ios):", notData.DeviceInfos[i].DeviceGUID)
+					log.Println("Notifying (ios):",
+						notData.DeviceInfos[i].DeviceGUID)
 					pushSrv.sendIosNotification(
 						notData.DeviceInfos[i].DeviceGUID, notData.Message)
 				}
@@ -124,6 +135,25 @@ func (pushSrv *PushServer) sendIosNotification(deviceGUID, msg string) {
 	notif.Payload = payload
 	notif.DeviceToken = deviceGUID
 	pushSrv.iosClient.Send(notif)
+}
+
+func (pushSrv *PushServer) sendAndroidNotification(deviceGUID, msgText string) {
+	msg := android.NewMessage(deviceGUID)
+	msg.SetPayload("message", msgText)
+	resp, err := pushSrv.androidClient.Send(msg)
+	if err != nil && pushSrv.logger != nil {
+		pushSrv.logger.Log(cPushServerTag, err.Error(), "::1")
+	}
+
+	errorIndices := resp.ErrorIndexes()
+	if len(errorIndices) != 0 {
+		pushSrv.logger.Log(cPushServerTag, "error indices not nil", "::1")
+	}
+
+	refreshIndices := resp.RefreshIndexes()
+	if len(refreshIndices) != 0 {
+		pushSrv.logger.Log(cPushServerTag, "refresh indices not nil", "::1")
+	}
 }
 
 func (pushSrv *PushServer) NotifyForUpvote(db *database.Database,
