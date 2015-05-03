@@ -1,14 +1,6 @@
 #!/bin/bash
 
-PROCIDS=`fuser $POLLY_HOME/server.log 2>/dev/null`
-
-for PID in `echo $PROCIDS`
-do
-    if [ $PID != $$ ]; then
-        echo "Killing current running instance..."
-        kill -9 $PID
-    fi
-        done
+./$POLLY_HOME/scripts/shutdown_server.sh
 
 echo "Building server..."
 go install pollyserver
