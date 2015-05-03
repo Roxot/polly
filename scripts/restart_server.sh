@@ -1,6 +1,7 @@
 #!/bin/bash
 
-./$POLLY_HOME/scripts/shutdown_server.sh
+SHUTDOWN_SCRIPT=`echo $POLLY_HOME/scripts/shutdown_server.sh | sed 's/ /\\ /g'`
+"$SHUTDOWN_SCRIPT"
 
 echo "Building server..."
 go install pollyserver
