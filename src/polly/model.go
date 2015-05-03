@@ -13,9 +13,9 @@ type PrivateUser struct {
 	Id          int    `json:"id"`
 	Email       string `db:"email" json:"email"`
 	Token       string `json:"token"`
-	DisplayName string `db:"dislay_name" json:"display_name"`
-	DeviceType  int    `db:"device_type" json:"-"`
-	DeviceGUID  string `db:"device_guid" json:"-"`
+	DisplayName string `db:"display_name" json:"display_name"`
+	DeviceType  int    `db:"device_type" json:"device_type"`
+	DeviceGUID  string `db:"device_guid" json:"device_guid"`
 }
 
 type PublicUser struct {
