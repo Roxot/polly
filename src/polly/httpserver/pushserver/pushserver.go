@@ -9,9 +9,9 @@ import (
 	"polly"
 	"polly/database"
 	"polly/logger"
-	"polly/push/android"
 	"text/template"
 
+	"github.com/alexjlockwood/gcm"
 	"github.com/timehop/apns"
 )
 
@@ -26,6 +26,7 @@ const (
 	cPushServerTag    = "PUSHSERVER"
 	cPushServerLogFmt = "Failed to send notification %d: %s"
 
+	cAndroidRetries                = 2
 	cNotificationChannelBufferSize = 1
 )
 
@@ -41,7 +42,7 @@ type notificationData struct {
 
 type PushServer struct {
 	iosClient           *apns.Client
-	androidClient       *android.Client
+	androidClient       *gcm.Sender
 	logger              *logger.Logger
 	notificationChannel chan *notificationData
 	voteTemplate        *template.Template
@@ -71,7 +72,7 @@ func New() (*PushServer, error) {
 		return nil, err
 	}
 
-	pushSrv.androidClient = android.New(cAndroidServerToken)
+	pushSrv.androidClient = &gcm.Sender{ApiKey: cAndroidServerToken}
 	pushSrv.voteTemplate = template
 	pushSrv.startNotificationHandling()
 
@@ -138,22 +139,22 @@ func (pushSrv *PushServer) sendIosNotification(deviceGUID, msg string) {
 }
 
 func (pushSrv *PushServer) sendAndroidNotification(deviceGUID, msgText string) {
-	msg := android.NewMessage(deviceGUID)
-	msg.SetPayload("message", msgText)
-	resp, err := pushSrv.androidClient.Send(msg)
+
+	// construct the notifcation
+	data := map[string]interface{}{"poll_id": 0, "message": msgText}
+	regIDs := []string{deviceGUID}
+	msg := gcm.NewMessage(data, regIDs...)
+
+	// send the notification to the GCM server
+	response, err := pushSrv.androidClient.Send(msg, cAndroidRetries)
 	if err != nil && pushSrv.logger != nil {
-		pushSrv.logger.Log(cPushServerTag, err.Error(), "::1")
+		pushSrv.logger.Log(cPushServerTag, fmt.Sprintf("Android push error %s",
+			err), "::1")
+		return
 	}
 
-	errorIndices := resp.ErrorIndexes()
-	if len(errorIndices) != 0 {
-		pushSrv.logger.Log(cPushServerTag, "error indices not nil", "::1")
-	}
-
-	refreshIndices := resp.RefreshIndexes()
-	if len(refreshIndices) != 0 {
-		pushSrv.logger.Log(cPushServerTag, "refresh indices not nil", "::1")
-	}
+	// check for failures
+	pushSrv.logger.Log(cPushServerTag, fmt.Sprint(response), "::1")
 }
 
 func (pushSrv *PushServer) NotifyForUpvote(db *database.Database,
