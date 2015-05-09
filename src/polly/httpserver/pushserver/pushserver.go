@@ -1,8 +1,8 @@
 package pushserver
 
 import (
-	"bytes"
 	"crypto/tls"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
@@ -28,6 +28,10 @@ const (
 
 	cAndroidRetries                = 2
 	cNotificationChannelBufferSize = 1
+
+	TYPE_NEW_VOTE = 0
+	TYPE_UPVOTE   = 1
+	TYPE_NEW_POLL = 2
 )
 
 type voteTemplateData struct {
@@ -35,16 +39,20 @@ type voteTemplateData struct {
 	Option string
 }
 
-type notificationData struct {
-	Message     string
-	DeviceInfos []polly.DeviceInfo
+type NotificationData struct {
+	deviceInfos []polly.DeviceInfo
+	//Message     string]
+	Type   int    `json:"type"`
+	User   string `json:"user"`
+	Title  string `json:"title"`
+	PollID int    `json:"poll_id"`
 }
 
 type PushServer struct {
 	iosClient           *apns.Client
 	androidClient       *gcm.Sender
 	logger              *logger.Logger
-	notificationChannel chan *notificationData
+	notificationChannel chan *NotificationData
 	voteTemplate        *template.Template
 }
 
@@ -97,51 +105,60 @@ func (pushSrv *PushServer) StartErrorLogger(logger *logger.Logger) error {
 }
 
 func (pushSrv *PushServer) startNotificationHandling() {
-	var notData *notificationData
+	var notData *NotificationData
 	var numDevices int
-	pushSrv.notificationChannel = make(chan *notificationData,
+	pushSrv.notificationChannel = make(chan *NotificationData,
 		cNotificationChannelBufferSize)
 
 	go func() {
 		for {
 			notData = <-pushSrv.notificationChannel
-			numDevices = len(notData.DeviceInfos)
+			numDevices = len(notData.deviceInfos)
 
 			for i := 0; i < numDevices; i++ {
-				if len(notData.DeviceInfos[i].DeviceGUID) == 0 {
-					log.Println("Skipping:", notData.DeviceInfos[i].DeviceGUID)
+				if len(notData.deviceInfos[i].DeviceGUID) == 0 {
+					log.Println("Skipping:", notData.deviceInfos[i].DeviceGUID)
 					continue
 				}
 
-				if notData.DeviceInfos[i].DeviceType == polly.DEVICE_TYPE_AD {
+				if notData.deviceInfos[i].DeviceType == polly.DEVICE_TYPE_AD {
 					fmt.Println("Notifying (and):",
-						notData.DeviceInfos[i].DeviceGUID)
+						notData.deviceInfos[i].DeviceGUID)
 					pushSrv.sendAndroidNotification(
-						notData.DeviceInfos[i].DeviceGUID, notData.Message)
+						notData.deviceInfos[i].DeviceGUID, notData)
 				} else {
 					log.Println("Notifying (ios):",
-						notData.DeviceInfos[i].DeviceGUID)
+						notData.deviceInfos[i].DeviceGUID)
 					pushSrv.sendIosNotification(
-						notData.DeviceInfos[i].DeviceGUID, notData.Message)
+						notData.deviceInfos[i].DeviceGUID, notData)
 				}
 			}
 		}
 	}()
 }
 
-func (pushSrv *PushServer) sendIosNotification(deviceGUID, msg string) {
+func (pushSrv *PushServer) sendIosNotification(deviceGUID string,
+	notData *NotificationData) {
+
+	data, err := json.MarshalIndent(notData, "", "\t")
+	if err != nil {
+		pushSrv.logger.Log(cPushServerTag, err.Error(), "::1")
+		return
+	}
+
 	payload := apns.NewPayload()
-	payload.APS.Alert.Body = msg
+	payload.APS.Alert.Body = string(data)
 	notif := apns.NewNotification()
 	notif.Payload = payload
 	notif.DeviceToken = deviceGUID
 	pushSrv.iosClient.Send(notif)
 }
 
-func (pushSrv *PushServer) sendAndroidNotification(deviceGUID, msgText string) {
+func (pushSrv *PushServer) sendAndroidNotification(deviceGUID string,
+	notData *NotificationData) {
 
 	// construct the notifcation
-	data := map[string]interface{}{"poll_id": 0, "message": msgText}
+	data := map[string]interface{}{"poll_id": notData.PollID, "type": notData.Type, "user": notData.User, "title": notData.Title}
 	regIDs := []string{deviceGUID}
 	msg := gcm.NewMessage(data, regIDs...)
 
@@ -178,14 +195,18 @@ func (pushSrv *PushServer) NotifyForUpvote(db *database.Database,
 	}
 
 	// prepare notification
-	var buffer bytes.Buffer
-	templateData := voteTemplateData{}
-	templateData.Option = option.Value
-	templateData.Voter = usr.DisplayName
-	pushSrv.voteTemplate.Execute(&buffer, templateData)
-	notifData := notificationData{}
-	notifData.Message = buffer.String()
-	notifData.DeviceInfos = dvcInfos
+	// var buffer bytes.Buffer
+	// templateData := voteTemplateData{}
+	// templateData.Option = option.Value
+	// templateData.Voter = usr.DisplayName
+	// pushSrv.voteTemplate.Execute(&buffer, templateData)
+	notifData := NotificationData{}
+	// notifData.Message = buffer.String()
+	notifData.deviceInfos = dvcInfos
+	notifData.PollID = option.PollId
+	notifData.Type = TYPE_UPVOTE
+	notifData.User = usr.DisplayName
+	notifData.Title = option.Value
 
 	// let the notification handler goroutine take care of the rest
 	pushSrv.notificationChannel <- &notifData
