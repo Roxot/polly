@@ -10,7 +10,7 @@ const (
 )
 
 type PrivateUser struct {
-	Id          int    `json:"id"`
+	ID          int    `json:"id"`
 	Email       string `db:"email" json:"email"`
 	Token       string `json:"token"`
 	DisplayName string `db:"display_name" json:"display_name"`
@@ -19,19 +19,19 @@ type PrivateUser struct {
 }
 
 type PublicUser struct {
-	Id          int    `json:"id"`
+	ID          int    `json:"id"`
 	DisplayName string `json:"display_name"`
 }
 
 type Poll struct {
-	Id           int   `json:"poll_id"`
-	CreatorId    int   `db:"creator_id" json:"creator_id"`
+	ID           int   `json:"poll_id"`
+	CreatorID    int   `db:"creator_id" json:"creator_id"`
 	CreationDate int64 `db:"creation_date" json:"creation_date"`
 	LastUpdated  int64 `db:"last_updated" json:"last_updated"`
 }
 
 type PollSnapshot struct {
-	PollId      int `db:"poll_id" json:"poll_id"`
+	PollID      int `db:"poll_id" json:"poll_id"`
 	LastUpdated int `db:"last_updated" json:"last_updated"`
 }
 
@@ -41,35 +41,35 @@ type DeviceInfo struct {
 }
 
 type Question struct {
-	Id     int    `json:"id"`
-	PollId int    `db:"poll_id" json:"-"`
+	ID     int    `json:"id"`
+	PollID int    `db:"poll_id" json:"-"`
 	Type   int    `json:"type"`
 	Title  string `json:"title"`
 }
 
 type Option struct {
-	Id         int    `json:"id"`
-	PollId     int    `db:"poll_id" json:"-"`
-	QuestionId int    `db:"question_id" json:"question_id"`
+	ID         int    `json:"id"`
+	PollID     int    `db:"poll_id" json:"-"`
+	QuestionID int    `db:"question_id" json:"question_id"`
 	Value      string `json:"value"`
 }
 
 type Vote struct {
-	Id           int   `json:"id"`
-	PollId       int   `db:"poll_id" json:"-"`
-	OptionId     int   `db:"option_id" json:"option_id"`
-	UserId       int   `db:"user_id" json:"user_id"`
+	ID           int   `json:"id"`
+	PollID       int   `db:"poll_id" json:"-"`
+	OptionID     int   `db:"option_id" json:"option_id"`
+	UserID       int   `db:"user_id" json:"user_id"`
 	CreationDate int64 `db:"creation_date" json:"creation_date"`
 }
 
 type Participant struct {
-	Id     int
-	UserId int `db:"user_id"`
-	PollId int `db:"poll_id"`
+	ID     int
+	UserID int `db:"user_id"`
+	PollID int `db:"poll_id"`
 }
 
 type VerToken struct {
-	Id                int
-	Email             string `db:"email"`
-	VerificationToken string `db:"verification_token"`
+	ID    int
+	Email string `db:"email"`
+	Token string `db:"verification_token"`
 }

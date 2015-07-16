@@ -7,14 +7,15 @@ import (
 )
 
 const (
-	POLLY_HOME = "POLLY_HOME"
+	POLLY_HOME_ENV = "POLLY_HOME"
 )
 
 func GetPollyHome() (string, error) {
-	env := os.Getenv(POLLY_HOME)
+	var env string
+	env = os.Getenv(POLLY_HOME_ENV)
 
 	if env == "" {
-		err := fmt.Errorf("$%s not set.", POLLY_HOME)
+		err := fmt.Errorf("$%s not set.", POLLY_HOME_ENV)
 		return env, err
 	}
 
