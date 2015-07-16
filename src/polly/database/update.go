@@ -6,31 +6,31 @@ import (
 	"gopkg.in/gorp.v1"
 )
 
-func UpdatePollLastUpdatedTx(pollId int, lastUpdated int64,
-	transaction *gorp.Transaction) error {
+func UpdatePollLastUpdatedTx(pollID int, lastUpdated int64,
+	tx *gorp.Transaction) error {
 
-	_, err := transaction.Exec(fmt.Sprintf("update %s set %s=$1 where %s=$2;",
-		cPollTableName, cLastUpdated, cId), lastUpdated, pollId)
+	_, err := tx.Exec(fmt.Sprintf("update %s set %s=$1 where %s=$2;",
+		cPollTableName, cLastUpdated, cID), lastUpdated, pollID)
 	return err
 }
 
-func (db *Database) UpdateUser(usrID int, dspName, dvcGUID string) error {
-	_, err := db.dbMap.Exec(fmt.Sprintf(
+func (db *Database) UpdateUser(userID int, displayName,
+	deviceGUID string) error {
+
+	_, err := db.mapping.Exec(fmt.Sprintf(
 		"update %s set %s=$1, %s=$2 where %s=$3;", cUserTableName,
-		cDisplayName, cDeviceGUID, cId), dspName, dvcGUID, usrID)
+		cDisplayName, cDeviceGUID, cId), dspName, deviceGUID, userID)
 	return err
 }
 
-func (db *Database) UpdateDisplayName(usrID int, dspName string) error {
-	_, err := db.dbMap.Exec(fmt.Sprintf(
-		"update %s set %s=$1 where %s=$2;", cUserTableName,
-		cDisplayName, cId), dspName, usrID)
+func (db *Database) UpdateDisplayName(userID int, displayName string) error {
+	_, err := db.mapping.Exec(fmt.Sprintf("update %s set %s=$1 where %s=$2;",
+		cUserTableName, cDisplayName, cId), dspName, userID)
 	return err
 }
 
-func (db *Database) UpdateDeviceGUID(usrID int, dvcGUID string) error {
-	_, err := db.dbMap.Exec(fmt.Sprintf(
-		"update %s set %s=$1 where %s=$2;", cUserTableName,
-		cDeviceGUID, cId), dvcGUID, usrID)
+func (db *Database) UpdateDeviceGUID(userID int, deviceGUID string) error {
+	_, err := db.mapping.Exec(fmt.Sprintf("update %s set %s=$1 where %s=$2;",
+		cUserTableName, cDeviceGUID, cId), deviceGUID, userID)
 	return err
 }

@@ -7,51 +7,59 @@ import (
 )
 
 func (db *Database) AddUser(user *polly.PrivateUser) error {
-	return db.dbMap.Insert(user)
+	return db.mapping.Insert(user)
+}
+
+func AddUserTx(user *polly.PrivateUser, tx *gorp.Transaction) error {
+	return tx.Insert(user)
 }
 
 func (db *Database) AddPoll(poll *polly.Poll) error {
-	return db.dbMap.Insert(poll)
+	return db.mapping.Insert(poll)
 }
 
-func (db *Database) AddPollTx(poll *polly.Poll, tx *gorp.Transaction) error {
+func AddPollTx(poll *polly.Poll, tx *gorp.Transaction) error {
 	return tx.Insert(poll)
 }
 
 func (db *Database) AddQuestion(question *polly.Question) error {
-	return db.dbMap.Insert(question)
+	return db.mapping.Insert(question)
 }
 
-func (db *Database) AddQuestionTx(question *polly.Question,
-	tx *gorp.Transaction) error {
-
+func AddQuestionTx(question *polly.Question, tx *gorp.Transaction) error {
 	return tx.Insert(question)
 }
 
 func (db *Database) AddOption(option *polly.Option) error {
-	return db.dbMap.Insert(option)
+	return db.mapping.Insert(option)
 }
 
-func (db *Database) AddOptionTx(option *polly.Option,
-	tx *gorp.Transaction) error {
-
+func AddOptionTx(option *polly.Option, tx *gorp.Transaction) error {
 	return tx.Insert(option)
 }
 
 func (db *Database) AddVote(vote *polly.Vote) error {
-	return db.dbMap.Insert(vote)
+	return db.mapping.Insert(vote)
 }
 
 func AddVoteTx(vote *polly.Vote, tx *gorp.Transaction) error {
 	return tx.Insert(vote)
 }
 
-func (db *Database) AddParticipantTx(partic *polly.Participant,
-	tx *gorp.Transaction) error {
-
-	return tx.Insert(partic)
+func (db *Database) AddParticipant(participant *polly.Participant) error {
+	return db.mapping.Insert(participant)
 }
 
-func (db *Database) AddVerToken(verTkn *polly.VerToken) error {
-	return db.dbMap.Insert(verTkn)
+func AddParticipantTx(participant *polly.Participant,
+	tx *gorp.Transaction) error {
+
+	return tx.Insert(participant)
+}
+
+func (db *Database) AddVerToken(verToken *polly.VerToken) error {
+	return db.mapping.Insert(verToken)
+}
+
+func AddVerTokenTx(verToken *polly.VerToken, tx *gorp.Transaction) error {
+	return tx.Insert(verToken)
 }
