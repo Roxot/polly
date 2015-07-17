@@ -1,4 +1,4 @@
-package logger
+package log
 
 import (
 	"fmt"
@@ -14,7 +14,7 @@ const (
 )
 
 type Logger struct {
-	logFile  *os.File
+	logFile  os.File
 	logChan  chan string
 	quitChan chan int
 }
@@ -37,7 +37,7 @@ func (logger *Logger) Start() error {
 		return fmt.Errorf("$%s not set correctly.", polly.POLLY_HOME)
 	}
 
-	logger.logFile = file
+	logger.logFile = *file
 
 	go func() {
 
