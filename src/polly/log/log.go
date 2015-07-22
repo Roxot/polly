@@ -19,7 +19,7 @@ type Logger struct {
 	quitChan chan int
 }
 
-func New() *Logger {
+func NewLogger() *Logger {
 	logger := Logger{}
 	logger.logChan = make(chan string, cBufferSize)
 	logger.quitChan = make(chan int)

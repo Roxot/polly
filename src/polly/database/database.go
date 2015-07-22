@@ -23,7 +23,7 @@ type DBConfig struct {
 	Password string
 }
 
-func New(dbConfig *DBConfig) (*Database, error) {
+func NewDatabase(dbConfig *DBConfig) (*Database, error) {
 	db := Database{}
 
 	// open the given postgres database
