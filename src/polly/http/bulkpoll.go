@@ -28,7 +28,7 @@ func (server *sServer) GetPollBulk(writer http.ResponseWriter,
 	}
 
 	// retrieve the list of identifiers
-	ids := req.URL.Query()[cID]
+	ids := request.URL.Query()[cID]
 	if len(ids) > cBulkPollMax {
 		server.handleErr(cGetPollBulkTag, cIDListLengthErr,
 			fmt.Sprintf("%s: %d", cIDListLengthErr, len(ids)), 400, writer,
@@ -44,13 +44,13 @@ func (server *sServer) GetPollBulk(writer http.ResponseWriter,
 		// convert the id to an integer
 		id, err := strconv.Atoi(idString)
 		if err != nil {
-			server.handleBadRequest(cGetPollBulkTag, cBadIdErr, err, writer,
+			server.handleBadRequest(cGetPollBulkTag, cBadIDErr, err, writer,
 				request)
 			return
 		}
 
 		// make sure the user is authorized to receive the poll
-		if !server.hasPollAccess(user.Id, id) {
+		if !server.hasPollAccess(user.ID, id) {
 			server.handleIllegalOperation(cGetPollBulkTag, cAccessRightsErr,
 				writer, request)
 			return

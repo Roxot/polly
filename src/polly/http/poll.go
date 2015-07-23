@@ -35,7 +35,7 @@ func (server *sServer) PostPoll(writer http.ResponseWriter, request *http.Reques
 	}
 
 	// validate the poll
-	if err := isValidPollMessage(server.db, &pollMsg, user.ID); err != nil {
+	if err := isValidPollMessage(&server.db, &pollMsg, user.ID); err != nil {
 		server.handleBadRequest(cPostPollTag, cBadPollErr, err, writer, request)
 		return
 	}

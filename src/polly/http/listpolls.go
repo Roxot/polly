@@ -57,7 +57,7 @@ func (server *sServer) ListUserPolls(writer http.ResponseWriter, request *http.R
 
 	// retrieve poll snapshots
 	offset := (page - 1) * cPollListMax
-	snapshots, err := server.db.PollSnapshotsByUserID(user.ID, cPollListMax,
+	snapshots, err := server.db.GetPollSnapshotsByUserID(user.ID, cPollListMax,
 		offset)
 	if err != nil {
 		server.handleDatabaseError(cListUserPollsTag, err, writer, request)

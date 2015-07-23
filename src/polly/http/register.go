@@ -28,15 +28,15 @@ func (server *sServer) Register(writer http.ResponseWriter, request *http.Reques
 	}
 
 	// create a new verification token
-	verTkn := polly.VerToken{}
-	verTkn.Email = email
-	verTkn.VerificationToken = "VERIFY"
+	verToken := polly.VerToken{}
+	verToken.Email = email
+	verToken.Token = "VERIFY"
 
 	// remove existing verification tokens
-	server.db.DelVerTokensByEmail(email)
+	server.db.DeleteVerTokensByEmail(email)
 
 	// add the verification token to the database
-	err := server.db.AddVerToken(&verTkn)
+	err := server.db.AddVerToken(&verToken)
 	if err != nil {
 		server.handleDatabaseError(cRegisterTag, err, writer, request)
 		return
@@ -47,10 +47,10 @@ func (server *sServer) Register(writer http.ResponseWriter, request *http.Reques
 func (server *sServer) VerifyRegister(writer http.ResponseWriter,
 	request *http.Request, _ httprouter.Params) {
 
-	retrVerTkn := request.PostFormValue(cVerToken)
+	retrVerToken := request.PostFormValue(cVerToken)
 	email := request.PostFormValue(cEmail)
-	dbVerTkn, err := server.db.VerTokenByEmail(email)
-	if err != nil || dbVerTkn.VerificationToken != retrVerTkn {
+	dbVerToken, err := server.db.GetVerTokenByEmail(email)
+	if err != nil || dbVerToken.Token != retrVerToken {
 		server.handleErr(cVerifyRegisterTag, cNotRegOrBadTknErr,
 			cNotRegOrBadTknErr, 400, writer, request)
 		return
@@ -71,8 +71,8 @@ func (server *sServer) VerifyRegister(writer http.ResponseWriter,
 	deviceGUID := request.PostFormValue(cDeviceGUID) // TODO validate
 
 	displayName := request.PostFormValue(cDisplayName)
-	server.db.DelVerTokensByEmail(email)
-	user, err := server.db.UserByEmail(email) // TODO userExists
+	server.db.DeleteVerTokensByEmail(email)
+	user, err := server.db.GetUserByEmail(email) // TODO userExists
 	if err == nil {
 
 		/* We're dealing with an already existing user */

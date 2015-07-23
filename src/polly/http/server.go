@@ -13,18 +13,18 @@ import (
 const cHTTPServerTag = "HTTPSERVER"
 
 type IServer interface {
-	Start()
-	Stop()
+	Start(port string) error
+	// Stop() TODO ?
 }
 
 type sServer struct {
 	db         database.Database
 	router     httprouter.Router
 	logger     log.ILogger
-	pushClient push.PushClient
+	pushClient push.IPushClient
 }
 
-func NewServer(dbConfig *database.DbConfig, clearDB bool) (IServer, error) {
+func NewServer(dbConfig *database.DBConfig, clearDB bool) (IServer, error) {
 	var err error
 	server := sServer{}
 
@@ -50,10 +50,10 @@ func NewServer(dbConfig *database.DbConfig, clearDB bool) (IServer, error) {
 		return nil, err
 	}
 
-	server.pushClient = *pushClient
-	server.logger = *logger.New()
-	server.db = db
-	server.router = httprouter.New()
+	server.pushClient = pushClient
+	server.logger = log.NewLogger()
+	server.db = *db
+	server.router = *httprouter.New()
 
 	// start the push notification server's error logging
 	err = pushClient.StartErrorLogger(server.logger)
@@ -64,7 +64,7 @@ func NewServer(dbConfig *database.DbConfig, clearDB bool) (IServer, error) {
 	return &server, nil
 }
 
-// sync
+// is sync
 func (server *sServer) Start(port string) error {
 	var err error
 	err = server.logger.Start()
@@ -78,11 +78,11 @@ func (server *sServer) Start(port string) error {
 	server.router.POST("/api/v1/vote", server.Vote)
 	server.router.PUT("/api/v1/user", server.UpdateUser)
 	server.router.GET("/api/v1/user/polls", server.ListUserPolls)
-	server.router.GET(fmt.Sprintf("/api/v1/poll/:%s", cId), server.GetPoll)
+	server.router.GET(fmt.Sprintf("/api/v1/poll/:%s", cID), server.GetPoll)
 	server.router.GET("/api/v1/poll", server.GetPollBulk)
 	server.router.GET(fmt.Sprintf("/api/v1/user/lookup/:%s", cEmail),
 		server.GetUser)
 	server.logger.Log(cHTTPServerTag, "Starting HTTP server", "::1")
-	err = http.ListenAndServe(port, server.router)
+	err = http.ListenAndServe(port, &server.router)
 	return err
 }

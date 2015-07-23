@@ -30,7 +30,7 @@ func (server *sServer) GetUser(writer http.ResponseWriter, request *http.Request
 
 	// load the user from the database
 	email := params.ByName(cEmail)
-	user, err := server.db.PublicUserByEmail(email)
+	user, err := server.db.GetPublicUserByEmail(email)
 	if err != nil {
 		server.handleErr(cGetUserTag, cNoUserErr,
 			fmt.Sprintf(cLogFmt, cNoUserErr, email), 400, writer, request)

@@ -48,19 +48,20 @@ type NotificationData struct {
 }
 
 type IPushClient interface {
-	StartErrorLogger(*logger.Logger) error
-	NotifyForUpvote(*database.Database, *polly.PrivateUser, int) error
+	StartErrorLogger(log.ILogger) error
+	NotifyForUpvote(db *database.Database, user *polly.PrivateUser,
+		optionID int) error
 }
 
 type sPushClient struct {
 	iosClient           apns.Client
 	androidClient       gcm.Sender
-	logger              log.Logger
+	logger              log.ILogger
 	notificationChannel chan *NotificationData
 	voteTemplate        template.Template
 }
 
-func NewPushCLient() (IPushClient, error) {
+func NewClient() (IPushClient, error) {
 	var pushClient = sPushClient{}
 
 	// create ios client
@@ -91,14 +92,14 @@ func NewPushCLient() (IPushClient, error) {
 	return &pushClient, nil
 }
 
-func (pushClient *sPushClient) StartErrorLogger(logger *logger.Logger) error {
+func (pushClient *sPushClient) StartErrorLogger(logger log.ILogger) error {
 	if logger == nil {
 		return errors.New("Logger may not be nil.")
 	}
 
 	go func() {
 		for failures := range pushClient.iosClient.FailedNotifs {
-			logger.Log(cPushServerTag, fmt.Sprintf(cPushServerLogFmt,
+			logger.Log(cPushClientTag, fmt.Sprintf(cPushServerLogFmt,
 				failures.Notif.ID, failures.Err.Error()), "::1")
 		}
 	}()
@@ -121,7 +122,7 @@ func (pushClient *sPushClient) startNotificationHandling() {
 
 			for i := 0; i < numDevices; i++ {
 				if len(notificationData.deviceInfos[i].DeviceGUID) == 0 {
-					log.Println("Skipping:", notificationData.deviceInfos[i].
+					fmt.Println("Skipping:", notificationData.deviceInfos[i].
 						DeviceGUID)
 					continue
 				}
@@ -135,7 +136,7 @@ func (pushClient *sPushClient) startNotificationHandling() {
 						notificationData.deviceInfos[i].DeviceGUID,
 						notificationData)
 				} else {
-					log.Println("Notifying (ios):",
+					fmt.Println("Notifying (ios):",
 						notificationData.deviceInfos[i].DeviceGUID)
 					pushClient.sendIosNotification(
 						notificationData.deviceInfos[i].DeviceGUID,
@@ -151,7 +152,7 @@ func (pushClient *sPushClient) sendIosNotification(deviceGUID string,
 
 	data, err := json.MarshalIndent(notificationData, "", "\t")
 	if err != nil {
-		pushClient.logger.Log(cPushServerTag, err.Error(), "::1")
+		pushClient.logger.Log(cPushClientTag, err.Error(), "::1")
 		return
 	}
 
@@ -176,27 +177,27 @@ func (pushClient *sPushClient) sendAndroidNotification(deviceGUID string,
 	// send the notification to the GCM server
 	response, err := pushClient.androidClient.Send(msg, cAndroidRetries)
 	if err != nil && pushClient.logger != nil {
-		pushClient.logger.Log(cPushServerTag, fmt.Sprintf(
+		pushClient.logger.Log(cPushClientTag, fmt.Sprintf(
 			"Android push error %s", err), "::1")
 		return
 	}
 
 	// check for failures
-	pushClient.logger.Log(cPushServerTag, fmt.Sprint(response), "::1")
+	pushClient.logger.Log(cPushClientTag, fmt.Sprint(response), "::1")
 }
 
 func (pushClient *sPushClient) NotifyForUpvote(db *database.Database,
 	user *polly.PrivateUser, optionID int) error {
 
 	// retrieve option name
-	option, err := db.GetOptionById(optionID)
+	option, err := db.GetOptionByID(optionID)
 	if err != nil {
 		return err
 	}
 
 	// retrieve all poll participants
-	deviceInfos, err := db.DeviceInfosForPollExcludeCreator(option.PollId,
-		user.Id)
+	deviceInfos, err := db.GetDeviceInfosForPollExcludeCreator(option.PollID,
+		user.ID)
 	if err != nil {
 		return err
 	}
@@ -215,7 +216,7 @@ func (pushClient *sPushClient) NotifyForUpvote(db *database.Database,
 	notificationData := NotificationData{}
 	// notificationData.Message = buffer.String()
 	notificationData.deviceInfos = deviceInfos
-	notificationData.PollID = option.PollId
+	notificationData.PollID = option.PollID
 	notificationData.Type = TYPE_UPVOTE
 	notificationData.User = user.DisplayName
 	notificationData.Title = option.Value

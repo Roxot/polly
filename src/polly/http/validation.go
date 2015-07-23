@@ -60,7 +60,7 @@ func isValidPollMessage(db *database.Database, pollMsg *PollMessage,
 		}
 
 		// check if user exists
-		dbUser, err := db.UserByID(pollMsg.Participants[i].ID)
+		dbUser, err := db.GetUserByID(pollMsg.Participants[i].ID)
 		if err != nil {
 			return errors.New("Unknown participant.")
 		} else {

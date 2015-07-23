@@ -14,7 +14,7 @@ func (server *sServer) authenticateRequest(request *http.Request) (
 		return nil, fmt.Errorf("No authentication provided.")
 	}
 
-	user, err := server.db.UserByEmail(email)
+	user, err := server.db.GetUserByEmail(email)
 	if err != nil {
 		return nil, fmt.Errorf("Unknown user: %s.", email)
 	}

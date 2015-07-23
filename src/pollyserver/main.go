@@ -24,9 +24,9 @@ func main() {
 	flag.Parse()
 
 	dbConfig := database.DBConfig{}
-	dbConfig.PsqlUser = cPsqlUser
-	dbConfig.PsqlUserPass = cPsqlPassword
-	dbConfig.DbName = cDbName
+	dbConfig.User = cPsqlUser
+	dbConfig.Password = cPsqlPassword
+	dbConfig.Name = cDbName
 
 	log.Println("Opening database...")
 	srv, err := http.NewServer(&dbConfig, clearDB)

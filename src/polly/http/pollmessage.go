@@ -2,6 +2,7 @@ package http
 
 import (
 	"polly"
+	"polly/database"
 	"time"
 )
 
@@ -29,7 +30,7 @@ func (server *sServer) InsertPollMessage(pollMsg *PollMessage) error {
 	pollMsg.MetaData.LastUpdated = now
 
 	// insert the poll object
-	err = server.db.AddPollTx(&pollMsg.MetaData, transaction)
+	err = database.AddPollTx(&pollMsg.MetaData, transaction)
 	if err != nil {
 		transaction.Rollback()
 		return err
@@ -39,7 +40,7 @@ func (server *sServer) InsertPollMessage(pollMsg *PollMessage) error {
 	pollMsg.Question.PollID = pollMsg.MetaData.ID
 
 	// insert the question
-	err = server.db.AddQuestionTx(&pollMsg.Question, transaction)
+	err = database.AddQuestionTx(&pollMsg.Question, transaction)
 	if err != nil {
 		transaction.Rollback()
 		return err
@@ -51,7 +52,7 @@ func (server *sServer) InsertPollMessage(pollMsg *PollMessage) error {
 		option := &(pollMsg.Options[i])
 		option.QuestionID = pollMsg.Question.ID
 		option.PollID = pollMsg.MetaData.ID
-		err = server.db.AddOptionTx(option, transaction)
+		err = database.AddOptionTx(option, transaction)
 		if err != nil {
 			transaction.Rollback()
 			return err
@@ -65,7 +66,7 @@ func (server *sServer) InsertPollMessage(pollMsg *PollMessage) error {
 		partic := polly.Participant{}
 		partic.UserID = user.ID
 		partic.PollID = pollMsg.MetaData.ID
-		err = server.db.AddParticipantTx(&partic, transaction)
+		err = database.AddParticipantTx(&partic, transaction)
 		if err != nil {
 			transaction.Rollback()
 			return err
@@ -85,35 +86,35 @@ func (server *sServer) ConstructPollMessage(pollID int) (*PollMessage, error) {
 	pollMsg := PollMessage{}
 
 	// retrieve the poll object
-	poll, err := server.db.PollByID(pollID)
+	poll, err := server.db.GetPollByID(pollID)
 	pollMsg.MetaData = *poll
 	if err != nil {
 		return nil, err
 	}
 
 	// retrieve the questions
-	question, err := server.db.QuestionByPollID(pollID)
+	question, err := server.db.GetQuestionByPollID(pollID)
 	pollMsg.Question = *question
 	if err != nil {
 		return nil, err
 	}
 
 	// retrieve the options
-	options, err := server.db.OptionsByPollID(pollID)
+	options, err := server.db.GetOptionsByPollID(pollID)
 	pollMsg.Options = options
 	if err != nil {
 		return nil, err
 	}
 
 	// retrieve the votes
-	votes, err := server.db.VotesByPollID(pollID)
+	votes, err := server.db.GetVotesByPollID(pollID)
 	pollMsg.Votes = votes
 	if err != nil {
 		return nil, err
 	}
 
 	// retrieve the participants
-	participants, err := server.db.ParticipantsByPollID(pollID)
+	participants, err := server.db.GetParticipantsByPollID(pollID)
 	if err != nil {
 		return nil, err
 	}
@@ -123,7 +124,7 @@ func (server *sServer) ConstructPollMessage(pollID int) (*PollMessage, error) {
 	pollMsg.Participants = make([]polly.PublicUser, numParticipants)
 	var user *polly.PublicUser
 	for i := 0; i < numParticipants; i++ {
-		user, err = server.db.PublicUserByID(participants[i].UserID)
+		user, err = server.db.GetPublicUserByID(participants[i].UserID)
 		if err != nil {
 			return nil, err
 		}

@@ -151,7 +151,7 @@ func (db *Database) GetParticipantsByPollID(pollID int) (
 	return participants, err
 }
 
-func (db *Database) GetVotesByPollId(pollID int) ([]polly.Vote, error) {
+func (db *Database) GetVotesByPollID(pollID int) ([]polly.Vote, error) {
 	var votes []polly.Vote
 	_, err := db.mapping.Select(&votes,
 		fmt.Sprintf("select * from %s where %s = $1;", cVoteTableName, cPollID),

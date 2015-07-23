@@ -53,7 +53,7 @@ func (server *sServer) Vote(writer http.ResponseWriter, request *http.Request,
 	var pollID int
 	switch voteMsg.Type {
 	case VOTE_TYPE_NEW:
-		pollID, err = server.db.PollIDForQuestionID(voteMsg.ID)
+		pollID, err = server.db.GetPollIDForQuestionID(voteMsg.ID)
 		if err != nil {
 			server.handleBadRequest(cVoteTag, cNoQuestionErr, err, writer,
 				request)
@@ -64,7 +64,7 @@ func (server *sServer) Vote(writer http.ResponseWriter, request *http.Request,
 			return
 		}
 	case VOTE_TYPE_UPVOTE:
-		pollID, err = server.db.PollIDForOptionID(voteMsg.ID)
+		pollID, err = server.db.GetPollIDForOptionID(voteMsg.ID)
 		if err != nil {
 			server.handleBadRequest(cVoteTag, cNoOptionErr, err, writer,
 				request)
@@ -92,7 +92,7 @@ func (server *sServer) Vote(writer http.ResponseWriter, request *http.Request,
 	}
 
 	// remove all existing votes of the user
-	err = database.DelVotesForUserTx(user.ID, pollID, transaction)
+	err = database.DeleteVotesForUserTx(user.ID, pollID, transaction)
 	if err != nil {
 		transaction.Rollback()
 		server.handleDatabaseError(cVoteTag, err, writer, request)
@@ -111,7 +111,7 @@ func (server *sServer) Vote(writer http.ResponseWriter, request *http.Request,
 		option.PollID = pollID
 		option.QuestionID = questionID
 		option.Value = voteMsg.Value
-		err = server.db.AddOptionTx(&option, transaction)
+		err = database.AddOptionTx(&option, transaction)
 		if err != nil {
 			transaction.Rollback()
 			server.handleDatabaseError(cVoteTag, err, writer, request)
@@ -152,7 +152,7 @@ func (server *sServer) Vote(writer http.ResponseWriter, request *http.Request,
 	}
 
 	// push a notification to all participants of the poll TODO other type of vote
-	err = server.pushserver.NotifyForUpvote(server.db, user, optionID)
+	err = server.pushClient.NotifyForUpvote(&server.db, user, optionID)
 	if err != nil {
 		host, _, _ := net.SplitHostPort(request.RemoteAddr)
 		server.logger.Log(cVoteTag, fmt.Sprintf(cDatabaseErrLog, err), host)

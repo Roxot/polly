@@ -8,7 +8,7 @@ const (
 	cOptionTableName             = "options"
 	cVoteTableName               = "votes"
 	cParticipantTableName        = "participants"
-	cPK                          = "Id"
+	cPK                          = "ID"
 	cID                          = "id"
 	cEmail                       = "email"
 	cToken                       = "token"
