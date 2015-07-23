@@ -21,7 +21,7 @@ const (
 
 type VoteMessage struct {
 	Type  int    `json:"type"`
-	Id    int    `json:"id"`
+	ID    int    `json:"id"`
 	Value string `json:"value"`
 }
 
@@ -30,113 +30,116 @@ type VoteResponseMessage struct {
 	Vote   *polly.Vote   `json:"vote"`
 }
 
-func (srv *HTTPServer) Vote(writer http.ResponseWriter, req *http.Request,
+func (server *sServer) Vote(writer http.ResponseWriter, request *http.Request,
 	_ httprouter.Params) {
 
 	// authenticate the user
-	usr, err := srv.authenticateRequest(req)
+	user, err := server.authenticateRequest(request)
 	if err != nil {
-		srv.handleAuthError(cVoteTag, err, writer, req)
+		server.handleAuthError(cVoteTag, err, writer, request)
 		return
 	}
 
 	// decode the vote message
 	var voteMsg VoteMessage
-	decoder := json.NewDecoder(req.Body)
+	decoder := json.NewDecoder(request.Body)
 	err = decoder.Decode(&voteMsg)
 	if err != nil {
-		srv.handleBadRequest(cVoteTag, cBadJSONErr, err, writer, req)
+		server.handleBadRequest(cVoteTag, cBadJSONErr, err, writer, request)
 		return
 	}
 
 	// retrieve the poll id belonging to the option or question id
-	var pollId int
+	var pollID int
 	switch voteMsg.Type {
 	case VOTE_TYPE_NEW:
-		pollId, err = srv.db.PollIdForQuestionId(voteMsg.Id)
+		pollID, err = server.db.PollIDForQuestionID(voteMsg.ID)
 		if err != nil {
-			srv.handleBadRequest(cVoteTag, cNoQuestionErr, err, writer, req)
+			server.handleBadRequest(cVoteTag, cNoQuestionErr, err, writer,
+				request)
 			return
 		} else if len(voteMsg.Value) == 0 {
-			srv.handleErr(cVoteTag, cBadVoteMsgErr, cBadVoteMsgErr, 400,
-				writer, req)
+			server.handleErr(cVoteTag, cBadVoteMsgErr, cBadVoteMsgErr, 400,
+				writer, request)
 			return
 		}
 	case VOTE_TYPE_UPVOTE:
-		pollId, err = srv.db.PollIdForOptionId(voteMsg.Id)
+		pollID, err = server.db.PollIDForOptionID(voteMsg.ID)
 		if err != nil {
-			srv.handleBadRequest(cVoteTag, cNoOptionErr, err, writer, req)
+			server.handleBadRequest(cVoteTag, cNoOptionErr, err, writer,
+				request)
 			return
 		}
 	default:
-		srv.handleErr(cVoteTag, cBadVoteTypeErr, cBadVoteTypeErr, 400,
-			writer, req)
+		server.handleErr(cVoteTag, cBadVoteTypeErr, cBadVoteTypeErr, 400,
+			writer, request)
 		return
 	}
 
 	// make sure the user is allowed to vote
-	if !srv.hasPollAccess(usr.Id, pollId) {
-		srv.handleIllegalOperation(cVoteTag, cAccessRightsErr, writer, req)
+	if !server.hasPollAccess(user.ID, pollID) {
+		server.handleIllegalOperation(cVoteTag, cAccessRightsErr, writer,
+			request)
 		return
 	}
 
 	// start a transaction
-	transaction, err := srv.db.Begin()
+	transaction, err := server.db.Begin()
 	if err != nil {
 		transaction.Rollback()
-		srv.handleDatabaseError(cVoteTag, err, writer, req)
+		server.handleDatabaseError(cVoteTag, err, writer, request)
 		return
 	}
 
 	// remove all existing votes of the user
-	err = database.DelVotesForUserTx(usr.Id, pollId, transaction)
+	err = database.DelVotesForUserTx(user.ID, pollID, transaction)
 	if err != nil {
 		transaction.Rollback()
-		srv.handleDatabaseError(cVoteTag, err, writer, req)
+		server.handleDatabaseError(cVoteTag, err, writer, request)
 		return
 	}
 
 	// if necessary, create a new option
-	var optionId int
+	var optionID int
 	var option polly.Option
 	if voteMsg.Type == VOTE_TYPE_UPVOTE {
-		optionId = voteMsg.Id
+		optionID = voteMsg.ID
 	} else {
 
 		// we have a vote message with type NEW, so we create a new option
-		questionId := voteMsg.Id
-		option.PollId = pollId
-		option.QuestionId = questionId
+		questionID := voteMsg.ID
+		option.PollID = pollID
+		option.QuestionID = questionID
 		option.Value = voteMsg.Value
-		err = srv.db.AddOptionTx(&option, transaction)
+		err = server.db.AddOptionTx(&option, transaction)
 		if err != nil {
 			transaction.Rollback()
-			srv.handleDatabaseError(cVoteTag, err, writer, req)
+			server.handleDatabaseError(cVoteTag, err, writer, request)
 			return
 		}
 
-		optionId = option.Id
+		optionID = option.ID
 	}
 
 	// insert the vote into the database
 	vote := polly.Vote{}
 	vote.CreationDate = time.Now().Unix()
-	vote.OptionId = optionId
-	vote.PollId = pollId
-	vote.UserId = usr.Id
+	vote.OptionID = optionID
+	vote.PollID = pollID
+	vote.UserID = user.ID
 	err = database.AddVoteTx(&vote, transaction)
 	if err != nil {
 		transaction.Rollback()
-		srv.handleDatabaseError(cVoteTag, err, writer, req)
+		server.handleDatabaseError(cVoteTag, err, writer, request)
 		return
 	}
 
 	// update the poll last updated
-	err = database.UpdatePollLastUpdatedTx(pollId, time.Now().Unix(),
+	err = database.UpdatePollLastUpdatedTx(pollID, time.Now().Unix(),
 		transaction)
 	if err != nil {
 		transaction.Rollback()
-		srv.handleDatabaseError(cVoteTag, err, writer, req)
+		server.handleDatabaseError(cVoteTag, err, writer, request)
 		return
 	}
 
@@ -144,15 +147,15 @@ func (srv *HTTPServer) Vote(writer http.ResponseWriter, req *http.Request,
 	err = transaction.Commit()
 	if err != nil {
 		transaction.Rollback()
-		srv.handleDatabaseError(cVoteTag, err, writer, req)
+		server.handleDatabaseError(cVoteTag, err, writer, request)
 		return
 	}
 
 	// push a notification to all participants of the poll TODO other type of vote
-	err = srv.pushSrv.NotifyForUpvote(srv.db, usr, optionId)
+	err = server.pushserver.NotifyForUpvote(server.db, user, optionID)
 	if err != nil {
-		host, _, _ := net.SplitHostPort(req.RemoteAddr)
-		srv.logger.Log(cVoteTag, fmt.Sprintf(cDatabaseErrLog, err), host)
+		host, _, _ := net.SplitHostPort(request.RemoteAddr)
+		server.logger.Log(cVoteTag, fmt.Sprintf(cDatabaseErrLog, err), host)
 	}
 
 	// construct the response message
@@ -166,7 +169,7 @@ func (srv *HTTPServer) Vote(writer http.ResponseWriter, req *http.Request,
 	responseBody, err := json.MarshalIndent(response, "", "\t")
 	_, err = writer.Write(responseBody)
 	if err != nil {
-		srv.handleWritingError(cVoteTag, err, writer, req)
+		server.handleWritingError(cVoteTag, err, writer, request)
 		return
 	}
 

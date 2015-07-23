@@ -17,21 +17,22 @@ type PollBulk struct {
 	Polls []PollMessage `json:"polls"`
 }
 
-func (srv *HTTPServer) GetPollBulk(writer http.ResponseWriter,
-	req *http.Request, _ httprouter.Params) {
+func (server *sServer) GetPollBulk(writer http.ResponseWriter,
+	request *http.Request, _ httprouter.Params) {
 
 	// authenticate the request
-	usr, err := srv.authenticateRequest(req)
+	user, err := server.authenticateRequest(request)
 	if err != nil {
-		srv.handleAuthError(cGetPollBulkTag, err, writer, req)
+		server.handleAuthError(cGetPollBulkTag, err, writer, request)
 		return
 	}
 
 	// retrieve the list of identifiers
-	ids := req.URL.Query()[cId]
+	ids := req.URL.Query()[cID]
 	if len(ids) > cBulkPollMax {
-		srv.handleErr(cGetPollBulkTag, cIdListLengthErr,
-			fmt.Sprintf("%s: %d", cIdListLengthErr, len(ids)), 400, writer, req)
+		server.handleErr(cGetPollBulkTag, cIDListLengthErr,
+			fmt.Sprintf("%s: %d", cIDListLengthErr, len(ids)), 400, writer,
+			request)
 		return
 	}
 
@@ -43,22 +44,23 @@ func (srv *HTTPServer) GetPollBulk(writer http.ResponseWriter,
 		// convert the id to an integer
 		id, err := strconv.Atoi(idString)
 		if err != nil {
-			srv.handleBadRequest(cGetPollBulkTag, cBadIdErr, err, writer, req)
+			server.handleBadRequest(cGetPollBulkTag, cBadIdErr, err, writer,
+				request)
 			return
 		}
 
 		// make sure the user is authorized to receive the poll
-		if !srv.hasPollAccess(usr.Id, id) {
-			srv.handleIllegalOperation(cGetPollBulkTag, cAccessRightsErr,
-				writer, req)
+		if !server.hasPollAccess(user.Id, id) {
+			server.handleIllegalOperation(cGetPollBulkTag, cAccessRightsErr,
+				writer, request)
 			return
 		}
 
 		// construct the poll message
-		pollMsg, err := srv.ConstructPollMessage(id)
+		pollMsg, err := server.ConstructPollMessage(id)
 		if err != nil {
-			srv.handleErr(cGetPollBulkTag, cNoPollErr, cNoPollErr, 400,
-				writer, req)
+			server.handleErr(cGetPollBulkTag, cNoPollErr, cNoPollErr, 400,
+				writer, request)
 			return
 		}
 
@@ -68,7 +70,7 @@ func (srv *HTTPServer) GetPollBulk(writer http.ResponseWriter,
 	responseBody, err := json.MarshalIndent(pollBulk, "", "\t")
 	_, err = writer.Write(responseBody)
 	if err != nil {
-		srv.handleWritingError(cGetPollBulkTag, err, writer, req)
+		server.handleWritingError(cGetPollBulkTag, err, writer, request)
 		return
 	}
 }

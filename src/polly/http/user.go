@@ -18,68 +18,69 @@ type updateUserFields struct {
 	DisplayName *string `json:"display_name"`
 }
 
-func (srv *HTTPServer) GetUser(writer http.ResponseWriter, req *http.Request,
+func (server *sServer) GetUser(writer http.ResponseWriter, request *http.Request,
 	params httprouter.Params) {
 
 	// authenticate the user
-	_, err := srv.authenticateRequest(req)
+	_, err := server.authenticateRequest(request)
 	if err != nil {
-		srv.handleAuthError(cGetUserTag, err, writer, req)
+		server.handleAuthError(cGetUserTag, err, writer, request)
 		return
 	}
 
 	// load the user from the database
 	email := params.ByName(cEmail)
-	usr, err := srv.db.PublicUserByEmail(email)
+	user, err := server.db.PublicUserByEmail(email)
 	if err != nil {
-		srv.handleErr(cGetUserTag, cNoUserErr,
-			fmt.Sprintf(cLogFmt, cNoUserErr, email), 400, writer, req)
+		server.handleErr(cGetUserTag, cNoUserErr,
+			fmt.Sprintf(cLogFmt, cNoUserErr, email), 400, writer, request)
 		return
 	}
 
 	// send the response
-	responseBody, err := json.MarshalIndent(usr, "", "\t")
+	responseBody, err := json.MarshalIndent(user, "", "\t")
 	_, err = writer.Write(responseBody)
 	if err != nil {
-		srv.handleWritingError(cGetUserTag, err, writer, req)
+		server.handleWritingError(cGetUserTag, err, writer, request)
 		return
 	}
 
 }
 
-func (srv *HTTPServer) UpdateUser(writer http.ResponseWriter, req *http.Request,
-	_ httprouter.Params) {
+func (server *sServer) UpdateUser(writer http.ResponseWriter,
+	request *http.Request, _ httprouter.Params) {
 	var err error
 
 	// authenticate the user
-	usr, err := srv.authenticateRequest(req)
+	user, err := server.authenticateRequest(request)
 	if err != nil {
-		srv.handleAuthError(cGetUserTag, err, writer, req)
+		server.handleAuthError(cGetUserTag, err, writer, request)
 		return
 	}
 
 	// decode the given user
 	var fields updateUserFields
-	decoder := json.NewDecoder(req.Body)
+	decoder := json.NewDecoder(request.Body)
 	err = decoder.Decode(&fields)
 	if err != nil {
-		srv.handleBadRequest(cUpdateUserTag, cBadJSONErr, err, writer, req)
+		server.handleBadRequest(cUpdateUserTag, cBadJSONErr, err, writer,
+			request)
 		return
 	}
 
 	// update display name
 	if fields.DeviceGUID != nil {
-		err = srv.db.UpdateDeviceGUID(usr.Id, *(fields.DeviceGUID))
+		err = server.db.UpdateDeviceGUID(user.ID, *(fields.DeviceGUID))
 		if err != nil {
-			srv.handleDatabaseError(cUpdateUserTag, err, writer, req)
+			server.handleDatabaseError(cUpdateUserTag, err, writer, request)
 		}
 	}
 
 	// update device GUID
 	if fields.DisplayName != nil {
-		err = srv.db.UpdateDisplayName(usr.Id, *(fields.DisplayName))
+		err = server.db.UpdateDisplayName(user.ID, *(fields.DisplayName))
 		if err != nil {
-			srv.handleDatabaseError(cUpdateUserTag, err, writer, req)
+			server.handleDatabaseError(cUpdateUserTag, err, writer, request)
 		}
 	}
 

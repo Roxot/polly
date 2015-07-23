@@ -13,11 +13,11 @@ type PollMessage struct {
 	Participants []polly.PublicUser `json:"participants"`
 }
 
-func (srv *HTTPServer) InsertPollMessage(pollMsg *PollMessage) error {
+func (server *sServer) InsertPollMessage(pollMsg *PollMessage) error {
 	var err error
 
 	// start the transaction
-	transaction, err := srv.db.Begin()
+	transaction, err := server.db.Begin()
 	if err != nil {
 		transaction.Rollback()
 		return err
@@ -29,17 +29,17 @@ func (srv *HTTPServer) InsertPollMessage(pollMsg *PollMessage) error {
 	pollMsg.MetaData.LastUpdated = now
 
 	// insert the poll object
-	err = srv.db.AddPollTx(&pollMsg.MetaData, transaction)
+	err = server.db.AddPollTx(&pollMsg.MetaData, transaction)
 	if err != nil {
 		transaction.Rollback()
 		return err
 	}
 
 	// update the poll message
-	pollMsg.Question.PollId = pollMsg.MetaData.Id
+	pollMsg.Question.PollID = pollMsg.MetaData.ID
 
 	// insert the question
-	err = srv.db.AddQuestionTx(&pollMsg.Question, transaction)
+	err = server.db.AddQuestionTx(&pollMsg.Question, transaction)
 	if err != nil {
 		transaction.Rollback()
 		return err
@@ -49,9 +49,9 @@ func (srv *HTTPServer) InsertPollMessage(pollMsg *PollMessage) error {
 	numOptions := len(pollMsg.Options)
 	for i := 0; i < numOptions; i++ {
 		option := &(pollMsg.Options[i])
-		option.QuestionId = pollMsg.Question.Id
-		option.PollId = pollMsg.MetaData.Id
-		err = srv.db.AddOptionTx(option, transaction)
+		option.QuestionID = pollMsg.Question.ID
+		option.PollID = pollMsg.MetaData.ID
+		err = server.db.AddOptionTx(option, transaction)
 		if err != nil {
 			transaction.Rollback()
 			return err
@@ -59,13 +59,13 @@ func (srv *HTTPServer) InsertPollMessage(pollMsg *PollMessage) error {
 	}
 
 	// insert the participants
-	numPartics := len(pollMsg.Participants)
-	for i := 0; i < numPartics; i++ {
-		usr := pollMsg.Participants[i]
+	numParticipants := len(pollMsg.Participants)
+	for i := 0; i < numParticipants; i++ {
+		user := pollMsg.Participants[i]
 		partic := polly.Participant{}
-		partic.UserId = usr.Id
-		partic.PollId = pollMsg.MetaData.Id
-		err = srv.db.AddParticipantTx(&partic, transaction)
+		partic.UserID = user.ID
+		partic.PollID = pollMsg.MetaData.ID
+		err = server.db.AddParticipantTx(&partic, transaction)
 		if err != nil {
 			transaction.Rollback()
 			return err
@@ -81,49 +81,49 @@ func (srv *HTTPServer) InsertPollMessage(pollMsg *PollMessage) error {
 	return nil
 }
 
-func (srv *HTTPServer) ConstructPollMessage(pollId int) (*PollMessage, error) {
+func (server *sServer) ConstructPollMessage(pollID int) (*PollMessage, error) {
 	pollMsg := PollMessage{}
 
 	// retrieve the poll object
-	poll, err := srv.db.PollById(pollId)
+	poll, err := server.db.PollByID(pollID)
 	pollMsg.MetaData = *poll
 	if err != nil {
 		return nil, err
 	}
 
 	// retrieve the questions
-	question, err := srv.db.QuestionByPollId(pollId)
+	question, err := server.db.QuestionByPollID(pollID)
 	pollMsg.Question = *question
 	if err != nil {
 		return nil, err
 	}
 
 	// retrieve the options
-	options, err := srv.db.OptionsByPollId(pollId)
+	options, err := server.db.OptionsByPollID(pollID)
 	pollMsg.Options = options
 	if err != nil {
 		return nil, err
 	}
 
 	// retrieve the votes
-	votes, err := srv.db.VotesByPollId(pollId)
+	votes, err := server.db.VotesByPollID(pollID)
 	pollMsg.Votes = votes
 	if err != nil {
 		return nil, err
 	}
 
 	// retrieve the participants
-	participants, err := srv.db.ParticipantsByPollId(pollId)
+	participants, err := server.db.ParticipantsByPollID(pollID)
 	if err != nil {
 		return nil, err
 	}
 
 	// convert the participants to user objects
-	numPartics := len(participants)
-	pollMsg.Participants = make([]polly.PublicUser, numPartics)
+	numParticipants := len(participants)
+	pollMsg.Participants = make([]polly.PublicUser, numParticipants)
 	var user *polly.PublicUser
-	for i := 0; i < numPartics; i++ {
-		user, err = srv.db.PublicUserById(participants[i].UserId)
+	for i := 0; i < numParticipants; i++ {
+		user, err = server.db.PublicUserByID(participants[i].UserID)
 		if err != nil {
 			return nil, err
 		}

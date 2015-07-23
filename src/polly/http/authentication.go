@@ -1,4 +1,4 @@
-package httpserver
+package http
 
 import (
 	"fmt"
@@ -6,30 +6,30 @@ import (
 	"polly"
 )
 
-func (srv *HTTPServer) authenticateRequest(req *http.Request) (
+func (server *sServer) authenticateRequest(request *http.Request) (
 	*polly.PrivateUser, error) {
 
-	email, tkn, ok := req.BasicAuth()
+	email, token, ok := request.BasicAuth()
 	if !ok {
 		return nil, fmt.Errorf("No authentication provided.")
 	}
 
-	usr, err := srv.db.UserByEmail(email)
+	user, err := server.db.UserByEmail(email)
 	if err != nil {
 		return nil, fmt.Errorf("Unknown user: %s.", email)
 	}
 
-	if usr.Token != tkn {
+	if user.Token != token {
 		return nil, fmt.Errorf("Bad token.")
 	}
 
-	return usr, nil
+	return user, nil
 }
 
-func (srv *HTTPServer) hasPollAccess(usrId, pollId int) bool {
-	exists, err := srv.db.ExistsParticipant(usrId, pollId)
+func (server *sServer) hasPollAccess(userID, pollID int) bool {
+	exists, err := server.db.ExistsParticipant(userID, pollID)
 	if err != nil {
-		srv.logger.Log("hasPollAccess",
+		server.logger.Log("hasPollAccess",
 			"Somehow existsParticipant returned an error", "hasPollAccess")
 		return false
 	}

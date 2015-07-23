@@ -19,7 +19,7 @@ func isValidEmail(email string) bool {
  * are set in this function as well.
  */
 func isValidPollMessage(db *database.Database, pollMsg *PollMessage,
-	creatorId int) error {
+	creatorID int) error {
 
 	// validate question type has fitting options
 	switch pollMsg.Question.Type {
@@ -49,18 +49,18 @@ func isValidPollMessage(db *database.Database, pollMsg *PollMessage,
 	}
 
 	containsCreator := false
-	particMap := make(map[int]bool)
-	numPartics := len(pollMsg.Participants)
-	for i := 0; i < numPartics; i++ {
+	participantsMap := make(map[int]bool)
+	numParticipants := len(pollMsg.Participants)
+	for i := 0; i < numParticipants; i++ {
 
 		// check for duplicate participants
-		_, ok := particMap[pollMsg.Participants[i].Id]
+		_, ok := participantsMap[pollMsg.Participants[i].ID]
 		if ok {
 			return errors.New("Duplicate participant.")
 		}
 
 		// check if user exists
-		dbUser, err := db.UserById(pollMsg.Participants[i].Id)
+		dbUser, err := db.UserByID(pollMsg.Participants[i].ID)
 		if err != nil {
 			return errors.New("Unknown participant.")
 		} else {
@@ -68,12 +68,12 @@ func isValidPollMessage(db *database.Database, pollMsg *PollMessage,
 		}
 
 		// check if user is creator
-		if pollMsg.Participants[i].Id == creatorId {
+		if pollMsg.Participants[i].ID == creatorID {
 			containsCreator = true
 		}
 
 		// add participant to map of particpants
-		particMap[pollMsg.Participants[i].Id] = true
+		participantsMap[pollMsg.Participants[i].ID] = true
 	}
 
 	// make sure user is a participant

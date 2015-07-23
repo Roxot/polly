@@ -2,7 +2,7 @@ package httpserver
 
 const (
 	cEmail       = "email"
-	cId          = "id"
+	cID          = "id"
 	cVerToken    = "verification_token"
 	cDeviceType  = "device_type"
 	cDeviceGUID  = "device_guid"

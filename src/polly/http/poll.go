@@ -15,86 +15,86 @@ const (
 	cGetPollTag  = "GET/POLL/XX"
 )
 
-func (srv *HTTPServer) PostPoll(writer http.ResponseWriter, req *http.Request,
+func (server *sServer) PostPoll(writer http.ResponseWriter, request *http.Request,
 	_ httprouter.Params) {
 
 	// authenticate the user
-	usr, err := srv.authenticateRequest(req)
+	user, err := server.authenticateRequest(request)
 	if err != nil {
-		srv.handleAuthError(cPostPollTag, err, writer, req)
+		server.handleAuthError(cPostPollTag, err, writer, request)
 		return
 	}
 
 	// decode the poll
 	var pollMsg PollMessage
-	decoder := json.NewDecoder(req.Body)
+	decoder := json.NewDecoder(request.Body)
 	err = decoder.Decode(&pollMsg)
 	if err != nil {
-		srv.handleBadRequest(cPostPollTag, cBadJSONErr, err, writer, req)
+		server.handleBadRequest(cPostPollTag, cBadJSONErr, err, writer, request)
 		return
 	}
 
 	// validate the poll
-	if err := isValidPollMessage(srv.db, &pollMsg, usr.Id); err != nil {
-		srv.handleBadRequest(cPostPollTag, cBadPollErr, err, writer, req)
+	if err := isValidPollMessage(server.db, &pollMsg, user.ID); err != nil {
+		server.handleBadRequest(cPostPollTag, cBadPollErr, err, writer, request)
 		return
 	}
 
 	// insert poll
-	pollMsg.MetaData.CreatorId = usr.Id
+	pollMsg.MetaData.CreatorID = user.ID
 	pollMsg.Votes = make([]polly.Vote, 0)
-	err = srv.InsertPollMessage(&pollMsg)
+	err = server.InsertPollMessage(&pollMsg)
 	if err != nil {
-		srv.handleDatabaseError(cPostPollTag, err, writer, req)
+		server.handleDatabaseError(cPostPollTag, err, writer, request)
 		return
 	}
 
 	// marshall the response
 	responseBody, err := json.MarshalIndent(pollMsg, "", "\t")
 	if err != nil {
-		srv.handleMarshallingError(cPostPollTag, err, writer, req)
+		server.handleMarshallingError(cPostPollTag, err, writer, request)
 		return
 	}
 
 	// send the response
 	_, err = writer.Write(responseBody)
 	if err != nil {
-		srv.handleWritingError(cPostPollTag, err, writer, req)
+		server.handleWritingError(cPostPollTag, err, writer, request)
 		return
 	}
 
 }
 
-func (srv *HTTPServer) GetPoll(writer http.ResponseWriter, req *http.Request,
+func (server *sServer) GetPoll(writer http.ResponseWriter, request *http.Request,
 	params httprouter.Params) {
 
 	// authenticate the user
-	usr, err := srv.authenticateRequest(req)
+	user, err := server.authenticateRequest(request)
 	if err != nil {
-		srv.handleAuthError(cGetPollTag, err, writer, req)
+		server.handleAuthError(cGetPollTag, err, writer, request)
 		return
 	}
 
 	// retrieve the poll identifier argument
-	pollIdStr := params.ByName(cId)
-	pollId, err := strconv.Atoi(pollIdStr)
+	pollIDStr := params.ByName(cID)
+	pollID, err := strconv.Atoi(pollIDStr)
 	if err != nil {
-		srv.handleErr(cGetPollTag, cBadIdErr,
-			fmt.Sprintf(cLogFmt, cBadIdErr, pollIdStr), 400, writer, req)
+		server.handleErr(cGetPollTag, cBadIDErr,
+			fmt.Sprintf(cLogFmt, cBadIDErr, pollIDStr), 400, writer, request)
 		return
 	}
 
 	// check whether the user has access rights to the poll
-	if !srv.hasPollAccess(usr.Id, pollId) {
-		srv.handleIllegalOperation(cGetPollTag, cAccessRightsErr, writer, req)
+	if !server.hasPollAccess(user.ID, pollID) {
+		server.handleIllegalOperation(cGetPollTag, cAccessRightsErr, writer, request)
 		return
 	}
 
 	// construct the poll message
-	pollMsg, err := srv.ConstructPollMessage(pollId)
+	pollMsg, err := server.ConstructPollMessage(pollID)
 	if err != nil {
-		srv.handleErr(cGetPollTag, cNoPollErr,
-			fmt.Sprintf(cLogFmt, cNoPollErr, pollIdStr), 400, writer, req)
+		server.handleErr(cGetPollTag, cNoPollErr,
+			fmt.Sprintf(cLogFmt, cNoPollErr, pollIDStr), 400, writer, request)
 		return
 	}
 
@@ -102,7 +102,7 @@ func (srv *HTTPServer) GetPoll(writer http.ResponseWriter, req *http.Request,
 	responseBody, err := json.MarshalIndent(pollMsg, "", "\t")
 	_, err = writer.Write(responseBody)
 	if err != nil {
-		srv.handleMarshallingError(cGetPollTag, err, writer, req)
+		server.handleMarshallingError(cGetPollTag, err, writer, request)
 		return
 	}
 

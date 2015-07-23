@@ -1,0 +1,88 @@
+package http
+
+import (
+	"fmt"
+	"net/http"
+	"polly/database"
+	"polly/logger"
+	"polly/push"
+
+	"github.com/julienschmidt/httprouter"
+)
+
+const cHTTPServerTag = "HTTPSERVER"
+
+type Server interface {
+	Start()
+	Stop()
+}
+
+type sServer struct {
+	db         *database.Database
+	router     *httprouter.Router
+	logger     *logger.Logger
+	pushClient *push.PushClient
+}
+
+func NewServer(dbConfig *database.DbConfig, clearDB bool) (Server, error) {
+	var err error
+	server := sServer{}
+
+	db, err := database.NewDatabase(dbConfig)
+	if err != nil {
+		return nil, err
+	}
+
+	if clearDB {
+		err = db.DropTablesIfExists()
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	err = db.CreateTablesIfNotExists()
+	if err != nil {
+		return nil, err
+	}
+
+	pushClient, err := push.NewClient()
+	if err != nil {
+		return nil, err
+	}
+
+	server.pushClient = pushClient
+	server.logger = logger.New()
+	server.db = db
+	server.router = httprouter.New()
+
+	// start the push notification server's error logging
+	err = pushClient.StartErrorLogger(server.logger)
+	if err != nil {
+		return nil, err
+	}
+
+	return &server, nil
+}
+
+// sync
+func (server *sServer) Start(port string) error {
+	var err error
+	err = server.logger.Start()
+	if err != nil {
+		return err
+	}
+
+	server.router.POST("/api/v1/register", server.Register)
+	server.router.POST("/api/v1/register/verify", server.VerifyRegister)
+	server.router.POST("/api/v1/poll", server.PostPoll)
+	server.router.POST("/api/v1/vote", server.Vote)
+	server.router.PUT("/api/v1/user", server.UpdateUser)
+	server.router.GET("/api/v1/user/polls", server.ListUserPolls)
+	server.router.GET(fmt.Sprintf("/api/v1/poll/:%s", cId), server.GetPoll)
+	server.router.GET("/api/v1/poll", server.GetPollBulk)
+	server.router.GET(fmt.Sprintf("/api/v1/user/lookup/:%s", cEmail),
+		server.GetUser)
+	server.logger.Log(cHTTPServerTag, "Starting HTTP server", "::1")
+	err = http.ListenAndServe(port, server.router)
+	return err
+}

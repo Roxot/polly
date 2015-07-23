@@ -16,14 +16,14 @@ const (
 	cVerifyRegisterTag = "POST/REGISTER/VERIFY"
 )
 
-func (srv *HTTPServer) Register(writer http.ResponseWriter, req *http.Request,
+func (server *sServer) Register(writer http.ResponseWriter, request *http.Request,
 	_ httprouter.Params) {
 
 	// validate the provided email address
-	email := req.PostFormValue(cEmail)
+	email := request.PostFormValue(cEmail)
 	if !isValidEmail(email) {
-		srv.handleErr(cRegisterTag, cBadEmailErr,
-			fmt.Sprintf(cLogFmt, cBadEmailErr, email), 400, writer, req)
+		server.handleErr(cRegisterTag, cBadEmailErr,
+			fmt.Sprintf(cLogFmt, cBadEmailErr, email), 400, writer, request)
 		return
 	}
 
@@ -33,74 +33,75 @@ func (srv *HTTPServer) Register(writer http.ResponseWriter, req *http.Request,
 	verTkn.VerificationToken = "VERIFY"
 
 	// remove existing verification tokens
-	srv.db.DelVerTokensByEmail(email)
+	server.db.DelVerTokensByEmail(email)
 
 	// add the verification token to the database
-	err := srv.db.AddVerToken(&verTkn)
+	err := server.db.AddVerToken(&verTkn)
 	if err != nil {
-		srv.handleDatabaseError(cRegisterTag, err, writer, req)
+		server.handleDatabaseError(cRegisterTag, err, writer, request)
 		return
 	}
 
 }
 
-func (srv *HTTPServer) VerifyRegister(writer http.ResponseWriter,
-	req *http.Request, _ httprouter.Params) {
+func (server *sServer) VerifyRegister(writer http.ResponseWriter,
+	request *http.Request, _ httprouter.Params) {
 
-	retrVerTkn := req.PostFormValue(cVerToken)
-	email := req.PostFormValue(cEmail)
-	dbVerTkn, err := srv.db.VerTokenByEmail(email)
+	retrVerTkn := request.PostFormValue(cVerToken)
+	email := request.PostFormValue(cEmail)
+	dbVerTkn, err := server.db.VerTokenByEmail(email)
 	if err != nil || dbVerTkn.VerificationToken != retrVerTkn {
-		srv.handleErr(cVerifyRegisterTag, cNotRegOrBadTknErr,
-			cNotRegOrBadTknErr, 400, writer, req)
+		server.handleErr(cVerifyRegisterTag, cNotRegOrBadTknErr,
+			cNotRegOrBadTknErr, 400, writer, request)
 		return
 	}
 
-	dvcTypeStr := req.PostFormValue(cDeviceType)
-	dvcType, err := strconv.Atoi(dvcTypeStr)
-	if err != nil || (dvcType != polly.DEVICE_TYPE_AD &&
-		dvcType != polly.DEVICE_TYPE_IP) {
+	deviceTypeStr := request.PostFormValue(cDeviceType)
+	deviceType, err := strconv.Atoi(deviceTypeStr)
+	if err != nil || (deviceType != polly.DEVICE_TYPE_AD &&
+		deviceType != polly.DEVICE_TYPE_IP) {
 
-		srv.handleErr(cVerifyRegisterTag, cBadDvcTypeErr,
-			fmt.Sprintf(cLogFmt, cBadDvcTypeErr, dvcTypeStr), 400, writer, req)
+		server.handleErr(cVerifyRegisterTag, cBadDvcTypeErr,
+			fmt.Sprintf(cLogFmt, cBadDvcTypeErr, deviceTypeStr), 400, writer,
+			request)
 		return
 	}
 
 	// device GUID may be empty
-	dvcGUID := req.PostFormValue(cDeviceGUID) // TODO validate
+	deviceGUID := request.PostFormValue(cDeviceGUID) // TODO validate
 
-	dspName := req.PostFormValue(cDisplayName)
-	srv.db.DelVerTokensByEmail(email)
-	usr, err := srv.db.UserByEmail(email) // TODO userExists
+	displayName := request.PostFormValue(cDisplayName)
+	server.db.DelVerTokensByEmail(email)
+	user, err := server.db.UserByEmail(email) // TODO userExists
 	if err == nil {
 
 		/* We're dealing with an already existing user */
-		responseBody, err := json.MarshalIndent(usr, "", "\t")
+		responseBody, err := json.MarshalIndent(user, "", "\t")
 		_, err = writer.Write(responseBody)
 		if err != nil {
-			srv.handleWritingError(cVerifyRegisterTag, err, writer, req)
+			server.handleWritingError(cVerifyRegisterTag, err, writer, request)
 			return
 		}
 
 	} else {
 
 		/* We're dealing with a new user. */
-		usr := polly.PrivateUser{}
-		usr.Email = email
-		usr.Token = uuid.NewV4().String()
-		usr.DisplayName = dspName
-		usr.DeviceType = dvcType
-		usr.DeviceGUID = dvcGUID
-		err = srv.db.AddUser(&usr)
+		user := polly.PrivateUser{}
+		user.Email = email
+		user.Token = uuid.NewV4().String()
+		user.DisplayName = displayName
+		user.DeviceType = deviceType
+		user.DeviceGUID = deviceGUID
+		err = server.db.AddUser(&user)
 		if err != nil {
-			srv.handleDatabaseError(cVerifyRegisterTag, err, writer, req)
+			server.handleDatabaseError(cVerifyRegisterTag, err, writer, request)
 			return
 		}
 
-		responseBody, err := json.MarshalIndent(usr, "", "\t")
+		responseBody, err := json.MarshalIndent(user, "", "\t")
 		_, err = writer.Write(responseBody)
 		if err != nil {
-			srv.handleWritingError(cVerifyRegisterTag, err, writer, req)
+			server.handleWritingError(cVerifyRegisterTag, err, writer, request)
 			return
 		}
 	}

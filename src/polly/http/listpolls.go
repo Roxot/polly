@@ -15,7 +15,7 @@ const (
 )
 
 type PollSnapshot struct {
-	PollId      int `db:"poll_id" json:"poll_id"`
+	PollID      int `db:"poll_id" json:"poll_id"`
 	LastUpdated int `db:"last_updated" json:"last_updated"`
 }
 
@@ -27,27 +27,27 @@ type PollList struct {
 	Total      int64                `json:"total"`
 }
 
-func (srv *HTTPServer) ListUserPolls(writer http.ResponseWriter, req *http.Request,
+func (server *sServer) ListUserPolls(writer http.ResponseWriter, request *http.Request,
 	_ httprouter.Params) {
 
 	// authenticate the user
-	usr, err := srv.authenticateRequest(req)
+	user, err := server.authenticateRequest(request)
 	if err != nil {
-		srv.handleAuthError(cListUserPollsTag, err, writer, req)
+		server.handleAuthError(cListUserPollsTag, err, writer, request)
 		return
 	}
 
 	// retrieve the page argument
 	var page int
-	pageStrings := req.URL.Query()[cPage]
+	pageStrings := request.URL.Query()[cPage]
 	if len(pageStrings) > 0 {
 
 		// convert the page argument to an integer
 		pageStr := pageStrings[0]
 		page, err = strconv.Atoi(pageStr)
 		if err != nil {
-			srv.handleErr(cListUserPollsTag, cBadPageErr,
-				fmt.Sprintf(cLogFmt, cBadPageErr, pageStr), 400, writer, req)
+			server.handleErr(cListUserPollsTag, cBadPageErr,
+				fmt.Sprintf(cLogFmt, cBadPageErr, pageStr), 400, writer, request)
 			return
 		}
 
@@ -57,10 +57,10 @@ func (srv *HTTPServer) ListUserPolls(writer http.ResponseWriter, req *http.Reque
 
 	// retrieve poll snapshots
 	offset := (page - 1) * cPollListMax
-	snapshots, err := srv.db.PollSnapshotsByUserId(usr.Id, cPollListMax,
+	snapshots, err := server.db.PollSnapshotsByUserID(user.ID, cPollListMax,
 		offset)
 	if err != nil {
-		srv.handleDatabaseError(cListUserPollsTag, err, writer, req)
+		server.handleDatabaseError(cListUserPollsTag, err, writer, request)
 		return
 	}
 
@@ -70,13 +70,13 @@ func (srv *HTTPServer) ListUserPolls(writer http.ResponseWriter, req *http.Reque
 	pollList.Page = page
 	pollList.PageSize = cPollListMax
 	pollList.NumResults = len(snapshots)
-	pollList.Total = srv.db.CountPollsForUser(usr.Id)
+	pollList.Total = server.db.CountPollsForUser(user.ID)
 
 	// send the response
 	responseBody, err := json.MarshalIndent(pollList, "", "\t")
 	_, err = writer.Write(responseBody)
 	if err != nil {
-		srv.handleMarshallingError(cListUserPollsTag, err, writer, req)
+		server.handleMarshallingError(cListUserPollsTag, err, writer, request)
 		return
 	}
 }

@@ -14,7 +14,7 @@ const (
 	cAuthErr           = "Authentication error"
 	cBadPollErr        = "Bad poll"
 	cBadJSONErr        = "Bad JSON"
-	cBadIdErr          = "Bad id"
+	cBadIDErr          = "Bad id"
 	cBadPageErr        = "Bad page"
 	cBadEmailErr       = "Bad email"
 	cBadDvcTypeErr     = "Bad device type"
@@ -22,64 +22,64 @@ const (
 	cBadVoteTypeErr    = "Bad vote type"
 	cNotRegOrBadTknErr = "Not registered or bad token"
 	cAccessRightsErr   = "Insufficient access rights"
-	cIdListLengthErr   = "Identifier list longer than limit"
+	cIDListLengthErr   = "IDentifier list longer than limit"
 	cNoPollErr         = "No such poll"
 	cNoUserErr         = "User not found"
 	cNoQuestionErr     = "Question not found"
 	cNoOptionErr       = "Option not found"
 )
 
-/* Handles a bad request. */
-func (srv *HTTPServer) handleBadRequest(tag string, msg string, err error,
-	writer http.ResponseWriter, req *http.Request) {
+/* Handles a bad requestuest. */
+func (server *sServer) handleBadRequest(tag string, msg string, err error,
+	writer http.ResponseWriter, request *http.Request) {
 
-	srv.handleErr(tag, msg, fmt.Sprintf(cLogFmt, msg, err), 400, writer, req)
+	server.handleErr(tag, msg, fmt.Sprintf(cLogFmt, msg, err), 400, writer, request)
 }
 
 /* Handles an illegal operation. */
-func (srv *HTTPServer) handleIllegalOperation(tag string, logMsg string,
-	writer http.ResponseWriter, req *http.Request) {
+func (server *sServer) handleIllegalOperation(tag string, logMsg string,
+	writer http.ResponseWriter, request *http.Request) {
 
-	srv.handleErr(tag, "", logMsg, 403, writer, req)
+	server.handleErr(tag, "", logMsg, 403, writer, request)
 }
 
 /* Handles an authentication error. */
-func (srv *HTTPServer) handleAuthError(tag string, err error,
-	writer http.ResponseWriter, req *http.Request) {
+func (server *sServer) handleAuthError(tag string, err error,
+	writer http.ResponseWriter, request *http.Request) {
 
 	writer.Header().Set("WWW-authenticate", "Basic")
-	srv.handleErr(tag, "", fmt.Sprintf(cLogFmt, cAuthErr, err), 401,
-		writer, req)
+	server.handleErr(tag, "", fmt.Sprintf(cLogFmt, cAuthErr, err), 401,
+		writer, request)
 }
 
 /* Handles an internal database error. */
-func (srv *HTTPServer) handleDatabaseError(tag string, err error,
-	writer http.ResponseWriter, req *http.Request) {
+func (server *sServer) handleDatabaseError(tag string, err error,
+	writer http.ResponseWriter, request *http.Request) {
 
-	srv.handleErr(tag, "", fmt.Sprintf(cDatabaseErrLog, err), 500, writer, req)
+	server.handleErr(tag, "", fmt.Sprintf(cDatabaseErrLog, err), 500, writer, request)
 }
 
 /* Handles a marshalling error.  */
-func (srv *HTTPServer) handleMarshallingError(tag string, err error,
-	writer http.ResponseWriter, req *http.Request) {
+func (server *sServer) handleMarshallingError(tag string, err error,
+	writer http.ResponseWriter, request *http.Request) {
 
-	srv.handleErr(tag, "", fmt.Sprintf(cMarshallingErrLog, err), 500,
-		writer, req)
+	server.handleErr(tag, "", fmt.Sprintf(cMarshallingErrLog, err), 500,
+		writer, request)
 }
 
 /* Handles an error occurred while writing the response. */
-func (srv *HTTPServer) handleWritingError(tag string, err error,
-	writer http.ResponseWriter, req *http.Request) {
+func (server *sServer) handleWritingError(tag string, err error,
+	writer http.ResponseWriter, request *http.Request) {
 
-	srv.handleErr(tag, "", fmt.Sprintf(cWritingErrLog, err), 500,
-		writer, req)
+	server.handleErr(tag, "", fmt.Sprintf(cWritingErrLog, err), 500,
+		writer, request)
 }
 
 /* Generic error handling function. */
-func (srv *HTTPServer) handleErr(tag string, msg string, logMsg string,
-	statusCode int, writer http.ResponseWriter, req *http.Request) {
+func (server *sServer) handleErr(tag string, msg string, logMsg string,
+	statusCode int, writer http.ResponseWriter, request *http.Request) {
 
-	host, _, _ := net.SplitHostPort(req.RemoteAddr)
-	srv.logger.Log(tag, logMsg, host)
+	host, _, _ := net.SplitHostPort(request.RemoteAddr)
+	server.logger.Log(tag, logMsg, host)
 	http.Error(writer, msg, statusCode)
 }
