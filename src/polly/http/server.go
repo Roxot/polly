@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"polly/database"
-	"polly/logger"
+	"polly/log"
 	"polly/push"
 
 	"github.com/julienschmidt/httprouter"
@@ -18,10 +18,10 @@ type IServer interface {
 }
 
 type sServer struct {
-	db         *database.Database
-	router     *httprouter.Router
-	logger     *logger.Logger
-	pushClient *push.PushClient
+	db         database.Database
+	router     httprouter.Router
+	logger     log.ILogger
+	pushClient push.PushClient
 }
 
 func NewServer(dbConfig *database.DbConfig, clearDB bool) (IServer, error) {
@@ -50,8 +50,8 @@ func NewServer(dbConfig *database.DbConfig, clearDB bool) (IServer, error) {
 		return nil, err
 	}
 
-	server.pushClient = pushClient
-	server.logger = logger.New()
+	server.pushClient = *pushClient
+	server.logger = *logger.New()
 	server.db = db
 	server.router = httprouter.New()
 

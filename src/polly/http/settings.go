@@ -1,4 +1,4 @@
-package httpserver
+package http
 
 const (
 	cPollListMax = 20

@@ -1,4 +1,4 @@
-package httpserver
+package http
 
 const (
 	cEmail       = "email"
