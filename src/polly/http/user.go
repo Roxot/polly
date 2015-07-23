@@ -13,7 +13,7 @@ const (
 	cUpdateUserTag = "PUT/USER"
 )
 
-type updateUserFields struct {
+type sUpdateUserFields struct {
 	DeviceGUID  *string `json:"device_guid"`
 	DisplayName *string `json:"display_name"`
 }
@@ -59,7 +59,7 @@ func (server *sServer) UpdateUser(writer http.ResponseWriter,
 	}
 
 	// decode the given user
-	var fields updateUserFields
+	var fields sUpdateUserFields
 	decoder := json.NewDecoder(request.Body)
 	err = decoder.Decode(&fields)
 	if err != nil {

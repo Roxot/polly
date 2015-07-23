@@ -33,7 +33,7 @@ const (
 	TYPE_NEW_POLL = 2
 )
 
-type voteTemplateData struct {
+type sVoteTemplateData struct {
 	Voter  string
 	Option string
 }
@@ -47,12 +47,12 @@ type NotificationData struct {
 	PollID int    `json:"poll_id"`
 }
 
-type PushClient interface {
+type IPushClient interface {
 	StartErrorLogger(*logger.Logger) error
 	NotifyForUpvote(*database.Database, *polly.PrivateUser, int) error
 }
 
-type pushClient struct {
+type sPushClient struct {
 	iosClient           apns.Client
 	androidClient       gcm.Sender
 	logger              log.Logger
@@ -60,8 +60,8 @@ type pushClient struct {
 	voteTemplate        template.Template
 }
 
-func NewPushCLient() (PushClient, error) {
-	var pushClient = pushClient{}
+func NewPushCLient() (IPushClient, error) {
+	var pushClient = sPushClient{}
 
 	// create ios client
 	pollyHome, err := polly.GetPollyHome()
@@ -91,7 +91,7 @@ func NewPushCLient() (PushClient, error) {
 	return &pushClient, nil
 }
 
-func (pushClient *pushClient) StartErrorLogger(logger *logger.Logger) error {
+func (pushClient *sPushClient) StartErrorLogger(logger *logger.Logger) error {
 	if logger == nil {
 		return errors.New("Logger may not be nil.")
 	}
@@ -108,7 +108,7 @@ func (pushClient *pushClient) StartErrorLogger(logger *logger.Logger) error {
 	return nil
 }
 
-func (pushClient *pushClient) startNotificationHandling() {
+func (pushClient *sPushClient) startNotificationHandling() {
 	var notificationData *NotificationData
 	var numDevices int
 	pushClient.notificationChannel = make(chan *NotificationData,
@@ -146,7 +146,7 @@ func (pushClient *pushClient) startNotificationHandling() {
 	}()
 }
 
-func (pushClient *pushClient) sendIosNotification(deviceGUID string,
+func (pushClient *sPushClient) sendIosNotification(deviceGUID string,
 	notificationData *NotificationData) {
 
 	data, err := json.MarshalIndent(notificationData, "", "\t")
@@ -163,7 +163,7 @@ func (pushClient *pushClient) sendIosNotification(deviceGUID string,
 	pushClient.iosClient.Send(notification)
 }
 
-func (pushClient *pushClient) sendAndroidNotification(deviceGUID string,
+func (pushClient *sPushClient) sendAndroidNotification(deviceGUID string,
 	notificationData *NotificationData) {
 
 	// construct the notifcation
@@ -185,7 +185,7 @@ func (pushClient *pushClient) sendAndroidNotification(deviceGUID string,
 	pushClient.logger.Log(cPushServerTag, fmt.Sprint(response), "::1")
 }
 
-func (pushClient *PushServer) NotifyForUpvote(db *database.Database,
+func (pushClient *sPushClient) NotifyForUpvote(db *database.Database,
 	user *polly.PrivateUser, optionID int) error {
 
 	// retrieve option name

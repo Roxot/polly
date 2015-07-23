@@ -12,7 +12,7 @@ import (
 
 const cHTTPServerTag = "HTTPSERVER"
 
-type Server interface {
+type IServer interface {
 	Start()
 	Stop()
 }
@@ -24,7 +24,7 @@ type sServer struct {
 	pushClient *push.PushClient
 }
 
-func NewServer(dbConfig *database.DbConfig, clearDB bool) (Server, error) {
+func NewServer(dbConfig *database.DbConfig, clearDB bool) (IServer, error) {
 	var err error
 	server := sServer{}
 
