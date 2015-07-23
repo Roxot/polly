@@ -30,7 +30,7 @@ func (server *sServer) InsertPollMessage(pollMsg *PollMessage) error {
 	pollMsg.MetaData.LastUpdated = now
 
 	// insert the poll object
-	err = database.AddPollTx(&pollMsg.MetaData, transaction)
+	err = database.AddPollTX(&pollMsg.MetaData, transaction)
 	if err != nil {
 		transaction.Rollback()
 		return err
@@ -40,7 +40,7 @@ func (server *sServer) InsertPollMessage(pollMsg *PollMessage) error {
 	pollMsg.Question.PollID = pollMsg.MetaData.ID
 
 	// insert the question
-	err = database.AddQuestionTx(&pollMsg.Question, transaction)
+	err = database.AddQuestionTX(&pollMsg.Question, transaction)
 	if err != nil {
 		transaction.Rollback()
 		return err
@@ -52,7 +52,7 @@ func (server *sServer) InsertPollMessage(pollMsg *PollMessage) error {
 		option := &(pollMsg.Options[i])
 		option.QuestionID = pollMsg.Question.ID
 		option.PollID = pollMsg.MetaData.ID
-		err = database.AddOptionTx(option, transaction)
+		err = database.AddOptionTX(option, transaction)
 		if err != nil {
 			transaction.Rollback()
 			return err
@@ -66,7 +66,7 @@ func (server *sServer) InsertPollMessage(pollMsg *PollMessage) error {
 		partic := polly.Participant{}
 		partic.UserID = user.ID
 		partic.PollID = pollMsg.MetaData.ID
-		err = database.AddParticipantTx(&partic, transaction)
+		err = database.AddParticipantTX(&partic, transaction)
 		if err != nil {
 			transaction.Rollback()
 			return err

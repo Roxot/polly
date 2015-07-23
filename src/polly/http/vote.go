@@ -92,7 +92,7 @@ func (server *sServer) Vote(writer http.ResponseWriter, request *http.Request,
 	}
 
 	// remove all existing votes of the user
-	err = database.DeleteVotesForUserTx(user.ID, pollID, transaction)
+	err = database.DeleteVotesForUserTX(user.ID, pollID, transaction)
 	if err != nil {
 		transaction.Rollback()
 		server.handleDatabaseError(cVoteTag, err, writer, request)
@@ -111,7 +111,7 @@ func (server *sServer) Vote(writer http.ResponseWriter, request *http.Request,
 		option.PollID = pollID
 		option.QuestionID = questionID
 		option.Value = voteMsg.Value
-		err = database.AddOptionTx(&option, transaction)
+		err = database.AddOptionTX(&option, transaction)
 		if err != nil {
 			transaction.Rollback()
 			server.handleDatabaseError(cVoteTag, err, writer, request)
@@ -127,7 +127,7 @@ func (server *sServer) Vote(writer http.ResponseWriter, request *http.Request,
 	vote.OptionID = optionID
 	vote.PollID = pollID
 	vote.UserID = user.ID
-	err = database.AddVoteTx(&vote, transaction)
+	err = database.AddVoteTX(&vote, transaction)
 	if err != nil {
 		transaction.Rollback()
 		server.handleDatabaseError(cVoteTag, err, writer, request)
@@ -135,7 +135,7 @@ func (server *sServer) Vote(writer http.ResponseWriter, request *http.Request,
 	}
 
 	// update the poll last updated
-	err = database.UpdatePollLastUpdatedTx(pollID, time.Now().Unix(),
+	err = database.UpdatePollLastUpdatedTX(pollID, time.Now().Unix(),
 		transaction)
 	if err != nil {
 		transaction.Rollback()

@@ -6,7 +6,7 @@ import (
 	"gopkg.in/gorp.v1"
 )
 
-func UpdatePollLastUpdatedTx(pollID int, lastUpdated int64,
+func UpdatePollLastUpdatedTX(pollID int, lastUpdated int64,
 	tx *gorp.Transaction) error {
 
 	_, err := tx.Exec(fmt.Sprintf("update %s set %s=$1 where %s=$2;",
