@@ -10,7 +10,7 @@ import (
 const (
 	cPsqlUser     = "polly"
 	cPsqlPassword = "w01V3s"
-	cDbName       = "pollydb"
+	cDBName       = "pollydb"
 	cPort         = ":8080"
 
 	cFlagClearDB = "cleardb"
@@ -26,7 +26,7 @@ func main() {
 	dbConfig := database.DBConfig{}
 	dbConfig.User = cPsqlUser
 	dbConfig.Password = cPsqlPassword
-	dbConfig.Name = cDbName
+	dbConfig.Name = cDBName
 
 	log.Println("Opening database...")
 	srv, err := http.NewServer(&dbConfig, clearDB)

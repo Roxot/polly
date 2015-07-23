@@ -26,8 +26,8 @@ type VoteMessage struct {
 }
 
 type VoteResponseMessage struct {
-	Option *polly.Option `json:"option,omitempty"`
-	Vote   *polly.Vote   `json:"vote"`
+	Option polly.Option `json:"option,omitempty"`
+	Vote   polly.Vote   `json:"vote"`
 }
 
 func (server *sServer) Vote(writer http.ResponseWriter, request *http.Request,
@@ -160,9 +160,9 @@ func (server *sServer) Vote(writer http.ResponseWriter, request *http.Request,
 
 	// construct the response message
 	response := VoteResponseMessage{}
-	response.Vote = &vote
+	response.Vote = vote
 	if voteMsg.Type == VOTE_TYPE_NEW {
-		response.Option = &option
+		response.Option = option
 	}
 
 	// send the response message
