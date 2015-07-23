@@ -30,7 +30,7 @@ func (db *Database) GetPublicUserByEmail(email string) (*polly.PublicUser,
 		return nil, err
 	}
 
-	publicUser.Id = privateUser.Id
+	publicUser.ID = privateUser.ID
 	publicUser.DisplayName = privateUser.DisplayName
 	return &publicUser, nil
 }
@@ -42,7 +42,7 @@ func (db *Database) GetPublicUserByID(id int) (*polly.PublicUser, error) {
 		return nil, err
 	}
 
-	publicUser.Id = privateUser.Id
+	publicUser.ID = privateUser.ID
 	publicUser.DisplayName = privateUser.DisplayName
 	return &publicUser, nil
 }

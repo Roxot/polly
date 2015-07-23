@@ -8,7 +8,7 @@ import (
 
 func (db *Database) CountPollsForUser(userID int) int64 {
 
-	count, err := db.dbMap.SelectInt(fmt.Sprintf(
+	count, err := db.mapping.SelectInt(fmt.Sprintf(
 		"select count(*) from %s where %s=$1;", cParticipantTableName, cUserID),
 		userID)
 	if err != nil {

@@ -10,7 +10,7 @@ import (
 func (db *Database) ExistsParticipant(userID, pollID int) (bool, error) {
 	count, err := db.mapping.SelectInt(fmt.Sprintf(
 		"select count(1) from %s where %s=$1 and %s=$2;",
-		cParticipantTableName, cUserID, cPollId), userID, pollID)
+		cParticipantTableName, cUserID, cPollID), userID, pollID)
 	if err != nil {
 		return false, err
 	}

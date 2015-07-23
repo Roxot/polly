@@ -40,7 +40,7 @@ func (logger *sLogger) Start() error {
 
 	file, err := os.Create(path + cLogFile)
 	if err != nil {
-		return fmt.Errorf("$%s not set correctly.", polly.POLLY_HOME)
+		return fmt.Errorf("$%s not set correctly.", polly.POLLY_HOME_ENV)
 	}
 
 	logger.logFile = *file
