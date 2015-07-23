@@ -1,45 +1,45 @@
 package main
 
 import (
-    "flag"
-    "log"
-    "polly/database"
-    "polly/httpserver"
+	"flag"
+	"log"
+	"polly/database"
+	"polly/http"
 )
 
 const (
-    cPsqlUser = "polly"
-    cPsqlPass = "w01V3s"
-    cDbName   = "pollydb"
-    cPort     = ":8080"
+	cPsqlUser     = "polly"
+	cPsqlPassword = "w01V3s"
+	cDbName       = "pollydb"
+	cPort         = ":8080"
 
-    cFlagClearDB = "cleardb"
+	cFlagClearDB = "cleardb"
 )
 
 func main() {
 
-    var clearDB bool
-    flag.BoolVar(&clearDB, cFlagClearDB, false,
-        "Set to true to reset the database.")
-    flag.Parse()
+	var clearDB bool
+	flag.BoolVar(&clearDB, cFlagClearDB, false,
+		"Set to true to reset the database.")
+	flag.Parse()
 
-    dbCfg := database.DbConfig{}
-    dbCfg.PsqlUser = cPsqlUser
-    dbCfg.PsqlUserPass = cPsqlPass
-    dbCfg.DbName = cDbName
+	dbConfig := database.DBConfig{}
+	dbConfig.PsqlUser = cPsqlUser
+	dbConfig.PsqlUserPass = cPsqlPassword
+	dbConfig.DbName = cDbName
 
-    log.Println("Opening database...")
-    srv, err := httpserver.New(&dbCfg, clearDB)
-    if err != nil {
-        panic(err)
-    } else {
-        log.Println("Database opened successfully.")
-    }
+	log.Println("Opening database...")
+	srv, err := http.NewServer(&dbConfig, clearDB)
+	if err != nil {
+		panic(err)
+	} else {
+		log.Println("Database opened successfully.")
+	}
 
-    log.Printf("Starting HTTP server on port %s...\n", cPort)
-    err = srv.Start(cPort)
-    if err != nil {
-        panic(err)
-    }
+	log.Printf("Starting HTTP server on port %s...\n", cPort)
+	err = srv.Start(cPort)
+	if err != nil {
+		panic(err)
+	}
 
 }
