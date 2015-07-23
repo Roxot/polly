@@ -13,20 +13,26 @@ const (
 	cTimeFormat = "02/01 15:04:05"
 )
 
-type Logger struct {
+type Logger interface {
+	Start() error
+	Stop()
+	Log(tag, message, origin string)
+}
+
+type logger struct {
 	logFile  os.File
 	logChan  chan string
 	quitChan chan int
 }
 
-func NewLogger() *Logger {
+func NewLogger() Logger {
 	logger := Logger{}
 	logger.logChan = make(chan string, cBufferSize)
 	logger.quitChan = make(chan int)
 	return &logger
 }
 
-func (logger *Logger) Start() error {
+func (logger *logger) Start() error {
 	path, err := polly.GetPollyHome()
 	if err != nil {
 		return err
@@ -57,11 +63,11 @@ func (logger *Logger) Start() error {
 	return nil
 }
 
-func (logger *Logger) Stop() {
+func (logger *logger) Stop() {
 	logger.quitChan <- 1
 }
 
-func (logger *Logger) Log(tag, message, origin string) {
+func (logger *logger) Log(tag, message, origin string) {
 	logger.logChan <- fmt.Sprintf("%s: [%s] %s (%s)\n",
 		time.Now().Format(cTimeFormat), tag, message, origin)
 }
