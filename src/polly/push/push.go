@@ -47,7 +47,12 @@ type NotificationData struct {
 	PollID int    `json:"poll_id"`
 }
 
-type PushClient struct {
+type PushClient interface {
+	StartErrorLogger(*logger.Logger) error
+	NotifyForUpvote(*database.Database, *polly.PrivateUser, int) error
+}
+
+type pushClient struct {
 	iosClient           apns.Client
 	androidClient       gcm.Sender
 	logger              log.Logger
@@ -55,8 +60,8 @@ type PushClient struct {
 	voteTemplate        template.Template
 }
 
-func NewPushCLient() (*PushClient, error) {
-	var pushClient = PushClient{}
+func NewPushCLient() (PushClient, error) {
+	var pushClient = pushClient{}
 
 	// create ios client
 	pollyHome, err := polly.GetPollyHome()
@@ -86,7 +91,7 @@ func NewPushCLient() (*PushClient, error) {
 	return &pushClient, nil
 }
 
-func (pushClient *PushServer) StartErrorLogger(logger *logger.Logger) error {
+func (pushClient *pushClient) StartErrorLogger(logger *logger.Logger) error {
 	if logger == nil {
 		return errors.New("Logger may not be nil.")
 	}
@@ -103,7 +108,7 @@ func (pushClient *PushServer) StartErrorLogger(logger *logger.Logger) error {
 	return nil
 }
 
-func (pushClient *PushServer) startNotificationHandling() {
+func (pushClient *pushClient) startNotificationHandling() {
 	var notificationData *NotificationData
 	var numDevices int
 	pushClient.notificationChannel = make(chan *NotificationData,
@@ -141,7 +146,7 @@ func (pushClient *PushServer) startNotificationHandling() {
 	}()
 }
 
-func (pushClient *PushServer) sendIosNotification(deviceGUID string,
+func (pushClient *pushClient) sendIosNotification(deviceGUID string,
 	notificationData *NotificationData) {
 
 	data, err := json.MarshalIndent(notificationData, "", "\t")
@@ -158,7 +163,7 @@ func (pushClient *PushServer) sendIosNotification(deviceGUID string,
 	pushClient.iosClient.Send(notification)
 }
 
-func (pushClient *PushServer) sendAndroidNotification(deviceGUID string,
+func (pushClient *pushClient) sendAndroidNotification(deviceGUID string,
 	notificationData *NotificationData) {
 
 	// construct the notifcation
