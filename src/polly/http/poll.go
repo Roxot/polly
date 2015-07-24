@@ -7,7 +7,7 @@ import (
 	"polly"
 	"strconv"
 
-	"github.com/julienschmidt/httprouter"
+	"polly/internal/github.com/julienschmidt/httprouter"
 )
 
 const (

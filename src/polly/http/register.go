@@ -7,8 +7,8 @@ import (
 	"polly"
 	"strconv"
 
-	"github.com/julienschmidt/httprouter"
-	"github.com/satori/go.uuid"
+	"polly/internal/github.com/julienschmidt/httprouter"
+	"polly/internal/github.com/satori/go.uuid"
 )
 
 const (

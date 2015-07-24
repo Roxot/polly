@@ -7,7 +7,7 @@ import (
 	"polly/log"
 	"polly/push"
 
-	"github.com/julienschmidt/httprouter"
+	"polly/internal/github.com/julienschmidt/httprouter"
 )
 
 const cHTTPServerTag = "HTTPSERVER"

@@ -3,7 +3,7 @@ package database
 import (
 	"fmt"
 
-	"gopkg.in/gorp.v1"
+	"polly/internal/gopkg.in/gorp.v1"
 )
 
 func (db *Database) DeleteVerTokensByEmail(email string) error {

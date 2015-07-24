@@ -3,7 +3,7 @@ package database
 import (
 	"fmt"
 
-	_ "github.com/lib/pq"
+	_ "polly/internal/github.com/lib/pq"
 )
 
 // TODO check when this error occcurs, maybe we could just return a bool

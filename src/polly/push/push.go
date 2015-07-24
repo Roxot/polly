@@ -10,8 +10,8 @@ import (
 	"polly/log"
 	"text/template"
 
-	"github.com/alexjlockwood/gcm"
-	"github.com/timehop/apns"
+	"polly/internal/github.com/alexjlockwood/gcm"
+	"polly/internal/github.com/timehop/apns"
 )
 
 const (

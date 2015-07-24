@@ -3,7 +3,7 @@ package database
 import (
 	"fmt"
 
-	_ "github.com/lib/pq"
+	_ "polly/internal/github.com/lib/pq"
 )
 
 func (db *Database) CountPollsForUser(userID int) int64 {

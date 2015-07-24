@@ -3,7 +3,7 @@ package database
 import (
 	"polly"
 
-	"gopkg.in/gorp.v1"
+	"polly/internal/gopkg.in/gorp.v1"
 )
 
 func (db *Database) AddUser(user *polly.PrivateUser) error {

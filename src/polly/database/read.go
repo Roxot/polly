@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"polly"
 
-	_ "github.com/lib/pq"
+	_ "polly/internal/github.com/lib/pq"
 )
 
 func (db *Database) GetUserByEmail(email string) (*polly.PrivateUser, error) {

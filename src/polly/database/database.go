@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"polly"
 
-	_ "github.com/lib/pq"
-	"gopkg.in/gorp.v1"
+	_ "polly/internal/github.com/lib/pq"
+	"polly/internal/gopkg.in/gorp.v1"
 )
 
 const (

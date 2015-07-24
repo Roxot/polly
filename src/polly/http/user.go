@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/julienschmidt/httprouter"
+	"polly/internal/github.com/julienschmidt/httprouter"
 )
 
 const (
