@@ -14,8 +14,7 @@
     * [device_type] 0 for android, 1 for iOS
     * [device_guid] the device guid for push messages, ignored for now
 * Returns 200 OK for success, containing the user in JSON in the response body:
-```
-#!json
+```json
         {
             "id" : 0,
             "phone_number" : "0612345678",
@@ -30,8 +29,7 @@
 ###POST api.polly.com/api/v1/poll:###
 * Requires the use of BasicAuth using the phone number and token as username and password, both preemptive and non-preemptive are supported.
 * Request body should contain JSON of the form:
-```
-#!json
+```json
         {
             "question" : {
                     "type" : 0,                                         <-- 0 = multiple_choice, 1 = open, 2 = date
@@ -57,8 +55,7 @@
         }
 ```
 * Returns 200 OK for success, containing the poll in JSON in the response body:
-```
-#!json        
+```json        
         {
             "meta_data": {
                 "poll_id": 5,                                           <-- Server-side poll ID
@@ -107,8 +104,7 @@
 * Requires the use of BasicAuth using the phone number and token as username and password, both preemptive and non-preemptive are supported.
 * Replace xx with the server-side identifier of the poll you're requesting.
 * Returns 200 OK for success, containing the poll in JSON in the response body:
-```
-#!json
+```json
         {
             "meta_data": {
                 "poll_id": 1,
@@ -165,8 +161,7 @@
 * Requires the use of BasicAuth using the phone number and token as username and password, both preemptive and non-preemptive are supported.
 * Accepts a page number as a GET parameter. Example: GET http://api.polly.com/user/polls?page=2
 * Returns 200 OK for success, containing a list of polls and update time in JSON in the response body:
-```
-#!json
+```json
         {
             "polls": [
                 {
@@ -191,8 +186,7 @@
 * Reads the list of poll identifiers from the GET parameter [id]. Example: GET http://api.polly.com/poll?id=0&id=1&id=2
 * Accepts a maximum number of identifiers, more than the maximum will result in a 400 BAD REQUEST, this maximum is equal to the page size of GET /user/polls.
 * Returns 200 OK for success, containing a list of polls and update time in JSON in the response body:
-```
-#!json
+```json
         {
             "polls" : [
                 {
@@ -253,8 +247,7 @@
 ###POST api.polly.com/api/v1/vote:###
 * Requires the use of BasicAuth using the phone number and token as username and password, both preemptive and non-preemptive are supported.
 * Request body should contain JSON of the form:
-```
-#!json
+```json
         {
             "type" : 0,                                                  <-- 0 = new option, 1 = upvote
             "id" : 10,                                                   <-- Contains question ID for a new option, option ID for an upvote
@@ -263,8 +256,7 @@
 
 ```
 * Returns 200 OK for success, containing inserted vote and, if appropriate, the inserted option:
-```
-#!json
+```json
         {
             "option": {                                                   <-- Omitted when type was 0
                 "id": 53,                                                 <-- Server-side ID of the new option
