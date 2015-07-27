@@ -10,8 +10,7 @@ const (
 )
 
 type PrivateUser struct {
-	ID          int    `json:"id"`
-	Email       string `db:"email" json:"email"`
+	ID          int64  `json:"id"`
 	Token       string `json:"token"`
 	DisplayName string `db:"display_name" json:"display_name"`
 	DeviceType  int    `db:"device_type" json:"device_type"`
@@ -19,13 +18,13 @@ type PrivateUser struct {
 }
 
 type PublicUser struct {
-	ID          int    `json:"id"`
+	ID          int64  `json:"id"`
 	DisplayName string `json:"display_name"`
 }
 
 type Poll struct {
 	ID           int   `json:"poll_id"`
-	CreatorID    int   `db:"creator_id" json:"creator_id"`
+	CreatorID    int64 `db:"creator_id" json:"creator_id"`
 	CreationDate int64 `db:"creation_date" json:"creation_date"`
 	LastUpdated  int64 `db:"last_updated" json:"last_updated"`
 }
@@ -58,14 +57,14 @@ type Vote struct {
 	ID           int   `json:"id"`
 	PollID       int   `db:"poll_id" json:"-"`
 	OptionID     int   `db:"option_id" json:"option_id"`
-	UserID       int   `db:"user_id" json:"user_id"`
+	UserID       int64 `db:"user_id" json:"user_id"`
 	CreationDate int64 `db:"creation_date" json:"creation_date"`
 }
 
 type Participant struct {
 	ID     int
-	UserID int `db:"user_id"`
-	PollID int `db:"poll_id"`
+	UserID int64 `db:"user_id"`
+	PollID int   `db:"poll_id"`
 }
 
 type VerToken struct {

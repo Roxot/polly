@@ -14,7 +14,7 @@ func UpdatePollLastUpdatedTX(pollID int, lastUpdated int64,
 	return err
 }
 
-func (db *Database) UpdateUser(userID int, displayName,
+func (db *Database) UpdateUser(userID int64, displayName,
 	deviceGUID string) error {
 
 	_, err := db.mapping.Exec(fmt.Sprintf(
@@ -23,14 +23,20 @@ func (db *Database) UpdateUser(userID int, displayName,
 	return err
 }
 
-func (db *Database) UpdateDisplayName(userID int, displayName string) error {
+func (db *Database) UpdateDisplayName(userID int64, displayName string) error {
 	_, err := db.mapping.Exec(fmt.Sprintf("update %s set %s=$1 where %s=$2;",
 		cUserTableName, cDisplayName, cID), displayName, userID)
 	return err
 }
 
-func (db *Database) UpdateDeviceGUID(userID int, deviceGUID string) error {
+func (db *Database) UpdateDeviceGUID(userID int64, deviceGUID string) error {
 	_, err := db.mapping.Exec(fmt.Sprintf("update %s set %s=$1 where %s=$2;",
 		cUserTableName, cDeviceGUID, cID), deviceGUID, userID)
+	return err
+}
+
+func (db *Database) UpdateToken(userID int64, token string) error {
+	_, err := db.mapping.Exec(fmt.Sprintf("update %s set %s=$1 where %s=$2;",
+		cUserTableName, cToken, cID), token, userID)
 	return err
 }

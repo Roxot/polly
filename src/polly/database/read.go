@@ -7,35 +7,14 @@ import (
 	_ "polly/internal/github.com/lib/pq"
 )
 
-func (db *Database) GetUserByEmail(email string) (*polly.PrivateUser, error) {
-	var user polly.PrivateUser
-	err := db.mapping.SelectOne(&user, fmt.Sprintf(
-		"select * from %s where %s=$1;", cUserTableName, cEmail), email)
-	return &user, err
-}
-
-func (db *Database) GetUserByID(id int) (*polly.PrivateUser, error) {
+func (db *Database) GetUserByID(id int64) (*polly.PrivateUser, error) {
 	var user polly.PrivateUser
 	err := db.mapping.SelectOne(&user,
 		fmt.Sprintf("select * from %s where %s=$1;", cUserTableName, cID), id)
 	return &user, err
 }
 
-func (db *Database) GetPublicUserByEmail(email string) (*polly.PublicUser,
-	error) {
-
-	publicUser := polly.PublicUser{}
-	privateUser, err := db.GetUserByEmail(email)
-	if err != nil {
-		return nil, err
-	}
-
-	publicUser.ID = privateUser.ID
-	publicUser.DisplayName = privateUser.DisplayName
-	return &publicUser, nil
-}
-
-func (db *Database) GetPublicUserByID(id int) (*polly.PublicUser, error) {
+func (db *Database) GetPublicUserByID(id int64) (*polly.PublicUser, error) {
 	publicUser := polly.PublicUser{}
 	privateUser, err := db.GetUserByID(id)
 	if err != nil {
@@ -55,7 +34,7 @@ func (db *Database) GetOptionByID(id int) (*polly.Option, error) {
 }
 
 func (db *Database) GetDeviceInfosForPollExcludeCreator(pollID int,
-	creatorID int) ([]polly.DeviceInfo, error) {
+	creatorID int64) ([]polly.DeviceInfo, error) {
 
 	var deviceInfos []polly.DeviceInfo
 	_, err := db.mapping.Select(&deviceInfos, fmt.Sprintf("select %s.%s, %s.%s"+
@@ -87,7 +66,7 @@ func (db *Database) GetPollByID(id int) (*polly.Poll, error) {
  * Returns the ordered-by-last-updated list of poll snapshots. Limits the
  * results on the given limit and from the given offset.
  */
-func (db *Database) GetPollSnapshotsByUserID(userID, limit, offset int) (
+func (db *Database) GetPollSnapshotsByUserID(userID int64, limit, offset int) (
 	[]polly.PollSnapshot, error) {
 
 	var snapshots []polly.PollSnapshot
@@ -101,7 +80,7 @@ func (db *Database) GetPollSnapshotsByUserID(userID, limit, offset int) (
 	return snapshots, err
 }
 
-func (db *Database) GetPollsByUserID(userID int) ([]polly.Poll, error) {
+func (db *Database) GetPollsByUserID(userID int64) ([]polly.Poll, error) {
 	var polls []polly.Poll
 	_, err := db.mapping.Select(&polls,
 		fmt.Sprintf("select id from %s where %s=$1;", cPollTableName,

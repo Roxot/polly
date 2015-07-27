@@ -63,7 +63,7 @@ func (server *sServer) InsertPollMessage(pollMsg *PollMessage) error {
 	numParticipants := len(pollMsg.Participants)
 	for i := 0; i < numParticipants; i++ {
 		user := pollMsg.Participants[i]
-		partic := polly.Participant{}
+		partic := polly.Participant{} // TODO style inconsistency
 		partic.UserID = user.ID
 		partic.PollID = pollMsg.MetaData.ID
 		err = database.AddParticipantTX(&partic, transaction)

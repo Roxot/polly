@@ -2,7 +2,6 @@ package http
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"polly/internal/github.com/julienschmidt/httprouter"
@@ -29,22 +28,23 @@ func (server *sServer) GetUser(writer http.ResponseWriter, request *http.Request
 	}
 
 	// load the user from the database
-	email := params.ByName(cEmail)
-	user, err := server.db.GetPublicUserByEmail(email)
-	if err != nil {
-		server.handleErr(cGetUserTag, cNoUserErr,
-			fmt.Sprintf(cLogFmt, cNoUserErr, email), 400, writer, request)
-		return
-	}
+	// email := params.ByName(cEmail)
+	// user, err := server.db.GetPublicUserByEmail(email)
+	// if err != nil {
+	// 	server.handleErr(cGetUserTag, cNoUserErr,
+	// 		fmt.Sprintf(cLogFmt, cNoUserErr, email), 400, writer, request)
+	// 	return
+	// }
 
-	// send the response
-	responseBody, err := json.MarshalIndent(user, "", "\t")
-	_, err = writer.Write(responseBody)
-	if err != nil {
-		server.handleWritingError(cGetUserTag, err, writer, request)
-		return
-	}
+	// // send the response
+	// responseBody, err := json.MarshalIndent(user, "", "\t")
+	// _, err = writer.Write(responseBody)
+	// if err != nil {
+	// 	server.handleWritingError(cGetUserTag, err, writer, request)
+	// 	return
+	// }
 
+	// TODO fix
 }
 
 func (server *sServer) UpdateUser(writer http.ResponseWriter,

@@ -6,7 +6,7 @@ import (
 	_ "polly/internal/github.com/lib/pq"
 )
 
-func (db *Database) CountPollsForUser(userID int) int64 {
+func (db *Database) CountPollsForUser(userID int64) int64 {
 
 	count, err := db.mapping.SelectInt(fmt.Sprintf(
 		"select count(*) from %s where %s=$1;", cParticipantTableName, cUserID),

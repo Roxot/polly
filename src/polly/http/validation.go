@@ -19,7 +19,7 @@ func isValidEmail(email string) bool {
  * are set in this function as well.
  */
 func isValidPollMessage(db *database.Database, pollMsg *PollMessage,
-	creatorID int) error {
+	creatorID int64) error {
 
 	// validate question type has fitting options
 	switch pollMsg.Question.Type {
@@ -49,7 +49,7 @@ func isValidPollMessage(db *database.Database, pollMsg *PollMessage,
 	}
 
 	containsCreator := false
-	participantsMap := make(map[int]bool)
+	participantsMap := make(map[int64]bool)
 	numParticipants := len(pollMsg.Participants)
 	for i := 0; i < numParticipants; i++ {
 
@@ -82,4 +82,9 @@ func isValidPollMessage(db *database.Database, pollMsg *PollMessage,
 	}
 
 	return nil
+}
+
+func isValidDeviceType(deviceType int) bool {
+	return (deviceType == polly.DEVICE_TYPE_AD ||
+		deviceType == polly.DEVICE_TYPE_IP)
 }

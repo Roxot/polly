@@ -1,7 +1,6 @@
 package http
 
 import (
-	"fmt"
 	"net/http"
 	"polly/database"
 	"polly/log"
@@ -11,6 +10,7 @@ import (
 )
 
 const cHTTPServerTag = "HTTPSERVER"
+const cAPIVersion = "v0.1"
 
 type IServer interface {
 	Start(port string) error
@@ -72,16 +72,16 @@ func (server *sServer) Start(port string) error {
 		return err
 	}
 
-	server.router.POST("/api/v1/register", server.Register)
-	server.router.POST("/api/v1/register/verify", server.VerifyRegister)
-	server.router.POST("/api/v1/poll", server.PostPoll)
-	server.router.POST("/api/v1/vote", server.Vote)
-	server.router.PUT("/api/v1/user", server.UpdateUser)
-	server.router.GET("/api/v1/user/polls", server.ListUserPolls)
-	server.router.GET(fmt.Sprintf("/api/v1/poll/:%s", cID), server.GetPoll)
-	server.router.GET("/api/v1/poll", server.GetPollBulk)
-	server.router.GET(fmt.Sprintf("/api/v1/user/lookup/:%s", cEmail),
-		server.GetUser)
+	server.router.POST("/api/"+cAPIVersion+"/register.json", server.Register) // TODO template
+	// server.router.POST("/api/v1/register/verify", server.VerifyRegister)
+	// server.router.POST("/api/v1/poll", server.PostPoll)
+	// server.router.POST("/api/v1/vote", server.Vote)
+	// server.router.PUT("/api/v1/user", server.UpdateUser)
+	// server.router.GET("/api/v1/user/polls", server.ListUserPolls)
+	// server.router.GET(fmt.Sprintf("/api/v1/poll/:%s", cID), server.GetPoll)
+	// server.router.GET("/api/v1/poll", server.GetPollBulk)
+	// server.router.GET(fmt.Sprintf("/api/v1/user/lookup/:%s", cEmail),
+	// 	server.GetUser)
 	server.logger.Log(cHTTPServerTag, "Starting HTTP server", "::1")
 	err = http.ListenAndServe(port, &server.router)
 	return err
