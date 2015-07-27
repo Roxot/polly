@@ -1,4 +1,4 @@
-###POST api.polly.com/api/v1/register:###
+**POST api.polly.com/api/v1/register:**
 
 * Request body:
     * [phone_number] a valid (dutch) phone number
@@ -6,7 +6,7 @@
     * Returns 400 BAD REQUEST when not providing a valid phone number
     * Returns 500 INTERNAL SERVER ERROR if one occurs
 
-###POST api.polly.com/api/v1/register/verify:###
+**POST api.polly.com/api/v1/register/verify:**
 * Request body:
     * [phone_number] a valid (dutch) phone number
     * [verification_token] the verification token (for always 'VERIFY')
@@ -26,7 +26,7 @@
 * Returns 400 BAD REQUEST when not providing all values or providing bad values
 * Returns 500 INTERNAL SERVER ERROR if one occurs
 
-###POST api.polly.com/api/v1/poll:###
+**POST api.polly.com/api/v1/poll:**
 * Requires the use of BasicAuth using the phone number and token as username and password, both preemptive and non-preemptive are supported.
 * Request body should contain JSON of the form:
 ```json
@@ -100,7 +100,7 @@
 * Returns 401 UNAUTHORIZED if no authentication is provided.
 * Returns 500 INTERNAL SERVER ERROR if one occurs
 
-###GET api.polly.com/api/v1/poll/xx:###
+**GET api.polly.com/api/v1/poll/xx:**
 * Requires the use of BasicAuth using the phone number and token as username and password, both preemptive and non-preemptive are supported.
 * Replace xx with the server-side identifier of the poll you're requesting.
 * Returns 200 OK for success, containing the poll in JSON in the response body:
@@ -157,7 +157,7 @@
 * Returns 403 FORBIDDEN when trying to access a poll in which the authorized user is no participant
 * Returns 500 INTERNAL SERVER ERROR if one occurs
 
-###GET api.polly.com/api/v1/user/polls###
+**GET api.polly.com/api/v1/user/polls**
 * Requires the use of BasicAuth using the phone number and token as username and password, both preemptive and non-preemptive are supported.
 * Accepts a page number as a GET parameter. Example: GET http://api.polly.com/user/polls?page=2
 * Returns 200 OK for success, containing a list of polls and update time in JSON in the response body:
@@ -181,7 +181,7 @@
 * Returns 401 UNAUTHORIZED if no authentication is provided.
 * Returns 500 INTERNAL SERVER ERROR if one occurs
 
-###GET api.polly.com/api/v1/poll:###
+**GET api.polly.com/api/v1/poll:**
 * Requires the use of BasicAuth using the phone number and token as username and password, both preemptive and non-preemptive are supported.
 * Reads the list of poll identifiers from the GET parameter [id]. Example: GET http://api.polly.com/poll?id=0&id=1&id=2
 * Accepts a maximum number of identifiers, more than the maximum will result in a 400 BAD REQUEST, this maximum is equal to the page size of GET /user/polls.
@@ -244,7 +244,7 @@
 * Returns 403 FORBIDDEN when trying to access a poll in which the authorized user is no participant
 * Returns 500 INTERNAL SERVER ERROR if one occurs
 
-###POST api.polly.com/api/v1/vote:###
+**POST api.polly.com/api/v1/vote:**
 * Requires the use of BasicAuth using the phone number and token as username and password, both preemptive and non-preemptive are supported.
 * Request body should contain JSON of the form:
 ```json
