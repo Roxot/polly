@@ -113,6 +113,7 @@ func (server *sServer) Register(writer http.ResponseWriter,
 		}
 
 		// send the user a 200 OK with his new user info
+		SetJSONContentType(writer)
 		responseBody, err := json.MarshalIndent(existentUser, "", "\t")
 		_, err = writer.Write(responseBody)
 		if err != nil {
@@ -132,6 +133,7 @@ func (server *sServer) Register(writer http.ResponseWriter,
 		}
 
 		// send the user a 200 OK with his user info
+		SetJSONContentType(writer)
 		responseBody, err := json.MarshalIndent(user, "", "\t")
 		_, err = writer.Write(responseBody)
 		if err != nil {
@@ -140,4 +142,9 @@ func (server *sServer) Register(writer http.ResponseWriter,
 		}
 	}
 
+}
+
+// TODO move
+func SetJSONContentType(writer http.ResponseWriter) {
+	writer.Header().Set("Content-Type", "application/json")
 }
