@@ -67,7 +67,15 @@ func (server *sServer) GetPollBulk(writer http.ResponseWriter,
 		pollBulk.Polls[idx] = *pollMsg
 	}
 
+	// marshall the response
 	responseBody, err := json.MarshalIndent(pollBulk, "", "\t")
+	if err != nil {
+		server.handleMarshallingError(cGetPollBulkTag, err, writer, request)
+		return
+	}
+
+	// send a 200 OK response
+	SetJSONContentType(writer)
 	_, err = writer.Write(responseBody)
 	if err != nil {
 		server.handleWritingError(cGetPollBulkTag, err, writer, request)

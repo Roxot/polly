@@ -14,11 +14,6 @@ const (
 	cListUserPollsTag = "USER/POLLS"
 )
 
-type PollSnapshot struct {
-	PollID      int `db:"poll_id" json:"poll_id"`
-	LastUpdated int `db:"last_updated" json:"last_updated"`
-}
-
 type PollList struct {
 	Snapshots  []polly.PollSnapshot `json:"polls"`
 	Page       int                  `json:"page"`
@@ -27,8 +22,8 @@ type PollList struct {
 	Total      int64                `json:"total"`
 }
 
-func (server *sServer) ListUserPolls(writer http.ResponseWriter, request *http.Request,
-	_ httprouter.Params) {
+func (server *sServer) ListPolls(writer http.ResponseWriter,
+	request *http.Request, _ httprouter.Params) {
 
 	// authenticate the user
 	user, err := server.authenticateRequest(request)
@@ -47,7 +42,8 @@ func (server *sServer) ListUserPolls(writer http.ResponseWriter, request *http.R
 		page, err = strconv.Atoi(pageStr)
 		if err != nil {
 			server.handleErr(cListUserPollsTag, cBadPageErr,
-				fmt.Sprintf(cLogFmt, cBadPageErr, pageStr), 400, writer, request)
+				fmt.Sprintf(cLogFmt, cBadPageErr, pageStr), 400, writer,
+				request)
 			return
 		}
 
@@ -72,8 +68,15 @@ func (server *sServer) ListUserPolls(writer http.ResponseWriter, request *http.R
 	pollList.NumResults = len(snapshots)
 	pollList.Total = server.db.CountPollsForUser(user.ID)
 
-	// send the response
+	// marshall the response
 	responseBody, err := json.MarshalIndent(pollList, "", "\t")
+	if err != nil {
+		server.handleMarshallingError(cListUserPollsTag, err, writer, request)
+		return
+	}
+
+	// send the response
+	SetJSONContentType(writer)
 	_, err = writer.Write(responseBody)
 	if err != nil {
 		server.handleMarshallingError(cListUserPollsTag, err, writer, request)

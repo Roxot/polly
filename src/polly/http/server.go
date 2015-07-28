@@ -10,9 +10,12 @@ import (
 	"polly/internal/github.com/julienschmidt/httprouter"
 )
 
-const cHTTPServerTag = "HTTPSERVER"
-const cAPIVersion = "v0.1"
-const cEndpointFormat = "/api/%s/%s.json"
+const (
+	cHTTPServerTag  = "HTTPSERVER"
+	cAPIVersion     = "v0.1"
+	cEndpointFormat = "/api/%s/%s.json"
+	// cEndpointWithVarFormat = cEndpointFormat + ":%s"
+)
 
 type IServer interface {
 	Start(port string) error
@@ -78,14 +81,18 @@ func (server *sServer) Start(port string) error {
 		server.Register)
 	server.router.PUT(fmt.Sprintf(cEndpointFormat, cAPIVersion, "user"),
 		server.UpdateUser)
+	server.router.GET(fmt.Sprintf(cEndpointFormat, cAPIVersion, "list_polls"),
+		server.ListPolls)
+	server.router.POST(fmt.Sprintf(cEndpointFormat, cAPIVersion, "poll"),
+		server.PostPoll)
+	server.router.GET(fmt.Sprintf(cEndpointFormat, cAPIVersion, "polls"),
+		server.GetPollBulk)
 
-	// server.router.POST("/api/v1/poll", server.PostPoll)
-	// server.router.POST("/api/v1/vote", server.Vote)
-	// server.router.GET("/api/v1/user/polls", server.ListUserPolls)
-	// server.router.GET(fmt.Sprintf("/api/v1/poll/:%s", cID), server.GetPoll)
-	// server.router.GET("/api/v1/poll", server.GetPollBulk)
-	// server.router.GET(fmt.Sprintf("/api/v1/user/lookup/:%s", cEmail),
+	// server.router.GET(fmt.Sprintf(cEndpointFormat
+	// 	"/api/v1/user/lookup/:%s", cEmail),
 	// 	server.GetUser)
+	// server.router.POST("/api/v1/vote", server.Vote)
+	// server.router.GET(fmt.Sprintf("/api/v1/poll/:%s", cID), server.GetPoll) TODO deprecated, remove
 	server.logger.Log(cHTTPServerTag, "Starting HTTP server", "::1")
 	err = http.ListenAndServe(port, &server.router)
 	return err
