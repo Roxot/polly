@@ -166,6 +166,7 @@ func (server *sServer) Vote(writer http.ResponseWriter, request *http.Request,
 	}
 
 	// send the response message
+	SetJSONContentType(writer)
 	responseBody, err := json.MarshalIndent(response, "", "\t")
 	_, err = writer.Write(responseBody)
 	if err != nil {

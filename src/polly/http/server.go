@@ -87,11 +87,12 @@ func (server *sServer) Start(port string) error {
 		server.PostPoll)
 	server.router.GET(fmt.Sprintf(cEndpointFormat, cAPIVersion, "polls"),
 		server.GetPollBulk)
+	server.router.POST(fmt.Sprintf(cEndpointFormat, cAPIVersion, "vote"),
+		server.Vote)
 
 	// server.router.GET(fmt.Sprintf(cEndpointFormat
 	// 	"/api/v1/user/lookup/:%s", cEmail),
 	// 	server.GetUser)
-	// server.router.POST("/api/v1/vote", server.Vote)
 	// server.router.GET(fmt.Sprintf("/api/v1/poll/:%s", cID), server.GetPoll) TODO deprecated, remove
 	server.logger.Log(cHTTPServerTag, "Starting HTTP server", "::1")
 	err = http.ListenAndServe(port, &server.router)
