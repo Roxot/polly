@@ -1,6 +1,7 @@
 package http
 
 import (
+	"fmt"
 	"net/http"
 	"polly/database"
 	"polly/log"
@@ -11,6 +12,7 @@ import (
 
 const cHTTPServerTag = "HTTPSERVER"
 const cAPIVersion = "v0.1"
+const cEndpointFormat = "/api/%s/%s.json"
 
 type IServer interface {
 	Start(port string) error
@@ -72,11 +74,13 @@ func (server *sServer) Start(port string) error {
 		return err
 	}
 
-	server.router.POST("/api/"+cAPIVersion+"/register.json", server.Register) // TODO template
-	// server.router.POST("/api/v1/register/verify", server.VerifyRegister)
+	server.router.POST(fmt.Sprintf(cEndpointFormat, cAPIVersion, "register"),
+		server.Register)
+	server.router.PUT(fmt.Sprintf(cEndpointFormat, cAPIVersion, "user"),
+		server.UpdateUser)
+
 	// server.router.POST("/api/v1/poll", server.PostPoll)
 	// server.router.POST("/api/v1/vote", server.Vote)
-	// server.router.PUT("/api/v1/user", server.UpdateUser)
 	// server.router.GET("/api/v1/user/polls", server.ListUserPolls)
 	// server.router.GET(fmt.Sprintf("/api/v1/poll/:%s", cID), server.GetPoll)
 	// server.router.GET("/api/v1/poll", server.GetPollBulk)

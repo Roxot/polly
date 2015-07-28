@@ -40,7 +40,7 @@ func (server *sServer) Register(writer http.ResponseWriter,
 	authorization := request.Header.Get(cClientAuthorizationHeader)
 	if len(provider) == 0 || len(authorization) == 0 {
 		// TODO
-		server.handleErr(cVerifyRegisterTag, cAuthErr, cAuthErr, 403, writer,
+		server.handleErr(cRegisterTag, cAuthErr, cAuthErr, 403, writer,
 			request)
 		return
 	}
@@ -50,7 +50,7 @@ func (server *sServer) Register(writer http.ResponseWriter,
 	oauthEcho, err := http.NewRequest("GET", provider, nil)
 	if err != nil {
 		// TODO wrong error function
-		server.handleDatabaseError(cVerifyRegisterTag, err, writer, request)
+		server.handleDatabaseError(cRegisterTag, err, writer, request)
 		return
 	}
 
@@ -61,11 +61,11 @@ func (server *sServer) Register(writer http.ResponseWriter,
 	response, err := client.Do(oauthEcho)
 	if err != nil {
 		// TODO wrong error function
-		server.handleDatabaseError(cVerifyRegisterTag, err, writer, request)
+		server.handleDatabaseError(cRegisterTag, err, writer, request)
 		return
 	} else if response.StatusCode != 200 { // TODO status code constants somewhere..
 		// TODO
-		server.handleErr(cVerifyRegisterTag, cAuthErr, cAuthErr, 403, writer,
+		server.handleErr(cRegisterTag, cAuthErr, cAuthErr, 403, writer,
 			request)
 		return
 	}
@@ -76,7 +76,7 @@ func (server *sServer) Register(writer http.ResponseWriter,
 	err = decoder.Decode(&twitterResponse)
 	if err != nil {
 		// TODO
-		server.handleBadRequest(cVerifyRegisterTag, cAuthErr, err, writer,
+		server.handleBadRequest(cRegisterTag, cAuthErr, err, writer,
 			request)
 		return
 	}
@@ -87,14 +87,14 @@ func (server *sServer) Register(writer http.ResponseWriter,
 	err = decoder.Decode(&user)
 	if err != nil {
 		// TODO
-		server.handleBadRequest(cVerifyRegisterTag, cBadJSONErr, err, writer,
+		server.handleBadRequest(cRegisterTag, cBadJSONErr, err, writer,
 			request)
 		return
 	}
 
 	// check that the device type is a correct one
 	if !isValidDeviceType(user.DeviceType) {
-		server.handleErr(cVerifyRegisterTag, cBadDvcTypeErr,
+		server.handleErr(cRegisterTag, cBadDvcTypeErr,
 			cBadDvcTypeErr, 400, writer, request) // TODO log device type?
 		return
 	}
@@ -103,21 +103,27 @@ func (server *sServer) Register(writer http.ResponseWriter,
 	if err == nil {
 
 		// we're dealing with an already existing user, generate a new token
-		// and update his device type (TODO is this needed?)
+		// and update his or her device type
 		existentUser.DeviceType = user.DeviceType
 		existentUser.Token = uuid.NewV4().String()
 		err = server.db.UpdateToken(existentUser.ID, existentUser.Token)
 		if err != nil {
-			server.handleDatabaseError(cVerifyRegisterTag, err, writer, request)
+			server.handleDatabaseError(cRegisterTag, err, writer, request)
+			return
+		}
+
+		// create the response body
+		responseBody, err := json.MarshalIndent(existentUser, "", "\t")
+		if err != nil {
+			server.handleMarshallingError(cRegisterTag, err, writer, request)
 			return
 		}
 
 		// send the user a 200 OK with his new user info
 		SetJSONContentType(writer)
-		responseBody, err := json.MarshalIndent(existentUser, "", "\t")
 		_, err = writer.Write(responseBody)
 		if err != nil {
-			server.handleWritingError(cVerifyRegisterTag, err, writer, request)
+			server.handleWritingError(cRegisterTag, err, writer, request)
 			return
 		}
 
@@ -128,16 +134,22 @@ func (server *sServer) Register(writer http.ResponseWriter,
 		user.ID = twitterResponse.ID
 		err = server.db.AddUser(&user)
 		if err != nil {
-			server.handleDatabaseError(cVerifyRegisterTag, err, writer, request)
+			server.handleDatabaseError(cRegisterTag, err, writer, request)
+			return
+		}
+
+		// create the response body
+		responseBody, err := json.MarshalIndent(user, "", "\t")
+		if err != nil {
+			server.handleMarshallingError(cRegisterTag, err, writer, request)
 			return
 		}
 
 		// send the user a 200 OK with his user info
 		SetJSONContentType(writer)
-		responseBody, err := json.MarshalIndent(user, "", "\t")
 		_, err = writer.Write(responseBody)
 		if err != nil {
-			server.handleWritingError(cVerifyRegisterTag, err, writer, request)
+			server.handleWritingError(cRegisterTag, err, writer, request)
 			return
 		}
 	}

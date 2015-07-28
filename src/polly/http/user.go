@@ -70,7 +70,8 @@ func (server *sServer) UpdateUser(writer http.ResponseWriter,
 
 	// update display name
 	if fields.DeviceGUID != nil {
-		err = server.db.UpdateDeviceGUID(user.ID, *(fields.DeviceGUID))
+		user.DeviceGUID = *(fields.DeviceGUID)
+		err = server.db.UpdateDeviceGUID(user.ID, user.DeviceGUID)
 		if err != nil {
 			server.handleDatabaseError(cUpdateUserTag, err, writer, request)
 		}
@@ -78,10 +79,26 @@ func (server *sServer) UpdateUser(writer http.ResponseWriter,
 
 	// update device GUID
 	if fields.DisplayName != nil {
-		err = server.db.UpdateDisplayName(user.ID, *(fields.DisplayName))
+		user.DisplayName = *(fields.DisplayName)
+		err = server.db.UpdateDisplayName(user.ID, user.DisplayName)
 		if err != nil {
 			server.handleDatabaseError(cUpdateUserTag, err, writer, request)
 		}
+	}
+
+	// create the response body
+	responseBody, err := json.MarshalIndent(user, "", "\t")
+	if err != nil {
+		server.handleMarshallingError(cRegisterTag, err, writer, request)
+		return
+	}
+
+	// send the user a 200 OK with his user info
+	SetJSONContentType(writer)
+	_, err = writer.Write(responseBody)
+	if err != nil {
+		server.handleWritingError(cRegisterTag, err, writer, request)
+		return
 	}
 
 }
