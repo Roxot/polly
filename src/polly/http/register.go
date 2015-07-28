@@ -2,7 +2,6 @@ package http
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"polly"
 
@@ -68,8 +67,6 @@ func (server *sServer) Register(writer http.ResponseWriter,
 		// TODO
 		server.handleErr(cVerifyRegisterTag, cAuthErr, cAuthErr, 403, writer,
 			request)
-		fmt.Println(response)
-		fmt.Println(response.StatusCode, 200, response.StatusCode == 200)
 		return
 	}
 
