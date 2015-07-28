@@ -11,7 +11,6 @@ import (
 
 const (
 	cRegisterTag                  = "POST/REGISTER"
-	cVerifyRegisterTag            = "POST/REGISTER/VERIFY"
 	cServiceProviderHeader        = "X-Auth-Service-Provider"
 	cClientAuthorizationHeader    = "X-Verify-Credentials-Authorization"
 	cOAuthEchoAuthorizationHeader = "Authorization" // TODO correct names?

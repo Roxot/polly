@@ -2,14 +2,18 @@ package http
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"strconv"
+
+	"polly"
 
 	"polly/internal/github.com/julienschmidt/httprouter"
 )
 
 const (
-	cGetUserTag    = "GET/USER/XX"
-	cUpdateUserTag = "PUT/USER"
+	cGetUserBulkTag = "GET/USERS"
+	cUpdateUserTag  = "PUT/USER"
 )
 
 type sUpdateUserFields struct {
@@ -17,34 +21,68 @@ type sUpdateUserFields struct {
 	DisplayName *string `json:"display_name"`
 }
 
-func (server *sServer) GetUser(writer http.ResponseWriter, request *http.Request,
-	params httprouter.Params) {
+type UserBulk struct { // TODO private or model
+	Users []polly.PublicUser `json:"users"`
+}
+
+func (server *sServer) GetUserBulk(writer http.ResponseWriter,
+	request *http.Request, params httprouter.Params) {
 
 	// authenticate the user
 	_, err := server.authenticateRequest(request)
 	if err != nil {
-		server.handleAuthError(cGetUserTag, err, writer, request)
+		server.handleAuthError(cGetUserBulkTag, err, writer, request)
 		return
 	}
 
-	// load the user from the database
-	// email := params.ByName(cEmail)
-	// user, err := server.db.GetPublicUserByEmail(email)
-	// if err != nil {
-	// 	server.handleErr(cGetUserTag, cNoUserErr,
-	// 		fmt.Sprintf(cLogFmt, cNoUserErr, email), 400, writer, request)
-	// 	return
-	// }
+	// retrieve the list of identifiers
+	ids := request.URL.Query()[cID]
+	if len(ids) > cBulkUserMax {
+		server.handleErr(cGetUserBulkTag, cIDListLengthErr,
+			fmt.Sprintf("%s: %d", cIDListLengthErr, len(ids)), 400, writer,
+			request)
+		return
+	}
 
-	// // send the response
-	// responseBody, err := json.MarshalIndent(user, "", "\t")
-	// _, err = writer.Write(responseBody)
-	// if err != nil {
-	// 	server.handleWritingError(cGetUserTag, err, writer, request)
-	// 	return
-	// }
+	// construct the UserBulk object
+	userBulk := UserBulk{}
+	userBulk.Users = make([]polly.PublicUser, len(ids))
+	for idx, idString := range ids {
 
-	// TODO fix
+		// convert the id to an integer
+		id, err := strconv.ParseInt(idString, 10, 64)
+		if err != nil {
+			server.handleBadRequest(cGetUserBulkTag, cBadIDErr, err, writer,
+				request)
+			return
+		}
+
+		// retrieve the user object
+		user, err := server.db.GetPublicUserByID(id)
+		if err != nil {
+			server.handleErr(cGetUserBulkTag, cNoUserErr, cNoUserErr, 400,
+				writer, request)
+			return
+		}
+
+		userBulk.Users[idx] = *user
+	}
+
+	// marshall the response
+	responseBody, err := json.MarshalIndent(userBulk, "", "\t")
+	if err != nil {
+		server.handleMarshallingError(cGetUserBulkTag, err, writer, request)
+		return
+	}
+
+	// send the response
+	SetJSONContentType(writer)
+	_, err = writer.Write(responseBody)
+	if err != nil {
+		server.handleWritingError(cGetUserBulkTag, err, writer, request)
+		return
+	}
+
 }
 
 func (server *sServer) UpdateUser(writer http.ResponseWriter,
@@ -54,7 +92,7 @@ func (server *sServer) UpdateUser(writer http.ResponseWriter,
 	// authenticate the user
 	user, err := server.authenticateRequest(request)
 	if err != nil {
-		server.handleAuthError(cGetUserTag, err, writer, request)
+		server.handleAuthError(cUpdateUserTag, err, writer, request)
 		return
 	}
 

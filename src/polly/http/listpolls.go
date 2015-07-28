@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	cListUserPollsTag = "USER/POLLS"
+	cListUserPollsTag = "GET/LIST_POLLS"
 )
 
 type PollList struct {
