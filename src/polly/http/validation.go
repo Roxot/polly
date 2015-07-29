@@ -24,6 +24,8 @@ func isValidPollMessage(db *database.Database, pollMsg *polly.PollMessage,
 		if pollMsg.Options != nil && len(pollMsg.Options) > 0 {
 			return errors.New("Non-empty option list in open question.")
 		}
+	default:
+		return errors.New("Unknown poll type.")
 	}
 
 	// don't accept empty question titles
