@@ -37,16 +37,25 @@ func (server *sServer) Vote(writer http.ResponseWriter, request *http.Request,
 	var pollID int64
 	switch voteMsg.Type {
 	case polly.VOTE_TYPE_NEW:
-		pollID, err = server.db.GetPollIDForQuestionID(voteMsg.ID)
+		question, err := server.db.GetQuestionByID(voteMsg.ID)
 		if err != nil {
 			server.handleBadRequest(cVoteTag, cNoQuestionErr, err, writer,
 				request)
+			return
+
+		}
+
+		pollID = question.ID
+		if question.Type != polly.QUESTION_TYPE_OPEN {
+			server.handleIllegalOperation(cVoteTag,
+				"Not allowed to add options.", writer, request)
 			return
 		} else if len(voteMsg.Value) == 0 {
 			server.handleErr(cVoteTag, cBadVoteMsgErr, cBadVoteMsgErr, 400,
 				writer, request)
 			return
 		}
+
 	case polly.VOTE_TYPE_UPVOTE:
 		pollID, err = server.db.GetPollIDForOptionID(voteMsg.ID)
 		if err != nil {
@@ -54,6 +63,7 @@ func (server *sServer) Vote(writer http.ResponseWriter, request *http.Request,
 				request)
 			return
 		}
+
 	default:
 		server.handleErr(cVoteTag, cBadVoteTypeErr, cBadVoteTypeErr, 400,
 			writer, request)
