@@ -25,41 +25,21 @@ const (
 
 	cAndroidRetries                = 2
 	cNotificationChannelBufferSize = 1 // TODO these in config files as well i guess
-
-	TYPE_NEW_VOTE = 0 // TODO merge with VOTE types and such in model.go
-	TYPE_UPVOTE   = 1
-	TYPE_NEW_POLL = 2
-	// TODO future types for added users, changed settting, etc. after APIs come
-	// available for this
 )
-
-type sVoteTemplateData struct {
-	Voter  string
-	Option string
-}
-
-type NotificationData struct { // TODO to model or decapitalize
-	deviceInfos []polly.DeviceInfo `json:"-"`
-	//Message     string]
-	Type   int    `json:"type"`
-	User   string `json:"user"`
-	Title  string `json:"title"`
-	PollID int    `json:"poll_id"`
-}
 
 type IPushClient interface {
 	StartErrorLogger(log.ILogger) error
 	NotifyForVote(db *database.Database, user *polly.PrivateUser,
-		optionID, voteType int) error
+		optionID int64, voteType int) error
 	NotifyForNewPoll(db *database.Database, user *polly.PrivateUser,
-		pollID int, pollTitle string) error
+		pollID int64, pollTitle string) error
 }
 
 type sPushClient struct {
 	iosClient           apns.Client
 	androidClient       gcm.Sender
 	logger              log.ILogger
-	notificationChannel chan *NotificationData
+	notificationChannel chan *polly.NotificationMessage
 }
 
 func NewClient() (IPushClient, error) {
@@ -105,37 +85,37 @@ func (pushClient *sPushClient) StartErrorLogger(logger log.ILogger) error {
 }
 
 func (pushClient *sPushClient) startNotificationHandling() {
-	var notificationData *NotificationData
+	var notificationMsg *polly.NotificationMessage
 	var numDevices int
-	pushClient.notificationChannel = make(chan *NotificationData,
+	pushClient.notificationChannel = make(chan *polly.NotificationMessage,
 		cNotificationChannelBufferSize)
 
 	go func() {
 		for {
-			notificationData = <-pushClient.notificationChannel
-			numDevices = len(notificationData.deviceInfos)
+			notificationMsg = <-pushClient.notificationChannel
+			numDevices = len(notificationMsg.DeviceInfos)
 
 			for i := 0; i < numDevices; i++ {
-				if len(notificationData.deviceInfos[i].DeviceGUID) == 0 {
-					fmt.Println("Skipping:", notificationData.deviceInfos[i].
+				if len(notificationMsg.DeviceInfos[i].DeviceGUID) == 0 {
+					fmt.Println("Skipping:", notificationMsg.DeviceInfos[i].
 						DeviceGUID)
 					continue
 				}
 
-				if notificationData.deviceInfos[i].DeviceType == polly.
-					DEVICE_TYPE_AD {
+				if notificationMsg.DeviceInfos[i].DeviceType == polly.
+					DEVICE_TYPE_ANDROID {
 
 					fmt.Println("Notifying (and):",
-						notificationData.deviceInfos[i].DeviceGUID)
+						notificationMsg.DeviceInfos[i].DeviceGUID)
 					pushClient.sendAndroidNotification(
-						notificationData.deviceInfos[i].DeviceGUID,
-						notificationData)
+						notificationMsg.DeviceInfos[i].DeviceGUID,
+						notificationMsg)
 				} else {
 					fmt.Println("Notifying (ios):",
-						notificationData.deviceInfos[i].DeviceGUID)
+						notificationMsg.DeviceInfos[i].DeviceGUID)
 					pushClient.sendIosNotification(
-						notificationData.deviceInfos[i].DeviceGUID,
-						notificationData)
+						notificationMsg.DeviceInfos[i].DeviceGUID,
+						notificationMsg)
 				}
 			}
 		}
@@ -143,9 +123,9 @@ func (pushClient *sPushClient) startNotificationHandling() {
 }
 
 func (pushClient *sPushClient) sendIosNotification(deviceGUID string,
-	notificationData *NotificationData) {
+	notificationMsg *polly.NotificationMessage) {
 
-	data, err := json.MarshalIndent(notificationData, "", "\t")
+	data, err := json.MarshalIndent(notificationMsg, "", "\t")
 	if err != nil {
 		pushClient.logger.Log(cPushClientTag, err.Error(), "::1")
 		return
@@ -160,12 +140,12 @@ func (pushClient *sPushClient) sendIosNotification(deviceGUID string,
 }
 
 func (pushClient *sPushClient) sendAndroidNotification(deviceGUID string,
-	notificationData *NotificationData) {
+	notificationMsg *polly.NotificationMessage) {
 
 	// construct the notifcation
-	data := map[string]interface{}{"poll_id": notificationData.PollID,
-		"type": notificationData.Type, "user": notificationData.User,
-		"title": notificationData.Title}
+	data := map[string]interface{}{"poll_id": notificationMsg.PollID,
+		"type": notificationMsg.Type, "user": notificationMsg.User,
+		"title": notificationMsg.Title}
 	regIDs := []string{deviceGUID}
 	msg := gcm.NewMessage(data, regIDs...)
 
@@ -182,7 +162,7 @@ func (pushClient *sPushClient) sendAndroidNotification(deviceGUID string,
 }
 
 func (pushClient *sPushClient) NotifyForVote(db *database.Database,
-	user *polly.PrivateUser, optionID, voteType int) error {
+	user *polly.PrivateUser, optionID int64, voteType int) error {
 	// TODO user->voter, PrivateUser->PublicUser
 
 	// TODO assert votetype
@@ -206,21 +186,21 @@ func (pushClient *sPushClient) NotifyForVote(db *database.Database,
 	}
 
 	// prepare notification
-	notificationData := NotificationData{}
-	notificationData.deviceInfos = deviceInfos
-	notificationData.PollID = option.PollID
-	notificationData.Type = voteType
-	notificationData.User = user.DisplayName
-	notificationData.Title = option.Value
+	notificationMsg := polly.NotificationMessage{}
+	notificationMsg.DeviceInfos = deviceInfos
+	notificationMsg.PollID = option.PollID
+	notificationMsg.Type = voteType
+	notificationMsg.User = user.DisplayName
+	notificationMsg.Title = option.Value
 
 	// let the notification handler goroutine take care of the rest
-	pushClient.notificationChannel <- &notificationData
+	pushClient.notificationChannel <- &notificationMsg
 
 	return nil
 }
 
 func (pushClient *sPushClient) NotifyForNewPoll(db *database.Database,
-	user *polly.PrivateUser, pollID int, pollTitle string) error { // TODO public user?
+	user *polly.PrivateUser, pollID int64, pollTitle string) error { // TODO public user?
 
 	// retrieve all poll participants
 	deviceInfos, err := db.GetDeviceInfosForPollExcludeCreator(pollID,
@@ -235,15 +215,15 @@ func (pushClient *sPushClient) NotifyForNewPoll(db *database.Database,
 	}
 
 	// prepare notification
-	notificationData := NotificationData{}
-	notificationData.deviceInfos = deviceInfos
-	notificationData.PollID = pollID
-	notificationData.Type = TYPE_NEW_POLL
-	notificationData.User = user.DisplayName
-	notificationData.Title = pollTitle
+	notificationMsg := polly.NotificationMessage{}
+	notificationMsg.DeviceInfos = deviceInfos
+	notificationMsg.PollID = pollID
+	notificationMsg.Type = polly.EVENT_TYPE_NEW_POLL
+	notificationMsg.User = user.DisplayName
+	notificationMsg.Title = pollTitle
 
 	// let the notification handler goroutine take care of the rest
-	pushClient.notificationChannel <- &notificationData
+	pushClient.notificationChannel <- &notificationMsg
 
 	return nil
 }

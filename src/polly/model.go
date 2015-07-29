@@ -1,13 +1,21 @@
 package polly
 
 const (
-	DEVICE_TYPE_AD = 0
-	DEVICE_TYPE_IP = 1
+	DEVICE_TYPE_ANDROID = 0
+	DEVICE_TYPE_IPHONE  = 1
 
-	QUESTION_TYPE_MC = 0
-	QUESTION_TYPE_OP = 1
-	QUESTION_TYPE_DT = 2
+	QUESTION_TYPE_MC   = 0
+	QUESTION_TYPE_OPEN = 1
+
+	VOTE_TYPE_NEW    = 0
+	VOTE_TYPE_UPVOTE = 1
+
+	EVENT_TYPE_NEW_VOTE = 0
+	EVENT_TYPE_UPVOTE   = 1
+	EVENT_TYPE_NEW_POLL = 2
 )
+
+/* Polly primitives */
 
 type PrivateUser struct {
 	ID          int64  `json:"id"`
@@ -17,21 +25,51 @@ type PrivateUser struct {
 	DeviceGUID  string `db:"device_guid" json:"device_guid"`
 }
 
-type PublicUser struct {
-	ID          int64  `json:"id"`
-	DisplayName string `json:"display_name"`
-}
-
 type Poll struct {
-	ID           int   `json:"poll_id"`
+	ID           int64 `json:"poll_id"`
 	CreatorID    int64 `db:"creator_id" json:"creator_id"`
 	CreationDate int64 `db:"creation_date" json:"creation_date"`
 	LastUpdated  int64 `db:"last_updated" json:"last_updated"`
 }
 
+type Question struct {
+	ID     int64  `json:"id"`
+	PollID int64  `db:"poll_id" json:"-"`
+	Type   int    `json:"type"`
+	Title  string `json:"title"`
+}
+
+type Option struct {
+	ID         int64  `json:"id"`
+	PollID     int64  `db:"poll_id" json:"-"`
+	QuestionID int64  `db:"question_id" json:"question_id"`
+	Value      string `json:"value"`
+}
+
+type Vote struct {
+	ID           int64 `json:"id"`
+	PollID       int64 `db:"poll_id" json:"-"`
+	OptionID     int64 `db:"option_id" json:"option_id"`
+	UserID       int64 `db:"user_id" json:"user_id"`
+	CreationDate int64 `db:"creation_date" json:"creation_date"`
+}
+
+type Participant struct {
+	ID     int64
+	UserID int64 `db:"user_id"`
+	PollID int64 `db:"poll_id"`
+}
+
+/* Partial Polly objects. */
+
+type PublicUser struct {
+	ID          int64  `json:"id"`
+	DisplayName string `json:"display_name"`
+}
+
 type PollSnapshot struct {
-	PollID      int `db:"poll_id" json:"poll_id"`
-	LastUpdated int `db:"last_updated" json:"last_updated"`
+	PollID      int64 `db:"poll_id" json:"poll_id"`
+	LastUpdated int   `db:"last_updated" json:"last_updated"`
 }
 
 type DeviceInfo struct {
@@ -39,36 +77,52 @@ type DeviceInfo struct {
 	DeviceGUID string `db:"device_guid"`
 }
 
-type Question struct {
-	ID     int    `json:"id"`
-	PollID int    `db:"poll_id" json:"-"`
-	Type   int    `json:"type"`
-	Title  string `json:"title"`
+/* Polly API message objects */
+
+type PollMessage struct {
+	MetaData     Poll         `json:"meta_data"`
+	Question     Question     `json:"question"`
+	Options      []Option     `json:"options"`
+	Votes        []Vote       `json:"votes"`
+	Participants []PublicUser `json:"participants"`
 }
 
-type Option struct {
-	ID         int    `json:"id"`
-	PollID     int    `db:"poll_id" json:"-"`
-	QuestionID int    `db:"question_id" json:"question_id"`
-	Value      string `json:"value"`
+type PollBulkMessage struct {
+	Polls []PollMessage `json:"polls"`
 }
 
-type Vote struct {
-	ID           int   `json:"id"`
-	PollID       int   `db:"poll_id" json:"-"`
-	OptionID     int   `db:"option_id" json:"option_id"`
-	UserID       int64 `db:"user_id" json:"user_id"`
-	CreationDate int64 `db:"creation_date" json:"creation_date"`
+type UserBulkMessage struct {
+	Users []PublicUser `json:"users"`
 }
 
-type Participant struct {
-	ID     int
-	UserID int64 `db:"user_id"`
-	PollID int   `db:"poll_id"`
+type VoteMessage struct {
+	Type  int    `json:"type"`
+	ID    int64  `json:"id"`
+	Value string `json:"value"`
 }
 
-type VerToken struct {
-	ID    int
-	Email string `db:"email"`
-	Token string `db:"verification_token"`
+type VoteResponseMessage struct {
+	Option Option `json:"option,omitempty"`
+	Vote   Vote   `json:"vote"`
+}
+
+type UpdateUserMessage struct {
+	DeviceGUID  *string `json:"device_guid"`
+	DisplayName *string `json:"display_name"`
+}
+
+type PollListMessage struct {
+	Snapshots  []PollSnapshot `json:"polls"`
+	Page       int            `json:"page"`
+	PageSize   int            `json:"page_size"`
+	NumResults int            `json:"num_results"`
+	Total      int64          `json:"total"`
+}
+
+type NotificationMessage struct {
+	DeviceInfos []DeviceInfo `json:"-"`
+	Type        int          `json:"type"`
+	User        string       `json:"user"`
+	Title       string       `json:"title"`
+	PollID      int64        `json:"poll_id"`
 }

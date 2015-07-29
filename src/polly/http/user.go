@@ -16,15 +16,6 @@ const (
 	cUpdateUserTag  = "PUT/USER"
 )
 
-type sUpdateUserFields struct {
-	DeviceGUID  *string `json:"device_guid"`
-	DisplayName *string `json:"display_name"`
-}
-
-type UserBulk struct { // TODO private or model
-	Users []polly.PublicUser `json:"users"`
-}
-
 func (server *sServer) GetUserBulk(writer http.ResponseWriter,
 	request *http.Request, params httprouter.Params) {
 
@@ -45,8 +36,8 @@ func (server *sServer) GetUserBulk(writer http.ResponseWriter,
 	}
 
 	// construct the UserBulk object
-	userBulk := UserBulk{}
-	userBulk.Users = make([]polly.PublicUser, len(ids))
+	userBulkMsg := polly.UserBulkMessage{}
+	userBulkMsg.Users = make([]polly.PublicUser, len(ids))
 	for idx, idString := range ids {
 
 		// convert the id to an integer
@@ -65,11 +56,11 @@ func (server *sServer) GetUserBulk(writer http.ResponseWriter,
 			return
 		}
 
-		userBulk.Users[idx] = *user
+		userBulkMsg.Users[idx] = *user
 	}
 
 	// marshall the response
-	responseBody, err := json.MarshalIndent(userBulk, "", "\t")
+	responseBody, err := json.MarshalIndent(userBulkMsg, "", "\t")
 	if err != nil {
 		server.handleMarshallingError(cGetUserBulkTag, err, writer, request)
 		return
@@ -97,9 +88,9 @@ func (server *sServer) UpdateUser(writer http.ResponseWriter,
 	}
 
 	// decode the given user
-	var fields sUpdateUserFields
+	var updateUserMsg polly.UpdateUserMessage
 	decoder := json.NewDecoder(request.Body)
-	err = decoder.Decode(&fields)
+	err = decoder.Decode(&updateUserMsg)
 	if err != nil {
 		server.handleBadRequest(cUpdateUserTag, cBadJSONErr, err, writer,
 			request)
@@ -107,8 +98,8 @@ func (server *sServer) UpdateUser(writer http.ResponseWriter,
 	}
 
 	// update display name
-	if fields.DeviceGUID != nil {
-		user.DeviceGUID = *(fields.DeviceGUID)
+	if updateUserMsg.DeviceGUID != nil {
+		user.DeviceGUID = *(updateUserMsg.DeviceGUID)
 		err = server.db.UpdateDeviceGUID(user.ID, user.DeviceGUID)
 		if err != nil {
 			server.handleDatabaseError(cUpdateUserTag, err, writer, request)
@@ -116,8 +107,8 @@ func (server *sServer) UpdateUser(writer http.ResponseWriter,
 	}
 
 	// update device GUID
-	if fields.DisplayName != nil {
-		user.DisplayName = *(fields.DisplayName)
+	if updateUserMsg.DisplayName != nil {
+		user.DisplayName = *(updateUserMsg.DisplayName)
 		err = server.db.UpdateDisplayName(user.ID, user.DisplayName)
 		if err != nil {
 			server.handleDatabaseError(cUpdateUserTag, err, writer, request)

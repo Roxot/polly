@@ -11,22 +11,8 @@ import (
 )
 
 const (
-	VOTE_TYPE_NEW    = 0
-	VOTE_TYPE_UPVOTE = 1
-
 	cVoteTag = "POST/VOTE"
 )
-
-type VoteMessage struct { // TODO probably to model, as well as some other protocol stuff, why is this public here anyways?
-	Type  int    `json:"type"`
-	ID    int    `json:"id"`
-	Value string `json:"value"`
-}
-
-type VoteResponseMessage struct { // TODO same as above
-	Option polly.Option `json:"option,omitempty"`
-	Vote   polly.Vote   `json:"vote"`
-}
 
 func (server *sServer) Vote(writer http.ResponseWriter, request *http.Request,
 	_ httprouter.Params) {
@@ -39,7 +25,7 @@ func (server *sServer) Vote(writer http.ResponseWriter, request *http.Request,
 	}
 
 	// decode the vote message
-	var voteMsg VoteMessage
+	var voteMsg polly.VoteMessage
 	decoder := json.NewDecoder(request.Body)
 	err = decoder.Decode(&voteMsg)
 	if err != nil {
@@ -48,9 +34,9 @@ func (server *sServer) Vote(writer http.ResponseWriter, request *http.Request,
 	}
 
 	// retrieve the poll id belonging to the option or question id
-	var pollID int
+	var pollID int64
 	switch voteMsg.Type {
-	case VOTE_TYPE_NEW:
+	case polly.VOTE_TYPE_NEW:
 		pollID, err = server.db.GetPollIDForQuestionID(voteMsg.ID)
 		if err != nil {
 			server.handleBadRequest(cVoteTag, cNoQuestionErr, err, writer,
@@ -61,7 +47,7 @@ func (server *sServer) Vote(writer http.ResponseWriter, request *http.Request,
 				writer, request)
 			return
 		}
-	case VOTE_TYPE_UPVOTE:
+	case polly.VOTE_TYPE_UPVOTE:
 		pollID, err = server.db.GetPollIDForOptionID(voteMsg.ID)
 		if err != nil {
 			server.handleBadRequest(cVoteTag, cNoOptionErr, err, writer,
@@ -98,9 +84,9 @@ func (server *sServer) Vote(writer http.ResponseWriter, request *http.Request,
 	}
 
 	// if necessary, create a new option
-	var optionID int
+	var optionID int64
 	var option polly.Option
-	if voteMsg.Type == VOTE_TYPE_UPVOTE {
+	if voteMsg.Type == polly.VOTE_TYPE_UPVOTE {
 		optionID = voteMsg.ID
 	} else {
 
@@ -158,9 +144,9 @@ func (server *sServer) Vote(writer http.ResponseWriter, request *http.Request,
 	}
 
 	// construct the response message
-	response := VoteResponseMessage{}
+	response := polly.VoteResponseMessage{}
 	response.Vote = vote
-	if voteMsg.Type == VOTE_TYPE_NEW {
+	if voteMsg.Type == polly.VOTE_TYPE_NEW {
 		response.Option = option
 	}
 

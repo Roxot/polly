@@ -55,11 +55,3 @@ func AddParticipantTX(participant *polly.Participant,
 
 	return tx.Insert(participant)
 }
-
-func (db *Database) AddVerToken(verToken *polly.VerToken) error {
-	return db.mapping.Insert(verToken)
-}
-
-func AddVerTokenTX(verToken *polly.VerToken, tx *gorp.Transaction) error {
-	return tx.Insert(verToken)
-}

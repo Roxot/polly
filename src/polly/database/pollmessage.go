@@ -1,26 +1,17 @@
-package http
+package database
 
 import (
 	"polly"
-	"polly/database"
 	"time"
 )
 
-type PollMessage struct {
-	MetaData     polly.Poll         `json:"meta_data"`
-	Question     polly.Question     `json:"question"`
-	Options      []polly.Option     `json:"options"`
-	Votes        []polly.Vote       `json:"votes"`
-	Participants []polly.PublicUser `json:"participants"`
-}
-
-func (server *sServer) InsertPollMessage(pollMsg *PollMessage) error {
+func (db *Database) InsertPollMessage(pollMsg *polly.PollMessage) error {
 	var err error
 
 	// start the transaction
-	transaction, err := server.db.Begin()
+	tx, err := db.Begin()
 	if err != nil {
-		transaction.Rollback()
+		tx.Rollback()
 		return err
 	}
 
@@ -30,9 +21,9 @@ func (server *sServer) InsertPollMessage(pollMsg *PollMessage) error {
 	pollMsg.MetaData.LastUpdated = now
 
 	// insert the poll object
-	err = database.AddPollTX(&pollMsg.MetaData, transaction)
+	err = AddPollTX(&pollMsg.MetaData, tx)
 	if err != nil {
-		transaction.Rollback()
+		tx.Rollback()
 		return err
 	}
 
@@ -40,9 +31,9 @@ func (server *sServer) InsertPollMessage(pollMsg *PollMessage) error {
 	pollMsg.Question.PollID = pollMsg.MetaData.ID
 
 	// insert the question
-	err = database.AddQuestionTX(&pollMsg.Question, transaction)
+	err = AddQuestionTX(&pollMsg.Question, tx)
 	if err != nil {
-		transaction.Rollback()
+		tx.Rollback()
 		return err
 	}
 
@@ -52,9 +43,9 @@ func (server *sServer) InsertPollMessage(pollMsg *PollMessage) error {
 		option := &(pollMsg.Options[i])
 		option.QuestionID = pollMsg.Question.ID
 		option.PollID = pollMsg.MetaData.ID
-		err = database.AddOptionTX(option, transaction)
+		err = AddOptionTX(option, tx)
 		if err != nil {
-			transaction.Rollback()
+			tx.Rollback()
 			return err
 		}
 	}
@@ -63,18 +54,18 @@ func (server *sServer) InsertPollMessage(pollMsg *PollMessage) error {
 	numParticipants := len(pollMsg.Participants)
 	for i := 0; i < numParticipants; i++ {
 		user := pollMsg.Participants[i]
-		partic := polly.Participant{} // TODO style inconsistency
-		partic.UserID = user.ID
-		partic.PollID = pollMsg.MetaData.ID
-		err = database.AddParticipantTX(&partic, transaction)
+		participant := polly.Participant{} // TODO style inconsistency
+		participant.UserID = user.ID
+		participant.PollID = pollMsg.MetaData.ID
+		err = AddParticipantTX(&participant, tx)
 		if err != nil {
-			transaction.Rollback()
+			tx.Rollback()
 			return err
 		}
 	}
 
 	// commit the transaction
-	err = transaction.Commit()
+	err = tx.Commit()
 	if err != nil {
 		return err
 	}
@@ -82,39 +73,41 @@ func (server *sServer) InsertPollMessage(pollMsg *PollMessage) error {
 	return nil
 }
 
-func (server *sServer) ConstructPollMessage(pollID int) (*PollMessage, error) {
-	pollMsg := PollMessage{}
+func (db *Database) ConstructPollMessage(pollID int64) (*polly.PollMessage,
+	error) {
+
+	pollMsg := polly.PollMessage{}
 
 	// retrieve the poll object
-	poll, err := server.db.GetPollByID(pollID)
+	poll, err := db.GetPollByID(pollID)
 	pollMsg.MetaData = *poll
 	if err != nil {
 		return nil, err
 	}
 
 	// retrieve the questions
-	question, err := server.db.GetQuestionByPollID(pollID)
+	question, err := db.GetQuestionByPollID(pollID)
 	pollMsg.Question = *question
 	if err != nil {
 		return nil, err
 	}
 
 	// retrieve the options
-	options, err := server.db.GetOptionsByPollID(pollID)
+	options, err := db.GetOptionsByPollID(pollID)
 	pollMsg.Options = options
 	if err != nil {
 		return nil, err
 	}
 
 	// retrieve the votes
-	votes, err := server.db.GetVotesByPollID(pollID)
+	votes, err := db.GetVotesByPollID(pollID)
 	pollMsg.Votes = votes
 	if err != nil {
 		return nil, err
 	}
 
 	// retrieve the participants
-	participants, err := server.db.GetParticipantsByPollID(pollID)
+	participants, err := db.GetParticipantsByPollID(pollID)
 	if err != nil {
 		return nil, err
 	}
@@ -124,7 +117,7 @@ func (server *sServer) ConstructPollMessage(pollID int) (*PollMessage, error) {
 	pollMsg.Participants = make([]polly.PublicUser, numParticipants)
 	var user *polly.PublicUser
 	for i := 0; i < numParticipants; i++ {
-		user, err = server.db.GetPublicUserByID(participants[i].UserID)
+		user, err = db.GetPublicUserByID(participants[i].UserID)
 		if err != nil {
 			return nil, err
 		}

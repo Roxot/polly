@@ -2,23 +2,16 @@ package http
 
 import (
 	"errors"
-	"net/mail"
 	"polly"
 	"polly/database"
 )
-
-/* Validates an e-mail address to be correct according to RFC 5322. */
-func isValidEmail(email string) bool {
-	_, err := mail.ParseAddress(email)
-	return (err == nil)
-}
 
 /*
  * Validates a poll message by checking the questions, options and participants.
  * In the case of participants their correct display names and email addresses
  * are set in this function as well.
  */
-func isValidPollMessage(db *database.Database, pollMsg *PollMessage,
+func isValidPollMessage(db *database.Database, pollMsg *polly.PollMessage,
 	creatorID int64) error {
 
 	// validate question type has fitting options
@@ -27,12 +20,10 @@ func isValidPollMessage(db *database.Database, pollMsg *PollMessage,
 		if pollMsg.Options == nil || len(pollMsg.Options) == 0 {
 			return errors.New("Empty options list.")
 		}
-	case polly.QUESTION_TYPE_OP:
+	case polly.QUESTION_TYPE_OPEN:
 		if pollMsg.Options != nil && len(pollMsg.Options) > 0 {
 			return errors.New("Non-empty option list in open question.")
 		}
-	case polly.QUESTION_TYPE_DT:
-		// TODO no support yet for date polls
 	}
 
 	// don't accept empty question titles
@@ -85,6 +76,6 @@ func isValidPollMessage(db *database.Database, pollMsg *PollMessage,
 }
 
 func isValidDeviceType(deviceType int) bool {
-	return (deviceType == polly.DEVICE_TYPE_AD ||
-		deviceType == polly.DEVICE_TYPE_IP)
+	return (deviceType == polly.DEVICE_TYPE_ANDROID ||
+		deviceType == polly.DEVICE_TYPE_IPHONE)
 }

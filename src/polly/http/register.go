@@ -16,15 +16,15 @@ const (
 	cOAuthEchoAuthorizationHeader = "Authorization" // TODO correct names?
 )
 
-type tTwitterResponse struct {
+type sTwitterResponse struct {
 	IDString    string
 	ID          int64
 	CreatedAt   string
 	PhoneNumber string
-	AccessToken tTwitterAccessToken
+	AccessToken sTwitterAccessToken
 }
 
-type tTwitterAccessToken struct {
+type sTwitterAccessToken struct {
 	Secret string
 	Token  string
 }
@@ -70,7 +70,7 @@ func (server *sServer) Register(writer http.ResponseWriter,
 	}
 
 	// decode Twitter's response
-	var twitterResponse tTwitterResponse
+	var twitterResponse sTwitterResponse
 	decoder = json.NewDecoder(response.Body)
 	err = decoder.Decode(&twitterResponse)
 	if err != nil {

@@ -15,10 +15,6 @@ const (
 	cGetPollBulkTag = "GET/POLLS"
 )
 
-type PollBulk struct { // TODO private or model
-	Polls []PollMessage `json:"polls"`
-}
-
 func (server *sServer) PostPoll(writer http.ResponseWriter, request *http.Request,
 	_ httprouter.Params) {
 
@@ -30,7 +26,7 @@ func (server *sServer) PostPoll(writer http.ResponseWriter, request *http.Reques
 	}
 
 	// decode the poll
-	var pollMsg PollMessage
+	var pollMsg polly.PollMessage
 	decoder := json.NewDecoder(request.Body)
 	err = decoder.Decode(&pollMsg)
 	if err != nil {
@@ -47,7 +43,7 @@ func (server *sServer) PostPoll(writer http.ResponseWriter, request *http.Reques
 	// insert poll
 	pollMsg.MetaData.CreatorID = user.ID
 	pollMsg.Votes = make([]polly.Vote, 0)
-	err = server.InsertPollMessage(&pollMsg)
+	err = server.db.InsertPollMessage(&pollMsg)
 	if err != nil {
 		server.handleDatabaseError(cPostPollTag, err, writer, request)
 		return
@@ -98,12 +94,12 @@ func (server *sServer) GetPollBulk(writer http.ResponseWriter,
 	}
 
 	// construct the PollBulk object
-	pollBulk := PollBulk{}
-	pollBulk.Polls = make([]PollMessage, len(ids))
+	pollBulkMsg := polly.PollBulkMessage{}
+	pollBulkMsg.Polls = make([]polly.PollMessage, len(ids))
 	for idx, idString := range ids {
 
 		// convert the id to an integer
-		id, err := strconv.Atoi(idString)
+		id, err := strconv.ParseInt(idString, 10, 64)
 		if err != nil {
 			server.handleBadRequest(cGetPollBulkTag, cBadIDErr, err, writer,
 				request)
@@ -118,18 +114,18 @@ func (server *sServer) GetPollBulk(writer http.ResponseWriter,
 		}
 
 		// construct the poll message
-		pollMsg, err := server.ConstructPollMessage(id)
+		pollMsg, err := server.db.ConstructPollMessage(id)
 		if err != nil {
 			server.handleErr(cGetPollBulkTag, cNoPollErr, cNoPollErr, 400,
 				writer, request)
 			return
 		}
 
-		pollBulk.Polls[idx] = *pollMsg
+		pollBulkMsg.Polls[idx] = *pollMsg
 	}
 
 	// marshall the response
-	responseBody, err := json.MarshalIndent(pollBulk, "", "\t")
+	responseBody, err := json.MarshalIndent(pollBulkMsg, "", "\t")
 	if err != nil {
 		server.handleMarshallingError(cGetPollBulkTag, err, writer, request)
 		return

@@ -41,8 +41,6 @@ func NewDatabase(dbConfig *DBConfig) (*Database, error) {
 	db.mapping = gorp.DbMap{Db: sqlDB, Dialect: gorp.PostgresDialect{}}
 	db.mapping.AddTableWithName(polly.PrivateUser{}, cUserTableName).
 		SetKeys(false, cPK)
-	db.mapping.AddTableWithName(polly.VerToken{},
-		cVerificationTokensTableName).SetKeys(true, cPK)
 	db.mapping.AddTableWithName(polly.Poll{}, cPollTableName).
 		SetKeys(true, cPK)
 	db.mapping.AddTableWithName(polly.Question{}, cQuestionTableName).

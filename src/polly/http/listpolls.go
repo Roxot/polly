@@ -14,14 +14,6 @@ const (
 	cListUserPollsTag = "GET/LIST_POLLS"
 )
 
-type PollList struct {
-	Snapshots  []polly.PollSnapshot `json:"polls"`
-	Page       int                  `json:"page"`
-	PageSize   int                  `json:"page_size"`
-	NumResults int                  `json:"num_results"`
-	Total      int64                `json:"total"`
-}
-
 func (server *sServer) ListPolls(writer http.ResponseWriter,
 	request *http.Request, _ httprouter.Params) {
 
@@ -61,15 +53,15 @@ func (server *sServer) ListPolls(writer http.ResponseWriter,
 	}
 
 	// construct the PollList object
-	pollList := PollList{}
-	pollList.Snapshots = snapshots
-	pollList.Page = page
-	pollList.PageSize = cPollListMax
-	pollList.NumResults = len(snapshots)
-	pollList.Total = server.db.CountPollsForUser(user.ID)
+	pollListMsg := polly.PollListMessage{}
+	pollListMsg.Snapshots = snapshots
+	pollListMsg.Page = page
+	pollListMsg.PageSize = cPollListMax
+	pollListMsg.NumResults = len(snapshots)
+	pollListMsg.Total = server.db.CountPollsForUser(user.ID)
 
 	// marshall the response
-	responseBody, err := json.MarshalIndent(pollList, "", "\t")
+	responseBody, err := json.MarshalIndent(pollListMsg, "", "\t")
 	if err != nil {
 		server.handleMarshallingError(cListUserPollsTag, err, writer, request)
 		return

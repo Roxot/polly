@@ -26,14 +26,14 @@ func (db *Database) GetPublicUserByID(id int64) (*polly.PublicUser, error) {
 	return &publicUser, nil
 }
 
-func (db *Database) GetOptionByID(id int) (*polly.Option, error) {
+func (db *Database) GetOptionByID(id int64) (*polly.Option, error) {
 	var option polly.Option
 	err := db.mapping.SelectOne(&option,
 		fmt.Sprintf("select * from %s where %s=$1;", cOptionTableName, cID), id)
 	return &option, err
 }
 
-func (db *Database) GetDeviceInfosForPollExcludeCreator(pollID int,
+func (db *Database) GetDeviceInfosForPollExcludeCreator(pollID,
 	creatorID int64) ([]polly.DeviceInfo, error) {
 
 	var deviceInfos []polly.DeviceInfo
@@ -47,15 +47,7 @@ func (db *Database) GetDeviceInfosForPollExcludeCreator(pollID int,
 	return deviceInfos, err
 }
 
-func (db *Database) GetVerTokenByEmail(email string) (*polly.VerToken, error) {
-	var verToken polly.VerToken
-	err := db.mapping.SelectOne(&verToken, fmt.Sprintf(
-		"select * from %s where %s=$1;", cVerificationTokensTableName,
-		cEmail), email)
-	return &verToken, err
-}
-
-func (db *Database) GetPollByID(id int) (*polly.Poll, error) {
+func (db *Database) GetPollByID(id int64) (*polly.Poll, error) {
 	var poll polly.Poll
 	err := db.mapping.SelectOne(&poll,
 		fmt.Sprintf("select * from %s where %s=$1;", cPollTableName, cID), id)
@@ -88,7 +80,7 @@ func (db *Database) GetPollsByUserID(userID int64) ([]polly.Poll, error) {
 	return polls, err
 }
 
-func (db *Database) GetPollIDForOptionID(optionID int) (int, error) {
+func (db *Database) GetPollIDForOptionID(optionID int64) (int64, error) {
 	var option polly.Option
 	err := db.mapping.SelectOne(&option,
 		fmt.Sprintf("select %s from %s where %s = $1;", cPollID,
@@ -96,7 +88,7 @@ func (db *Database) GetPollIDForOptionID(optionID int) (int, error) {
 	return option.PollID, err
 }
 
-func (db *Database) GetPollIDForQuestionID(questionID int) (int, error) {
+func (db *Database) GetPollIDForQuestionID(questionID int64) (int64, error) {
 	var question polly.Question
 	err := db.mapping.SelectOne(&question,
 		fmt.Sprintf("select %s from %s where %s = $1;", cPollID,
@@ -104,7 +96,7 @@ func (db *Database) GetPollIDForQuestionID(questionID int) (int, error) {
 	return question.PollID, err
 }
 
-func (db *Database) GetQuestionByPollID(pollID int) (*polly.Question, error) {
+func (db *Database) GetQuestionByPollID(pollID int64) (*polly.Question, error) {
 	var question polly.Question
 	err := db.mapping.SelectOne(&question,
 		fmt.Sprintf("select * from %s where %s = $1;", cQuestionTableName,
@@ -112,7 +104,7 @@ func (db *Database) GetQuestionByPollID(pollID int) (*polly.Question, error) {
 	return &question, err
 }
 
-func (db *Database) GetOptionsByPollID(pollID int) ([]polly.Option, error) {
+func (db *Database) GetOptionsByPollID(pollID int64) ([]polly.Option, error) {
 	var options []polly.Option
 	_, err := db.mapping.Select(&options,
 		fmt.Sprintf("select * from %s where %s = $1;", cOptionTableName,
@@ -120,7 +112,7 @@ func (db *Database) GetOptionsByPollID(pollID int) ([]polly.Option, error) {
 	return options, err
 }
 
-func (db *Database) GetParticipantsByPollID(pollID int) (
+func (db *Database) GetParticipantsByPollID(pollID int64) (
 	[]polly.Participant, error) {
 
 	var participants []polly.Participant
@@ -130,7 +122,7 @@ func (db *Database) GetParticipantsByPollID(pollID int) (
 	return participants, err
 }
 
-func (db *Database) GetVotesByPollID(pollID int) ([]polly.Vote, error) {
+func (db *Database) GetVotesByPollID(pollID int64) ([]polly.Vote, error) {
 	var votes []polly.Vote
 	_, err := db.mapping.Select(&votes,
 		fmt.Sprintf("select * from %s where %s = $1;", cVoteTableName, cPollID),

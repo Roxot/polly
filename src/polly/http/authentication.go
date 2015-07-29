@@ -32,7 +32,7 @@ func (server *sServer) authenticateRequest(request *http.Request) (
 	return user, nil
 }
 
-func (server *sServer) hasPollAccess(userID int64, pollID int) bool {
+func (server *sServer) hasPollAccess(userID int64, pollID int64) bool {
 	exists, err := server.db.ExistsParticipant(userID, pollID)
 	if err != nil {
 		server.logger.Log("hasPollAccess",
