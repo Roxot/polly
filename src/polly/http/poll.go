@@ -53,6 +53,14 @@ func (server *sServer) PostPoll(writer http.ResponseWriter, request *http.Reques
 		return
 	}
 
+	// notify the poll participants of the creation of the poll
+	err = server.pushClient.NotifyForNewPoll(&server.db, user,
+		pollMsg.MetaData.ID, pollMsg.Question.Title)
+	if err != nil {
+		// TODO neaten up
+		server.logger.Log(cPostPollTag, "Error notifying: "+err.Error(), "::1")
+	}
+
 	// marshall the response
 	responseBody, err := json.MarshalIndent(pollMsg, "", "\t")
 	if err != nil {

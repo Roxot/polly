@@ -2,8 +2,6 @@ package http
 
 import (
 	"encoding/json"
-	"fmt"
-	"net"
 	"net/http"
 	"polly"
 	"polly/database"
@@ -19,13 +17,13 @@ const (
 	cVoteTag = "POST/VOTE"
 )
 
-type VoteMessage struct {
+type VoteMessage struct { // TODO probably to model, as well as some other protocol stuff, why is this public here anyways?
 	Type  int    `json:"type"`
 	ID    int    `json:"id"`
 	Value string `json:"value"`
 }
 
-type VoteResponseMessage struct {
+type VoteResponseMessage struct { // TODO same as above
 	Option polly.Option `json:"option,omitempty"`
 	Vote   polly.Vote   `json:"vote"`
 }
@@ -84,7 +82,7 @@ func (server *sServer) Vote(writer http.ResponseWriter, request *http.Request,
 	}
 
 	// start a transaction
-	transaction, err := server.db.Begin()
+	transaction, err := server.db.Begin() // TODO transaction -> tx
 	if err != nil {
 		transaction.Rollback()
 		server.handleDatabaseError(cVoteTag, err, writer, request)
@@ -151,11 +149,12 @@ func (server *sServer) Vote(writer http.ResponseWriter, request *http.Request,
 		return
 	}
 
-	// push a notification to all participants of the poll TODO other type of vote
-	err = server.pushClient.NotifyForUpvote(&server.db, user, optionID)
+	// send a notification to other participants
+	err = server.pushClient.NotifyForVote(&server.db, user, optionID,
+		voteMsg.Type)
 	if err != nil {
-		host, _, _ := net.SplitHostPort(request.RemoteAddr)
-		server.logger.Log(cVoteTag, fmt.Sprintf(cDatabaseErrLog, err), host)
+		// TODO neaten up
+		server.logger.Log(cVoteTag, "Error notifying: "+err.Error(), "::1")
 	}
 
 	// construct the response message

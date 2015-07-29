@@ -8,29 +8,29 @@ import (
 	"polly"
 	"polly/database"
 	"polly/log"
-	"text/template"
 
 	"polly/internal/github.com/alexjlockwood/gcm"
 	"polly/internal/github.com/timehop/apns"
 )
 
 const (
-	cIOSGateway         = apns.SandboxGateway
+	cIOSGateway         = apns.SandboxGateway // TODO all this should be in a config file
 	cCertDir            = "certs/"
 	cIOSCertFile        = cCertDir + "apns-dev-cert.pem"
 	cIOSKeyFile         = cCertDir + "apns-dev-key.key"
-	cVoteTemplateText   = "{{.Voter}} voted for {{.Option}}."
 	cAndroidServerToken = "AIzaSyCi-zeWU_moOdFtUWggHXMulWGQK72wBuk"
 
 	cPushClientTag    = "PUSHCLIENT"
 	cPushServerLogFmt = "Failed to send notification %d: %s"
 
 	cAndroidRetries                = 2
-	cNotificationChannelBufferSize = 1
+	cNotificationChannelBufferSize = 1 // TODO these in config files as well i guess
 
-	TYPE_NEW_VOTE = 0
+	TYPE_NEW_VOTE = 0 // TODO merge with VOTE types and such in model.go
 	TYPE_UPVOTE   = 1
 	TYPE_NEW_POLL = 2
+	// TODO future types for added users, changed settting, etc. after APIs come
+	// available for this
 )
 
 type sVoteTemplateData struct {
@@ -38,8 +38,8 @@ type sVoteTemplateData struct {
 	Option string
 }
 
-type NotificationData struct {
-	deviceInfos []polly.DeviceInfo
+type NotificationData struct { // TODO to model or decapitalize
+	deviceInfos []polly.DeviceInfo `json:"-"`
 	//Message     string]
 	Type   int    `json:"type"`
 	User   string `json:"user"`
@@ -49,8 +49,10 @@ type NotificationData struct {
 
 type IPushClient interface {
 	StartErrorLogger(log.ILogger) error
-	NotifyForUpvote(db *database.Database, user *polly.PrivateUser,
-		optionID int) error
+	NotifyForVote(db *database.Database, user *polly.PrivateUser,
+		optionID, voteType int) error
+	NotifyForNewPoll(db *database.Database, user *polly.PrivateUser,
+		pollID int, pollTitle string) error
 }
 
 type sPushClient struct {
@@ -58,35 +60,28 @@ type sPushClient struct {
 	androidClient       gcm.Sender
 	logger              log.ILogger
 	notificationChannel chan *NotificationData
-	voteTemplate        template.Template
 }
 
 func NewClient() (IPushClient, error) {
 	var pushClient = sPushClient{}
 
-	// create ios client
+	// get the polly home directory
 	pollyHome, err := polly.GetPollyHome()
 	if err != nil {
 		return nil, err
 	}
 
+	// load ios cert
 	cert, err := tls.LoadX509KeyPair(pollyHome+cIOSCertFile,
 		pollyHome+cIOSKeyFile)
 	if err != nil {
 		return nil, err
 	}
 
+	// create ios client
 	iosClient := apns.NewClientWithCert(cIOSGateway, cert)
 	pushClient.iosClient = iosClient
-
-	template := template.New("VoteTemplate")
-	template, err = template.Parse(cVoteTemplateText)
-	if err != nil {
-		return nil, err
-	}
-
 	pushClient.androidClient = gcm.Sender{ApiKey: cAndroidServerToken}
-	pushClient.voteTemplate = *template
 	pushClient.startNotificationHandling()
 
 	return &pushClient, nil
@@ -186,8 +181,11 @@ func (pushClient *sPushClient) sendAndroidNotification(deviceGUID string,
 	pushClient.logger.Log(cPushClientTag, fmt.Sprint(response), "::1")
 }
 
-func (pushClient *sPushClient) NotifyForUpvote(db *database.Database,
-	user *polly.PrivateUser, optionID int) error {
+func (pushClient *sPushClient) NotifyForVote(db *database.Database,
+	user *polly.PrivateUser, optionID, voteType int) error {
+	// TODO user->voter, PrivateUser->PublicUser
+
+	// TODO assert votetype
 
 	// retrieve option name
 	option, err := db.GetOptionByID(optionID)
@@ -208,18 +206,41 @@ func (pushClient *sPushClient) NotifyForUpvote(db *database.Database,
 	}
 
 	// prepare notification
-	// var buffer bytes.Buffer
-	// templateData := voteTemplateData{}
-	// templateData.Option = option.Value
-	// templateData.Voter = user.DisplayName
-	// pushClient.voteTemplate.Execute(&buffer, templateData)
 	notificationData := NotificationData{}
-	// notificationData.Message = buffer.String()
 	notificationData.deviceInfos = deviceInfos
 	notificationData.PollID = option.PollID
-	notificationData.Type = TYPE_UPVOTE
+	notificationData.Type = voteType
 	notificationData.User = user.DisplayName
 	notificationData.Title = option.Value
+
+	// let the notification handler goroutine take care of the rest
+	pushClient.notificationChannel <- &notificationData
+
+	return nil
+}
+
+func (pushClient *sPushClient) NotifyForNewPoll(db *database.Database,
+	user *polly.PrivateUser, pollID int, pollTitle string) error { // TODO public user?
+
+	// retrieve all poll participants
+	deviceInfos, err := db.GetDeviceInfosForPollExcludeCreator(pollID,
+		user.ID)
+	if err != nil {
+		return err
+	}
+
+	// don't notify for empty polls
+	if len(deviceInfos) == 0 {
+		return nil
+	}
+
+	// prepare notification
+	notificationData := NotificationData{}
+	notificationData.deviceInfos = deviceInfos
+	notificationData.PollID = pollID
+	notificationData.Type = TYPE_NEW_POLL
+	notificationData.User = user.DisplayName
+	notificationData.Title = pollTitle
 
 	// let the notification handler goroutine take care of the rest
 	pushClient.notificationChannel <- &notificationData
