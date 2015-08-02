@@ -1,9 +1,11 @@
 package http
 
 import (
+	"encoding/json"
 	"fmt"
 	"net"
 	"net/http"
+	"polly"
 )
 
 type fHeaderHandler func(writer http.ResponseWriter)
@@ -299,33 +301,32 @@ func (server *sServer) respondWithError(errCode int, err error, tag string,
 
 	// set the http headers and create the response message
 	headerHandler(writer)
+	errMsg := polly.ErrorMessage{errCode, msg}
 
-	// errMsg := polly.ErrorMessage{errCode, msg}
-	http.Error(writer, fmt.Sprintf(cErrResponseFmt, errCode, msg),
-		httpStatus)
-	// // marshall the response
-	// responseBody, err := json.MarshalIndent(errMsg, "", "\t")
-	// if err != nil {
+	// marshall the response
+	responseBody, err := json.MarshalIndent(errMsg, "", "\t")
+	if err != nil {
 
-	// 	// log the error and send the response as plain text
-	// 	server.logger.Log(tag, fmt.Sprintf(cMarshallingErrFmt, errCode, err),
-	// 		origin)
-	// 	http.Error(writer, fmt.Sprintf(cErrResponseFmt, errCode, msg),
-	// 		httpStatus)
-	// 	return
-	// }
+		// log the error and send the response as plain text
+		server.logger.Log(tag, fmt.Sprintf(cMarshallingErrFmt, errCode, err),
+			origin)
+		http.Error(writer, fmt.Sprintf(cErrResponseFmt, errCode, msg),
+			httpStatus)
+		return
+	}
 
-	// // send the response
-	// _, err = writer.Write(responseBody)
-	// if err != nil {
+	// send the response
+	writer.WriteHeader(httpStatus)
+	_, err = writer.Write(responseBody)
+	if err != nil {
 
-	// 	// log the error and send the response as plain text
-	// 	server.logger.Log(tag, fmt.Sprintf(cWritingErrFmt, errCode, err),
-	// 		origin)
-	// 	http.Error(writer, fmt.Sprintf(cErrResponseFmt, errCode, msg),
-	// 		httpStatus)
-	// 	return
-	// }
+		// log the error and send the response as plain text
+		server.logger.Log(tag, fmt.Sprintf(cWritingErrFmt, errCode, err),
+			origin)
+		http.Error(writer, fmt.Sprintf(cErrResponseFmt, errCode, msg),
+			httpStatus)
+		return
+	}
 }
 
 func (server *sServer) respondWithJSONBody(writer http.ResponseWriter,
