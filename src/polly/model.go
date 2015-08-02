@@ -126,3 +126,8 @@ type NotificationMessage struct {
 	Title       string       `json:"title"`
 	PollID      int64        `json:"poll_id"`
 }
+
+type ErrorMessage struct {
+	Code    int    `json:"code"`
+	Message string `json:"message"`
+}

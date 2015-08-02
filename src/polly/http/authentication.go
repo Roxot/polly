@@ -1,35 +1,34 @@
 package http
 
 import (
-	"fmt"
 	"net/http"
 	"polly"
 	"strconv"
 )
 
 func (server *sServer) authenticateRequest(request *http.Request) (
-	*polly.PrivateUser, error) {
+	*polly.PrivateUser, int) {
 
 	idStr, token, ok := request.BasicAuth()
 	if !ok {
-		return nil, fmt.Errorf("No authentication provided.")
+		return nil, ERR_AUT_NO_AUTH
 	}
 
 	id, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
-		return nil, fmt.Errorf("Bad ID.")
+		return nil, ERR_BAD_ID
 	}
 
 	user, err := server.db.GetUserByID(id)
 	if err != nil {
-		return nil, fmt.Errorf("Unknown user: %s.", idStr)
+		return nil, ERR_AUT_NO_USER
 	}
 
 	if user.Token != token {
-		return nil, fmt.Errorf("Bad token.")
+		return nil, ERR_AUT_BAD_TOKEN
 	}
 
-	return user, nil
+	return user, NO_ERR
 }
 
 func (server *sServer) hasPollAccess(userID int64, pollID int64) bool {

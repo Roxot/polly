@@ -2,7 +2,6 @@ package http
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"polly"
 	"strconv"
@@ -16,11 +15,13 @@ const (
 
 func (server *sServer) ListPolls(writer http.ResponseWriter,
 	request *http.Request, _ httprouter.Params) {
+	var err error
 
 	// authenticate the user
-	user, err := server.authenticateRequest(request)
-	if err != nil {
-		server.handleAuthError(cListUserPollsTag, err, writer, request)
+	user, errCode := server.authenticateRequest(request)
+	if errCode != NO_ERR {
+		server.respondWithError(errCode, nil, cListUserPollsTag, writer,
+			request)
 		return
 	}
 
@@ -33,9 +34,8 @@ func (server *sServer) ListPolls(writer http.ResponseWriter,
 		pageStr := pageStrings[0]
 		page, err = strconv.Atoi(pageStr)
 		if err != nil {
-			server.handleErr(cListUserPollsTag, cBadPageErr,
-				fmt.Sprintf(cLogFmt, cBadPageErr, pageStr), 400, writer,
-				request)
+			server.respondWithError(ERR_BAD_PAGE, err, cListUserPollsTag,
+				writer, request)
 			return
 		}
 
@@ -48,7 +48,8 @@ func (server *sServer) ListPolls(writer http.ResponseWriter,
 	snapshots, err := server.db.GetPollSnapshotsByUserID(user.ID, cPollListMax,
 		offset)
 	if err != nil {
-		server.handleDatabaseError(cListUserPollsTag, err, writer, request)
+		server.respondWithError(ERR_INT_DB_GET, err, cListUserPollsTag, writer,
+			request)
 		return
 	}
 
@@ -63,15 +64,16 @@ func (server *sServer) ListPolls(writer http.ResponseWriter,
 	// marshall the response
 	responseBody, err := json.MarshalIndent(pollListMsg, "", "\t")
 	if err != nil {
-		server.handleMarshallingError(cListUserPollsTag, err, writer, request)
+		server.respondWithError(ERR_INT_MARSHALL, err, cListUserPollsTag,
+			writer, request)
 		return
 	}
 
 	// send the response
-	SetJSONContentType(writer)
-	_, err = writer.Write(responseBody)
+	err = server.respondWithJSONBody(writer, responseBody)
 	if err != nil {
-		server.handleMarshallingError(cListUserPollsTag, err, writer, request)
+		server.respondWithError(ERR_INT_WRITE, err, cListUserPollsTag, writer,
+			request)
 		return
 	}
 }

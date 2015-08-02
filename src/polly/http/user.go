@@ -2,7 +2,6 @@ package http
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strconv"
 
@@ -18,20 +17,20 @@ const (
 
 func (server *sServer) GetUserBulk(writer http.ResponseWriter,
 	request *http.Request, params httprouter.Params) {
+	var err error
 
 	// authenticate the user
-	_, err := server.authenticateRequest(request)
-	if err != nil {
-		server.handleAuthError(cGetUserBulkTag, err, writer, request)
+	_, errCode := server.authenticateRequest(request)
+	if errCode != NO_ERR {
+		server.respondWithError(errCode, nil, cGetUserBulkTag, writer, request)
 		return
 	}
 
 	// retrieve the list of identifiers
 	ids := request.URL.Query()[cID]
 	if len(ids) > cBulkUserMax {
-		server.handleErr(cGetUserBulkTag, cIDListLengthErr,
-			fmt.Sprintf("%s: %d", cIDListLengthErr, len(ids)), 400, writer,
-			request)
+		server.respondWithError(ERR_ILL_TOO_MANY_IDS, nil, cGetUserBulkTag,
+			writer, request)
 		return
 	}
 
@@ -43,7 +42,7 @@ func (server *sServer) GetUserBulk(writer http.ResponseWriter,
 		// convert the id to an integer
 		id, err := strconv.ParseInt(idString, 10, 64)
 		if err != nil {
-			server.handleBadRequest(cGetUserBulkTag, cBadIDErr, err, writer,
+			server.respondWithError(ERR_BAD_ID, err, cGetUserBulkTag, writer,
 				request)
 			return
 		}
@@ -51,7 +50,7 @@ func (server *sServer) GetUserBulk(writer http.ResponseWriter,
 		// retrieve the user object
 		user, err := server.db.GetPublicUserByID(id)
 		if err != nil {
-			server.handleErr(cGetUserBulkTag, cNoUserErr, cNoUserErr, 400,
+			server.respondWithError(ERR_BAD_NO_USER, err, cGetUserBulkTag,
 				writer, request)
 			return
 		}
@@ -62,15 +61,16 @@ func (server *sServer) GetUserBulk(writer http.ResponseWriter,
 	// marshall the response
 	responseBody, err := json.MarshalIndent(userBulkMsg, "", "\t")
 	if err != nil {
-		server.handleMarshallingError(cGetUserBulkTag, err, writer, request)
+		server.respondWithError(ERR_INT_MARSHALL, err, cGetUserBulkTag, writer,
+			request)
 		return
 	}
 
 	// send the response
-	SetJSONContentType(writer)
-	_, err = writer.Write(responseBody)
+	err = server.respondWithJSONBody(writer, responseBody)
 	if err != nil {
-		server.handleWritingError(cGetUserBulkTag, err, writer, request)
+		server.respondWithError(ERR_INT_WRITE, err, cGetUserBulkTag, writer,
+			request)
 		return
 	}
 
@@ -81,9 +81,9 @@ func (server *sServer) UpdateUser(writer http.ResponseWriter,
 	var err error
 
 	// authenticate the user
-	user, err := server.authenticateRequest(request)
-	if err != nil {
-		server.handleAuthError(cUpdateUserTag, err, writer, request)
+	user, errCode := server.authenticateRequest(request)
+	if errCode != NO_ERR {
+		server.respondWithError(errCode, nil, cUpdateUserTag, writer, request)
 		return
 	}
 
@@ -92,7 +92,7 @@ func (server *sServer) UpdateUser(writer http.ResponseWriter,
 	decoder := json.NewDecoder(request.Body)
 	err = decoder.Decode(&updateUserMsg)
 	if err != nil {
-		server.handleBadRequest(cUpdateUserTag, cBadJSONErr, err, writer,
+		server.respondWithError(ERR_BAD_JSON, err, cUpdateUserTag, writer,
 			request)
 		return
 	}
@@ -102,7 +102,9 @@ func (server *sServer) UpdateUser(writer http.ResponseWriter,
 		user.DeviceGUID = *(updateUserMsg.DeviceGUID)
 		err = server.db.UpdateDeviceGUID(user.ID, user.DeviceGUID)
 		if err != nil {
-			server.handleDatabaseError(cUpdateUserTag, err, writer, request)
+			server.respondWithError(ERR_INT_DB_UPDATE, err, cUpdateUserTag,
+				writer, request)
+			return
 		}
 	}
 
@@ -111,22 +113,25 @@ func (server *sServer) UpdateUser(writer http.ResponseWriter,
 		user.DisplayName = *(updateUserMsg.DisplayName)
 		err = server.db.UpdateDisplayName(user.ID, user.DisplayName)
 		if err != nil {
-			server.handleDatabaseError(cUpdateUserTag, err, writer, request)
+			server.respondWithError(ERR_INT_DB_UPDATE, err, cUpdateUserTag,
+				writer, request)
+			return
 		}
 	}
 
 	// create the response body
 	responseBody, err := json.MarshalIndent(user, "", "\t")
 	if err != nil {
-		server.handleMarshallingError(cRegisterTag, err, writer, request)
+		server.respondWithError(ERR_INT_MARSHALL, err, cUpdateUserTag,
+			writer, request)
 		return
 	}
 
 	// send the user a 200 OK with his user info
-	SetJSONContentType(writer)
-	_, err = writer.Write(responseBody)
+	err = server.respondWithJSONBody(writer, responseBody)
 	if err != nil {
-		server.handleWritingError(cRegisterTag, err, writer, request)
+		server.respondWithError(ERR_INT_WRITE, err, cUpdateUserTag, writer,
+			request)
 		return
 	}
 

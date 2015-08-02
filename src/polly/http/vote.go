@@ -16,11 +16,12 @@ const (
 
 func (server *sServer) Vote(writer http.ResponseWriter, request *http.Request,
 	_ httprouter.Params) {
+	var err error
 
 	// authenticate the user
-	user, err := server.authenticateRequest(request)
-	if err != nil {
-		server.handleAuthError(cVoteTag, err, writer, request)
+	user, errCode := server.authenticateRequest(request)
+	if errCode != NO_ERR {
+		server.respondWithError(errCode, nil, cVoteTag, writer, request)
 		return
 	}
 
@@ -29,7 +30,7 @@ func (server *sServer) Vote(writer http.ResponseWriter, request *http.Request,
 	decoder := json.NewDecoder(request.Body)
 	err = decoder.Decode(&voteMsg)
 	if err != nil {
-		server.handleBadRequest(cVoteTag, cBadJSONErr, err, writer, request)
+		server.respondWithError(ERR_BAD_JSON, err, cVoteTag, writer, request)
 		return
 	}
 
@@ -39,7 +40,7 @@ func (server *sServer) Vote(writer http.ResponseWriter, request *http.Request,
 	case polly.VOTE_TYPE_NEW:
 		question, err := server.db.GetQuestionByID(voteMsg.ID)
 		if err != nil {
-			server.handleBadRequest(cVoteTag, cNoQuestionErr, err, writer,
+			server.respondWithError(ERR_BAD_NO_QUESTION, err, cVoteTag, writer,
 				request)
 			return
 
@@ -47,32 +48,32 @@ func (server *sServer) Vote(writer http.ResponseWriter, request *http.Request,
 
 		pollID = question.ID
 		if question.Type != polly.QUESTION_TYPE_OPEN {
-			server.handleIllegalOperation(cVoteTag,
-				"Not allowed to add options.", writer, request)
+			server.respondWithError(ERR_ILL_ADD_OPTION, nil, cVoteTag, writer,
+				request)
 			return
 		} else if len(voteMsg.Value) == 0 {
-			server.handleErr(cVoteTag, cBadVoteMsgErr, cBadVoteMsgErr, 400,
-				writer, request)
+			server.respondWithError(ERR_BAD_EMPTY_OPTION, nil, cVoteTag, writer,
+				request)
 			return
 		}
 
 	case polly.VOTE_TYPE_UPVOTE:
 		pollID, err = server.db.GetPollIDForOptionID(voteMsg.ID)
 		if err != nil {
-			server.handleBadRequest(cVoteTag, cNoOptionErr, err, writer,
+			server.respondWithError(ERR_BAD_NO_OPTION, err, cVoteTag, writer,
 				request)
 			return
 		}
 
 	default:
-		server.handleErr(cVoteTag, cBadVoteTypeErr, cBadVoteTypeErr, 400,
-			writer, request)
+		server.respondWithError(ERR_BAD_VOTE_TYPE, err, cVoteTag, writer,
+			request)
 		return
 	}
 
 	// make sure the user is allowed to vote
 	if !server.hasPollAccess(user.ID, pollID) {
-		server.handleIllegalOperation(cVoteTag, cAccessRightsErr, writer,
+		server.respondWithError(ERR_ILL_POLL_ACCESS, nil, cVoteTag, writer,
 			request)
 		return
 	}
@@ -81,7 +82,8 @@ func (server *sServer) Vote(writer http.ResponseWriter, request *http.Request,
 	transaction, err := server.db.Begin() // TODO transaction -> tx
 	if err != nil {
 		transaction.Rollback()
-		server.handleDatabaseError(cVoteTag, err, writer, request)
+		server.respondWithError(ERR_INT_DB_TX_BEGIN, err, cVoteTag, writer,
+			request)
 		return
 	}
 
@@ -89,7 +91,8 @@ func (server *sServer) Vote(writer http.ResponseWriter, request *http.Request,
 	err = database.DeleteVotesForUserTX(user.ID, pollID, transaction)
 	if err != nil {
 		transaction.Rollback()
-		server.handleDatabaseError(cVoteTag, err, writer, request)
+		server.respondWithError(ERR_INT_DB_DELETE, err, cVoteTag, writer,
+			request)
 		return
 	}
 
@@ -108,7 +111,8 @@ func (server *sServer) Vote(writer http.ResponseWriter, request *http.Request,
 		err = database.AddOptionTX(&option, transaction)
 		if err != nil {
 			transaction.Rollback()
-			server.handleDatabaseError(cVoteTag, err, writer, request)
+			server.respondWithError(ERR_INT_DB_ADD, err, cVoteTag, writer,
+				request)
 			return
 		}
 
@@ -124,7 +128,7 @@ func (server *sServer) Vote(writer http.ResponseWriter, request *http.Request,
 	err = database.AddVoteTX(&vote, transaction)
 	if err != nil {
 		transaction.Rollback()
-		server.handleDatabaseError(cVoteTag, err, writer, request)
+		server.respondWithError(ERR_INT_DB_ADD, err, cVoteTag, writer, request)
 		return
 	}
 
@@ -133,7 +137,8 @@ func (server *sServer) Vote(writer http.ResponseWriter, request *http.Request,
 		transaction)
 	if err != nil {
 		transaction.Rollback()
-		server.handleDatabaseError(cVoteTag, err, writer, request)
+		server.respondWithError(ERR_INT_DB_UPDATE, err, cVoteTag, writer,
+			request)
 		return
 	}
 
@@ -141,7 +146,8 @@ func (server *sServer) Vote(writer http.ResponseWriter, request *http.Request,
 	err = transaction.Commit()
 	if err != nil {
 		transaction.Rollback()
-		server.handleDatabaseError(cVoteTag, err, writer, request)
+		server.respondWithError(ERR_INT_DB_TX_COMMIT, err, cVoteTag, writer,
+			request)
 		return
 	}
 
@@ -163,14 +169,14 @@ func (server *sServer) Vote(writer http.ResponseWriter, request *http.Request,
 	// send the response message
 	responseBody, err := json.MarshalIndent(response, "", "\t")
 	if err != nil {
-		server.handleMarshallingError(cVoteTag, err, writer, request)
+		server.respondWithError(ERR_INT_MARSHALL, err, cVoteTag, writer,
+			request)
 		return
 	}
 
-	SetJSONContentType(writer)
-	_, err = writer.Write(responseBody)
+	err = server.respondWithJSONBody(writer, responseBody)
 	if err != nil {
-		server.handleWritingError(cVoteTag, err, writer, request)
+		server.respondWithError(ERR_INT_WRITE, err, cVoteTag, writer, request)
 		return
 	}
 

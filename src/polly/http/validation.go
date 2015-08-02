@@ -1,7 +1,6 @@
 package http
 
 import (
-	"errors"
 	"polly"
 	"polly/database"
 )
@@ -12,32 +11,30 @@ import (
  * are set in this function as well.
  */
 func isValidPollMessage(db *database.Database, pollMsg *polly.PollMessage,
-	creatorID int64) error {
+	creatorID int64) int {
 
 	// validate question type has fitting options
 	switch pollMsg.Question.Type {
 	case polly.QUESTION_TYPE_MC:
 		if pollMsg.Options == nil || len(pollMsg.Options) == 0 {
-			return errors.New("Empty options list.")
+			return ERR_BAD_EMPTY_POLL
 		}
 	case polly.QUESTION_TYPE_OPEN:
-		if pollMsg.Options != nil && len(pollMsg.Options) > 0 {
-			return errors.New("Non-empty option list in open question.")
-		}
+		// skip
 	default:
-		return errors.New("Unknown poll type.")
+		return ERR_BAD_POLL_TYPE
 	}
 
 	// don't accept empty question titles
 	if len(pollMsg.Question.Title) == 0 {
-		return errors.New("Empty question title.")
+		return ERR_BAD_EMPTY_QUESTION
 	}
 
 	// don't accept empty option values
 	numOptions := len(pollMsg.Options)
 	for i := 0; i < numOptions; i++ {
 		if len(pollMsg.Options[i].Value) == 0 {
-			return errors.New("Empty value field in option object.")
+			return ERR_BAD_EMPTY_OPTION
 		}
 	}
 
@@ -49,13 +46,13 @@ func isValidPollMessage(db *database.Database, pollMsg *polly.PollMessage,
 		// check for duplicate participants
 		_, ok := participantsMap[pollMsg.Participants[i].ID]
 		if ok {
-			return errors.New("Duplicate participant.")
+			return ERR_BAD_DUPLICATE_PARTICIPANT
 		}
 
 		// check if user exists
 		dbUser, err := db.GetUserByID(pollMsg.Participants[i].ID)
 		if err != nil {
-			return errors.New("Unknown participant.")
+			return ERR_BAD_NO_USER
 		} else {
 			pollMsg.Participants[i].DisplayName = dbUser.DisplayName
 		}
@@ -71,10 +68,10 @@ func isValidPollMessage(db *database.Database, pollMsg *polly.PollMessage,
 
 	// make sure user is a participant
 	if !containsCreator {
-		return errors.New("Creator not in participants list.")
+		return ERR_BAD_NO_CREATOR
 	}
 
-	return nil
+	return NO_ERR
 }
 
 func isValidDeviceType(deviceType int) bool {

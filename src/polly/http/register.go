@@ -38,9 +38,8 @@ func (server *sServer) Register(writer http.ResponseWriter,
 	provider := request.Header.Get(cServiceProviderHeader)
 	authorization := request.Header.Get(cClientAuthorizationHeader)
 	if len(provider) == 0 || len(authorization) == 0 {
-		// TODO
-		server.handleErr(cRegisterTag, cAuthErr, cAuthErr, 403, writer,
-			request)
+		server.respondWithError(ERR_AUT_NO_OAUTH_HEADERS, nil, cRegisterTag,
+			writer, request)
 		return
 	}
 
@@ -48,8 +47,8 @@ func (server *sServer) Register(writer http.ResponseWriter,
 	client := http.Client{}
 	oauthEcho, err := http.NewRequest("GET", provider, nil)
 	if err != nil {
-		// TODO wrong error function
-		server.handleDatabaseError(cRegisterTag, err, writer, request)
+		server.respondWithError(ERR_INT_CREATE_HTTP, err, cRegisterTag, writer,
+			request)
 		return
 	}
 
@@ -59,13 +58,12 @@ func (server *sServer) Register(writer http.ResponseWriter,
 	// verify the provided credentials with Twitter's server
 	response, err := client.Do(oauthEcho)
 	if err != nil {
-		// TODO wrong error function
-		server.handleDatabaseError(cRegisterTag, err, writer, request)
-		return
-	} else if response.StatusCode != 200 { // TODO status code constants somewhere..
-		// TODO
-		server.handleErr(cRegisterTag, cAuthErr, cAuthErr, 403, writer,
+		server.respondWithError(ERR_INT_DO_HTTP, err, cRegisterTag, writer,
 			request)
+		return
+	} else if response.StatusCode != http.StatusOK {
+		server.respondWithError(ERR_AUT_BAD_OAUTH_RESPONSE, nil, cRegisterTag,
+			writer, request)
 		return
 	}
 
@@ -74,8 +72,7 @@ func (server *sServer) Register(writer http.ResponseWriter,
 	decoder = json.NewDecoder(response.Body)
 	err = decoder.Decode(&twitterResponse)
 	if err != nil {
-		// TODO
-		server.handleBadRequest(cRegisterTag, cAuthErr, err, writer,
+		server.respondWithError(ERR_INT_DEMARSHALL, err, cRegisterTag, writer,
 			request)
 		return
 	}
@@ -85,16 +82,15 @@ func (server *sServer) Register(writer http.ResponseWriter,
 	decoder = json.NewDecoder(request.Body)
 	err = decoder.Decode(&user)
 	if err != nil {
-		// TODO
-		server.handleBadRequest(cRegisterTag, cBadJSONErr, err, writer,
+		server.respondWithError(ERR_BAD_JSON, err, cRegisterTag, writer,
 			request)
 		return
 	}
 
 	// check that the device type is a correct one
 	if !isValidDeviceType(user.DeviceType) {
-		server.handleErr(cRegisterTag, cBadDvcTypeErr,
-			cBadDvcTypeErr, 400, writer, request) // TODO log device type?
+		server.respondWithError(ERR_BAD_DEVICE_TYPE, nil, cRegisterTag, writer,
+			request)
 		return
 	}
 
@@ -107,22 +103,24 @@ func (server *sServer) Register(writer http.ResponseWriter,
 		existentUser.Token = uuid.NewV4().String()
 		err = server.db.UpdateToken(existentUser.ID, existentUser.Token)
 		if err != nil {
-			server.handleDatabaseError(cRegisterTag, err, writer, request)
+			server.respondWithError(ERR_INT_DB_UPDATE, err, cRegisterTag,
+				writer, request)
 			return
 		}
 
 		// create the response body
 		responseBody, err := json.MarshalIndent(existentUser, "", "\t")
 		if err != nil {
-			server.handleMarshallingError(cRegisterTag, err, writer, request)
+			server.respondWithError(ERR_INT_MARSHALL, err, cRegisterTag,
+				writer, request)
 			return
 		}
 
 		// send the user a 200 OK with his new user info
-		SetJSONContentType(writer)
-		_, err = writer.Write(responseBody)
+		err = server.respondWithJSONBody(writer, responseBody)
 		if err != nil {
-			server.handleWritingError(cRegisterTag, err, writer, request)
+			server.respondWithError(ERR_INT_WRITE, err, cRegisterTag, writer,
+				request)
 			return
 		}
 
@@ -133,29 +131,26 @@ func (server *sServer) Register(writer http.ResponseWriter,
 		user.ID = twitterResponse.ID
 		err = server.db.AddUser(&user)
 		if err != nil {
-			server.handleDatabaseError(cRegisterTag, err, writer, request)
+			server.respondWithError(ERR_INT_DB_ADD, err, cRegisterTag, writer,
+				request)
 			return
 		}
 
 		// create the response body
 		responseBody, err := json.MarshalIndent(user, "", "\t")
 		if err != nil {
-			server.handleMarshallingError(cRegisterTag, err, writer, request)
+			server.respondWithError(ERR_INT_MARSHALL, err, cRegisterTag, writer,
+				request)
 			return
 		}
 
 		// send the user a 200 OK with his user info
-		SetJSONContentType(writer)
-		_, err = writer.Write(responseBody)
+		err = server.respondWithJSONBody(writer, responseBody)
 		if err != nil {
-			server.handleWritingError(cRegisterTag, err, writer, request)
+			server.respondWithError(ERR_INT_WRITE, err, cRegisterTag, writer,
+				request)
 			return
 		}
 	}
 
-}
-
-// TODO move
-func SetJSONContentType(writer http.ResponseWriter) {
-	writer.Header().Set("Content-Type", "application/json")
 }
