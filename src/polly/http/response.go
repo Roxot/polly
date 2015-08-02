@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net"
 	"net/http"
-	"polly"
 )
 
 type fHeaderHandler func(writer http.ResponseWriter)
@@ -301,7 +300,7 @@ func (server *sServer) respondWithError(errCode int, err error, tag string,
 	// set the http headers and create the response message
 	headerHandler(writer)
 
-	errMsg := polly.ErrorMessage{errCode, msg}
+	// errMsg := polly.ErrorMessage{errCode, msg}
 	http.Error(writer, fmt.Sprintf(cErrResponseFmt, errCode, msg),
 		httpStatus)
 	// // marshall the response
