@@ -5,6 +5,7 @@ import (
 	"polly"
 
 	_ "polly/internal/github.com/lib/pq"
+	"polly/internal/gopkg.in/gorp.v1"
 )
 
 func (db *Database) GetUserByID(id int64) (*polly.PrivateUser, error) {
@@ -63,12 +64,12 @@ func (db *Database) GetPollSnapshotsByUserID(userID int64, limit, offset int) (
 
 	var snapshots []polly.PollSnapshot
 	_, err := db.mapping.Select(&snapshots, fmt.Sprintf(
-		"select %s.%s, %s.%s from %s, %s where %s.%s=%s.%s and %s.%s=$1 order"+
-			" by %s desc limit %d offset %d;",
-		cParticipantTableName, cPollID, cPollTableName, cLastUpdated,
-		cParticipantTableName, cPollTableName, cParticipantTableName,
-		cPollID, cPollTableName, cID, cParticipantTableName, cUserID,
-		cLastUpdated, limit, offset), userID)
+		"select %s.%s, %s.%s, %s.%s from %s, %s where %s.%s=%s.%s and %s.%s=$1"+
+			"order by %s desc limit %d offset %d;",
+		cPollTableName, cID, cPollTableName, cLastUpdated,
+		cPollTableName, cSequenceNumber, cParticipantTableName, cPollTableName,
+		cParticipantTableName, cPollID, cPollTableName, cID,
+		cParticipantTableName, cUserID, cLastUpdated, limit, offset), userID)
 	return snapshots, err
 }
 
@@ -136,4 +137,28 @@ func (db *Database) GetVotesByPollID(pollID int64) ([]polly.Vote, error) {
 		fmt.Sprintf("select * from %s where %s = $1;", cVoteTableName, cPollID),
 		pollID)
 	return votes, err
+}
+
+func (db *Database) GetSequenceNumber(pollID int64) (int, error) {
+	number, err := db.mapping.SelectInt(fmt.Sprintf(
+		"select %s from %s where %s=$1;", cSequenceNumber, cPollTableName, cID),
+		pollID)
+	return int(number), err
+}
+
+func GetSequenceNumberTX(pollID int64, tx *gorp.Transaction) (int, error) {
+	number, err := tx.SelectInt(fmt.Sprintf(
+		"select %s from %s where %s=$1;", cSequenceNumber, cPollTableName, cID),
+		pollID)
+	return int(number), err
+}
+
+func GetPollSnapshotTX(pollID int64, tx *gorp.Transaction) (*polly.PollSnapshot,
+	error) {
+
+	var snapshot polly.PollSnapshot
+	err := tx.SelectOne(&snapshot, fmt.Sprintf(
+		"select %s, %s, %s from %s where %s=$1;", cID, cLastUpdated,
+		cSequenceNumber, cPollTableName, cID), pollID)
+	return &snapshot, err
 }

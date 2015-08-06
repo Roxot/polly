@@ -40,3 +40,15 @@ func (db *Database) UpdateToken(userID int64, token string) error {
 		cUserTableName, cToken, cID), token, userID)
 	return err
 }
+
+func (db *Database) UpdateSequenceNumber(pollID int64) error {
+	_, err := db.mapping.Exec(fmt.Sprintf("update %d set %s=%s+1 where %s=$1;",
+		cPollTableName, cSequenceNumber, cSequenceNumber, cID), pollID)
+	return err
+}
+
+func UpdateSequenceNumberTX(pollID int64, tx *gorp.Transaction) error {
+	_, err := tx.Exec(fmt.Sprintf("update %s set %s=%s+1 where %s=$1;",
+		cPollTableName, cSequenceNumber, cSequenceNumber, cID), pollID)
+	return err
+}

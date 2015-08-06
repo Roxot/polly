@@ -26,10 +26,11 @@ type PrivateUser struct {
 }
 
 type Poll struct {
-	ID           int64 `json:"poll_id"`
-	CreatorID    int64 `db:"creator_id" json:"creator_id"`
-	CreationDate int64 `db:"creation_date" json:"creation_date"`
-	LastUpdated  int64 `db:"last_updated" json:"last_updated"`
+	ID             int64 `json:"poll_id"`
+	CreatorID      int64 `db:"creator_id" json:"creator_id"`
+	CreationDate   int64 `db:"creation_date" json:"creation_date"`
+	LastUpdated    int64 `db:"last_updated" json:"last_updated"`
+	SequenceNumber int   `db:"sequence_number" json:"sequence_number"`
 }
 
 type Question struct {
@@ -68,8 +69,9 @@ type PublicUser struct {
 }
 
 type PollSnapshot struct {
-	PollID      int64 `db:"poll_id" json:"poll_id"`
-	LastUpdated int   `db:"last_updated" json:"last_updated"`
+	ID             int64 `db:"id" json:"id"`
+	LastUpdated    int64 `db:"last_updated" json:"last_updated"`
+	SequenceNumber int   `db:"sequence_number" json:"sequence_number"`
 }
 
 type DeviceInfo struct {
@@ -102,8 +104,9 @@ type VoteMessage struct {
 }
 
 type VoteResponseMessage struct {
-	Option Option `json:"option,omitempty"`
-	Vote   Vote   `json:"vote"`
+	Option *Option      `json:"option,omitempty"`
+	Vote   Vote         `json:"vote"`
+	Poll   PollSnapshot `json:"poll"`
 }
 
 type UpdateUserMessage struct {

@@ -7,6 +7,7 @@ const (
 	cOptionTableName      = "options"
 	cVoteTableName        = "votes"
 	cParticipantTableName = "participants"
+	cSequenceNumber       = "sequence_number"
 	cPK                   = "ID"
 	cID                   = "id"
 	cToken                = "token"
