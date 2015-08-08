@@ -3,6 +3,7 @@ package http
 import (
 	"polly"
 	"polly/database"
+	"strings"
 )
 
 /*
@@ -26,6 +27,7 @@ func isValidPollMessage(db *database.Database, pollMsg *polly.PollMessage,
 	}
 
 	// don't accept empty question titles
+	pollMsg.Question.Title = strings.TrimSpace(pollMsg.Question.Title)
 	if len(pollMsg.Question.Title) == 0 {
 		return ERR_BAD_EMPTY_QUESTION
 	}
@@ -33,6 +35,7 @@ func isValidPollMessage(db *database.Database, pollMsg *polly.PollMessage,
 	// don't accept empty option values
 	numOptions := len(pollMsg.Options)
 	for i := 0; i < numOptions; i++ {
+		pollMsg.Options[i].Value = strings.TrimSpace(pollMsg.Options[i].Value)
 		if len(pollMsg.Options[i].Value) == 0 {
 			return ERR_BAD_EMPTY_OPTION
 		}
