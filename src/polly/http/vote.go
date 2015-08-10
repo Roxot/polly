@@ -120,8 +120,9 @@ func (server *sServer) Vote(writer http.ResponseWriter, request *http.Request,
 	}
 
 	// insert the vote into the database
+	currentTime := time.Now().UnixNano() / 1000000
 	vote := polly.Vote{}
-	vote.CreationDate = time.Now().Unix()
+	vote.CreationDate = currentTime
 	vote.OptionID = optionID
 	vote.PollID = pollID
 	vote.UserID = user.ID
@@ -133,7 +134,7 @@ func (server *sServer) Vote(writer http.ResponseWriter, request *http.Request,
 	}
 
 	// update the poll last updated
-	err = database.UpdatePollLastUpdatedTX(pollID, time.Now().Unix(), tx)
+	err = database.UpdatePollLastUpdatedTX(pollID, currentTime, tx)
 	if err != nil {
 		tx.Rollback()
 		server.respondWithError(ERR_INT_DB_UPDATE, err, cVoteTag, writer,

@@ -16,7 +16,7 @@ func (db *Database) InsertPollMessage(pollMsg *polly.PollMessage) error {
 	}
 
 	// set the time creation date and last update time to now
-	now := time.Now().Unix()
+	now := time.Now().UnixNano() / 1000000
 	pollMsg.MetaData.CreationDate = now
 	pollMsg.MetaData.LastUpdated = now
 
