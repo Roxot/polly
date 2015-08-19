@@ -2,12 +2,15 @@ package http
 
 import (
 	"encoding/json"
+	"fmt"
+	"math/rand"
 	"net/http"
 	"polly"
 	"polly/database"
 	"time"
 
 	"polly/internal/github.com/julienschmidt/httprouter"
+	"polly/internal/github.com/lib/pq"
 )
 
 const (
@@ -78,94 +81,136 @@ func (server *sServer) Vote(writer http.ResponseWriter, request *http.Request,
 		return
 	}
 
-	// start a transaction
-	tx, err := server.db.Begin()
-	if err != nil {
-		tx.Rollback()
-		server.respondWithError(ERR_INT_DB_TX_BEGIN, err, cVoteTag, writer,
-			request)
-		return
-	}
-
-	// remove all existing votes of the user
-	err = database.DeleteVotesForUserTX(user.ID, pollID, tx)
-	if err != nil {
-		tx.Rollback()
-		server.respondWithError(ERR_INT_DB_DELETE, err, cVoteTag, writer,
-			request)
-		return
-	}
-
-	// if necessary, create a new option
+	// retry the transaction if necessary
 	var optionID int64
 	var option polly.Option
-	if voteMsg.Type == polly.VOTE_TYPE_UPVOTE {
-		optionID = voteMsg.ID
-	} else {
+	var snapshot *polly.PollSnapshot
+	var vote polly.Vote
+	retryTransaction := true
+	transactionNumber := rand.Int()
+	for retryTransaction {
 
-		// we have a vote message with type NEW, so we create a new option
-		questionID := voteMsg.ID
-		option.PollID = pollID
-		option.QuestionID = questionID
-		option.Value = voteMsg.Value
-		err = database.AddOptionTX(&option, tx)
+		// start a transaction
+		tx, err := server.db.Begin()
 		if err != nil {
 			tx.Rollback()
-			server.respondWithError(ERR_INT_DB_ADD, err, cVoteTag, writer,
+			server.respondWithError(ERR_INT_DB_TX_BEGIN, err, cVoteTag, writer,
 				request)
 			return
 		}
 
-		optionID = option.ID
-	}
+		_, err = tx.Exec("set transaction isolation level serializable;")
+		if err != nil {
+			tx.Rollback()
+			panic(err)
+		}
 
-	// insert the vote into the database
-	currentTime := time.Now().UnixNano() / 1000000
-	vote := polly.Vote{}
-	vote.CreationDate = currentTime
-	vote.OptionID = optionID
-	vote.PollID = pollID
-	vote.UserID = user.ID
-	err = database.AddVoteTX(&vote, tx)
-	if err != nil {
-		tx.Rollback()
-		server.respondWithError(ERR_INT_DB_ADD, err, cVoteTag, writer, request)
-		return
-	}
+		// remove all existing votes of the user
+		err = database.DeleteVotesForUserTX(user.ID, pollID, tx)
+		if err != nil {
+			if pqErr, ok := err.(*pq.Error); ok &&
+				pqErr.Code == database.ERR_SERIALIZATION_FAILURE {
+				server.logger.Log(cVoteTag, fmt.Sprintf("%d: %s",
+					transactionNumber, "Serialization failure, retrying..."),
+					"::1")
+				continue
+			} else {
+				tx.Rollback()
+				server.respondWithError(ERR_INT_DB_DELETE, err, cVoteTag, writer,
+					request)
+				return
+			}
+		}
 
-	// update the poll last updated
-	err = database.UpdatePollLastUpdatedTX(pollID, currentTime, tx)
-	if err != nil {
-		tx.Rollback()
-		server.respondWithError(ERR_INT_DB_UPDATE, err, cVoteTag, writer,
-			request)
-		return
-	}
+		// if necessary, create a new option
+		if voteMsg.Type == polly.VOTE_TYPE_UPVOTE {
+			optionID = voteMsg.ID
+		} else {
 
-	// update the poll sequence number
-	err = database.UpdateSequenceNumberTX(pollID, tx)
-	if err != nil {
-		tx.Rollback()
-		server.respondWithError(ERR_INT_DB_UPDATE, err, cVoteTag, writer,
-			request)
-		return
-	}
+			// we have a vote message with type NEW, so we create a new option
+			questionID := voteMsg.ID
+			option.PollID = pollID
+			option.QuestionID = questionID
+			option.Value = voteMsg.Value
+			err = database.AddOptionTX(&option, tx)
+			if err != nil {
+				tx.Rollback()
+				server.respondWithError(ERR_INT_DB_ADD, err, cVoteTag, writer,
+					request)
+				return
+			}
 
-	// retrieve a snapshot of the new poll
-	snapshot, err := database.GetPollSnapshotTX(pollID, tx)
-	if err != nil {
-		tx.Rollback()
-		server.respondWithError(ERR_INT_DB_GET, err, cVoteTag, writer, request)
-		return
-	}
+			optionID = option.ID
+		}
 
-	// commit the transaction
-	err = tx.Commit()
-	if err != nil {
-		tx.Rollback()
-		server.respondWithError(ERR_INT_DB_TX_COMMIT, err, cVoteTag, writer,
-			request)
-		return
+		// insert the vote into the database
+		currentTime := time.Now().UnixNano() / 1000000
+		vote = polly.Vote{}
+		vote.CreationDate = currentTime
+		vote.OptionID = optionID
+		vote.PollID = pollID
+		vote.UserID = user.ID
+		err = database.AddVoteTX(&vote, tx)
+		if err != nil {
+			tx.Rollback()
+			server.respondWithError(ERR_INT_DB_ADD, err, cVoteTag, writer, request)
+			return
+		}
+
+		// update the poll last updated
+		err = database.UpdatePollLastUpdatedTX(pollID, currentTime, tx)
+		if err != nil {
+			if pqErr, ok := err.(*pq.Error); ok &&
+				pqErr.Code == database.ERR_SERIALIZATION_FAILURE {
+				server.logger.Log(cVoteTag, fmt.Sprintf("%d: %s",
+					transactionNumber, "Serialization failure, retrying..."),
+					"::1")
+				continue
+			} else {
+
+				tx.Rollback()
+				server.respondWithError(ERR_INT_DB_UPDATE, err, cVoteTag, writer,
+					request)
+				return
+			}
+		}
+
+		// update the poll sequence number
+		err = database.UpdateSequenceNumberTX(pollID, tx)
+		if err != nil {
+			if pqErr, ok := err.(*pq.Error); ok &&
+				pqErr.Code == database.ERR_SERIALIZATION_FAILURE {
+				server.logger.Log(cVoteTag, fmt.Sprintf("%d: %s",
+					transactionNumber, "Serialization failure, retrying..."),
+					"::1")
+				continue
+			} else {
+
+				tx.Rollback()
+				server.respondWithError(ERR_INT_DB_UPDATE, err, cVoteTag, writer,
+					request)
+				return
+			}
+		}
+
+		// retrieve a snapshot of the new poll
+		snapshot, err = database.GetPollSnapshotTX(pollID, tx)
+		if err != nil {
+			tx.Rollback()
+			server.respondWithError(ERR_INT_DB_GET, err, cVoteTag, writer, request)
+			return
+		}
+
+		// commit the transaction
+		err = tx.Commit()
+		if err != nil {
+			tx.Rollback()
+			server.respondWithError(ERR_INT_DB_TX_COMMIT, err, cVoteTag, writer,
+				request)
+			return
+		}
+
+		retryTransaction = false
 	}
 
 	// send a notification to other participants
