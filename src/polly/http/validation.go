@@ -9,7 +9,8 @@ import (
 /*
  * Validates a poll message by checking the questions, options and participants.
  * In the case of participants their correct display names and email addresses
- * are set in this function as well.
+ * are set in this function as well. Sequence numbers for options and for the
+ * poll itself are also taken care of.
  */
 func isValidPollMessage(db *database.Database, pollMsg *polly.PollMessage,
 	creatorID int64) int {
@@ -32,14 +33,21 @@ func isValidPollMessage(db *database.Database, pollMsg *polly.PollMessage,
 		return ERR_BAD_EMPTY_QUESTION
 	}
 
-	// don't accept empty option values
+	// don't accept empty option values and set the option sequence numbers
+	pollSequenceNumber := 0
 	numOptions := len(pollMsg.Options)
 	for i := 0; i < numOptions; i++ {
 		pollMsg.Options[i].Value = strings.TrimSpace(pollMsg.Options[i].Value)
 		if len(pollMsg.Options[i].Value) == 0 {
 			return ERR_BAD_EMPTY_OPTION
 		}
+
+		pollMsg.Options[i].SequenceNumber = pollSequenceNumber
+		pollSequenceNumber++
 	}
+
+	// set the poll sequence number
+	pollMsg.MetaData.SequenceNumber = pollSequenceNumber
 
 	containsCreator := false
 	participantsMap := make(map[int64]bool)

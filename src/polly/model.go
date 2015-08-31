@@ -41,10 +41,11 @@ type Question struct {
 }
 
 type Option struct {
-	ID         int64  `json:"id"`
-	PollID     int64  `db:"poll_id" json:"-"`
-	QuestionID int64  `db:"question_id" json:"question_id"`
-	Value      string `json:"value"`
+	ID             int64  `json:"id"`
+	PollID         int64  `db:"poll_id" json:"-"`
+	QuestionID     int64  `db:"question_id" json:"question_id"`
+	Value          string `json:"value"`
+	SequenceNumber int    `json:"sequence_number"`
 }
 
 type Vote struct {

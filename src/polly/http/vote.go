@@ -81,7 +81,6 @@ func (server *sServer) Vote(writer http.ResponseWriter, request *http.Request,
 		return
 	}
 
-	// retry the transaction if necessary
 	var optionID int64
 	var option polly.Option
 	var snapshot *polly.PollSnapshot
@@ -99,10 +98,38 @@ func (server *sServer) Vote(writer http.ResponseWriter, request *http.Request,
 			return
 		}
 
+		// set the transaction isolation level
 		_, err = tx.Exec("set transaction isolation level serializable;")
 		if err != nil {
 			tx.Rollback()
 			panic(err)
+		}
+
+		// update the poll last updated and seq number
+		currentTime := time.Now().UnixNano() / 1000000
+		err = database.UpdatePollTX(pollID, currentTime, tx)
+		if err != nil {
+			if pqErr, ok := err.(*pq.Error); ok &&
+				pqErr.Code == database.ERR_SERIALIZATION_FAILURE {
+				server.logger.Log(cVoteTag, fmt.Sprintf("%d: %s",
+					transactionNumber, "Serialization failure, retrying..."),
+					"::1")
+				continue
+			} else {
+
+				tx.Rollback()
+				server.respondWithError(ERR_INT_DB_UPDATE, err, cVoteTag,
+					writer, request)
+				return
+			}
+		}
+
+		// retrieve a snapshot of the new poll
+		snapshot, err = database.GetPollSnapshotTX(pollID, tx)
+		if err != nil {
+			tx.Rollback()
+			server.respondWithError(ERR_INT_DB_GET, err, cVoteTag, writer, request)
+			return
 		}
 
 		// remove all existing votes of the user
@@ -122,9 +149,27 @@ func (server *sServer) Vote(writer http.ResponseWriter, request *http.Request,
 			}
 		}
 
-		// if necessary, create a new option
+		// if necessary, create a new option, otherwise update the existing
+		// option its sequence number
 		if voteMsg.Type == polly.VOTE_TYPE_UPVOTE {
 			optionID = voteMsg.ID
+			err := database.UpdateOptionSequenceNumberTX(optionID,
+				snapshot.SequenceNumber, tx)
+			if err != nil {
+				if pqErr, ok := err.(*pq.Error); ok &&
+					pqErr.Code == database.ERR_SERIALIZATION_FAILURE {
+					server.logger.Log(cVoteTag, fmt.Sprintf("%d: %s",
+						transactionNumber,
+						"Serialization failure, retrying..."), "::1")
+					continue
+				} else {
+					tx.Rollback()
+					server.respondWithError(ERR_INT_DB_UPDATE, err, cVoteTag,
+						writer, request)
+					return
+				}
+			}
+
 		} else {
 
 			// we have a vote message with type NEW, so we create a new option
@@ -132,6 +177,7 @@ func (server *sServer) Vote(writer http.ResponseWriter, request *http.Request,
 			option.PollID = pollID
 			option.QuestionID = questionID
 			option.Value = voteMsg.Value
+			option.SequenceNumber = snapshot.SequenceNumber
 			err = database.AddOptionTX(&option, tx)
 			if err != nil {
 				tx.Rollback()
@@ -144,7 +190,6 @@ func (server *sServer) Vote(writer http.ResponseWriter, request *http.Request,
 		}
 
 		// insert the vote into the database
-		currentTime := time.Now().UnixNano() / 1000000
 		vote = polly.Vote{}
 		vote.CreationDate = currentTime
 		vote.OptionID = optionID
@@ -154,50 +199,6 @@ func (server *sServer) Vote(writer http.ResponseWriter, request *http.Request,
 		if err != nil {
 			tx.Rollback()
 			server.respondWithError(ERR_INT_DB_ADD, err, cVoteTag, writer, request)
-			return
-		}
-
-		// update the poll last updated
-		err = database.UpdatePollLastUpdatedTX(pollID, currentTime, tx)
-		if err != nil {
-			if pqErr, ok := err.(*pq.Error); ok &&
-				pqErr.Code == database.ERR_SERIALIZATION_FAILURE {
-				server.logger.Log(cVoteTag, fmt.Sprintf("%d: %s",
-					transactionNumber, "Serialization failure, retrying..."),
-					"::1")
-				continue
-			} else {
-
-				tx.Rollback()
-				server.respondWithError(ERR_INT_DB_UPDATE, err, cVoteTag, writer,
-					request)
-				return
-			}
-		}
-
-		// update the poll sequence number
-		err = database.UpdateSequenceNumberTX(pollID, tx)
-		if err != nil {
-			if pqErr, ok := err.(*pq.Error); ok &&
-				pqErr.Code == database.ERR_SERIALIZATION_FAILURE {
-				server.logger.Log(cVoteTag, fmt.Sprintf("%d: %s",
-					transactionNumber, "Serialization failure, retrying..."),
-					"::1")
-				continue
-			} else {
-
-				tx.Rollback()
-				server.respondWithError(ERR_INT_DB_UPDATE, err, cVoteTag, writer,
-					request)
-				return
-			}
-		}
-
-		// retrieve a snapshot of the new poll
-		snapshot, err = database.GetPollSnapshotTX(pollID, tx)
-		if err != nil {
-			tx.Rollback()
-			server.respondWithError(ERR_INT_DB_GET, err, cVoteTag, writer, request)
 			return
 		}
 
