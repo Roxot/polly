@@ -45,7 +45,7 @@ type Option struct {
 	PollID         int64  `db:"poll_id" json:"-"`
 	QuestionID     int64  `db:"question_id" json:"question_id"`
 	Value          string `json:"value"`
-	SequenceNumber int    `json:"sequence_number"`
+	SequenceNumber int    `db:"sequence_number" json:"sequence_number"`
 }
 
 type Vote struct {

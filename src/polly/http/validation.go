@@ -47,7 +47,7 @@ func isValidPollMessage(db *database.Database, pollMsg *polly.PollMessage,
 	}
 
 	// set the poll sequence number
-	pollMsg.MetaData.SequenceNumber = pollSequenceNumber
+	pollMsg.MetaData.SequenceNumber = pollSequenceNumber - 1
 
 	containsCreator := false
 	participantsMap := make(map[int64]bool)
