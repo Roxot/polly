@@ -20,8 +20,9 @@ const (
 	cIOSKeyFile         = cCertDir + "apns-dev-key.key"
 	cAndroidServerToken = "AIzaSyCi-zeWU_moOdFtUWggHXMulWGQK72wBuk"
 
-	cPushClientTag    = "PUSHCLIENT"
-	cPushServerLogFmt = "Failed to send notification %d: %s"
+	cPushClientTag         = "PUSHCLIENT"
+	cPushServerLogFmt      = "Failed to send notification %d: %s"
+	cIOSSilentNotification = 1
 
 	cAndroidRetries                = 2
 	cNotificationChannelBufferSize = 1 // TODO these in config files as well i guess
@@ -132,6 +133,7 @@ func (pushClient *sPushClient) sendIosNotification(deviceGUID string,
 	}
 
 	payload := apns.NewPayload()
+	payload.APS.ContentAvailable = cIOSSilentNotification
 	payload.APS.Alert.Body = string(data)
 	notification := apns.NewNotification()
 	notification.Payload = payload
