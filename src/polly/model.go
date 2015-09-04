@@ -13,6 +13,8 @@ const (
 	EVENT_TYPE_NEW_VOTE = 0
 	EVENT_TYPE_UPVOTE   = 1
 	EVENT_TYPE_NEW_POLL = 2
+
+	NOTIFICATION_INFO_FIELD = "info"
 )
 
 /* Polly primitives */

@@ -134,7 +134,7 @@ func (pushClient *sPushClient) sendIosNotification(deviceGUID string,
 
 	payload := apns.NewPayload()
 	payload.APS.ContentAvailable = cIOSSilentNotification
-	payload.APS.Alert.Body = string(data)
+	payload.SetCustomValue(polly.NOTIFICATION_INFO_FIELD, string(data))
 	notification := apns.NewNotification()
 	notification.Payload = payload
 	notification.DeviceToken = deviceGUID
