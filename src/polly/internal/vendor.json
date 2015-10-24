@@ -18,6 +18,11 @@
 			"revisionTime": "2015-10-22T12:36:14+02:00"
 		},
 		{
+			"path": "github.com/garyburd/redigo/internal",
+			"revision": "3d0709611e0e29c05a4e925e8447b065abb4eef6",
+			"revisionTime": "2015-10-18T11:08:55-07:00"
+		},
+		{
 			"path": "github.com/garyburd/redigo/redis",
 			"revision": "3d0709611e0e29c05a4e925e8447b065abb4eef6",
 			"revisionTime": "2015-10-18T11:08:55-07:00"
