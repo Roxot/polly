@@ -3,7 +3,6 @@ package http
 import (
 	"polly"
 	"polly/database"
-	"fmt"
 	"strings"
 	"time"
 )
@@ -32,8 +31,6 @@ func isValidPollMessage(db *database.Database, pollMsg *polly.PollMessage,
 
 		return ERR_BAD_CLOSING_DATE
 	}
-
-	fmt.Println("Inserting", pollMsg.MetaData.ClosingDate)
 
 	// validate question type has fitting options
 	switch pollMsg.Question.Type {

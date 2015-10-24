@@ -37,7 +37,8 @@ func (server *sServer) GetUserBulk(writer http.ResponseWriter,
 	// construct the UserBulk object
 	userBulkMsg := polly.UserBulkMessage{}
 	userBulkMsg.Users = make([]polly.PublicUser, len(ids))
-	for idx, idString := range ids {
+	idx := -1
+	for _, idString := range ids {
 
 		// convert the id to an integer
 		id, err := strconv.ParseInt(idString, 10, 64)
@@ -49,14 +50,15 @@ func (server *sServer) GetUserBulk(writer http.ResponseWriter,
 
 		// retrieve the user object
 		user, err := server.db.GetPublicUserByID(id)
-		if err != nil {
-			server.respondWithError(ERR_BAD_NO_USER, err, cGetUserBulkTag,
-				writer, request)
-			return
+		if err == nil {
+			idx += 1
+			userBulkMsg.Users[idx] = *user
 		}
-
-		userBulkMsg.Users[idx] = *user
+		
 	}
+
+	// Only include users that were actually found
+	userBulkMsg.Users = userBulkMsg.Users[:idx+1]
 
 	// marshall the response
 	responseBody, err := json.MarshalIndent(userBulkMsg, "", "\t")
