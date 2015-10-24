@@ -8,6 +8,7 @@ const (
 	cVoteTableName        = "votes"
 	cParticipantTableName = "participants"
 	cSequenceNumber       = "sequence_number"
+	cClosingDate 		  = "closing_date"
 	cPK                   = "ID"
 	cID                   = "id"
 	cToken                = "token"

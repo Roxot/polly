@@ -2,7 +2,6 @@ package database
 
 import (
 	"polly"
-	"time"
 )
 
 func (db *Database) InsertPollMessage(pollMsg *polly.PollMessage) error {
@@ -14,11 +13,6 @@ func (db *Database) InsertPollMessage(pollMsg *polly.PollMessage) error {
 		tx.Rollback()
 		return err
 	}
-
-	// set the time creation date and last update time to now
-	now := time.Now().UnixNano() / 1000000
-	pollMsg.MetaData.CreationDate = now
-	pollMsg.MetaData.LastUpdated = now
 
 	// insert the poll object
 	err = AddPollTX(&pollMsg.MetaData, tx)

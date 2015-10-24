@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"polly"
 	"strconv"
+	"time"
 
 	"polly/internal/github.com/julienschmidt/httprouter"
 )
@@ -58,6 +59,16 @@ func (server *sServer) PostPoll(writer http.ResponseWriter, request *http.Reques
 	if err != nil {
 		// TODO neaten up
 		server.logger.Log(cPostPollTag, "Error notifying: "+err.Error(), "::1")
+	}
+
+	// schedule the closing of the poll
+	closingDate := time.Unix(0, 1000000*pollMsg.MetaData.ClosingDate)
+	pollToClose := tPollToClose{pollMsg.MetaData.ID, pollMsg.Question.Title}
+	_, err = server.cpScheduler.Schedule(0, closingDate, &pollToClose)
+	if err != nil {
+		server.respondWithError(ERR_INT_CP_SCHEDULER, err, cPostPollTag, writer,
+			request)
+		return
 	}
 
 	// marshall the response

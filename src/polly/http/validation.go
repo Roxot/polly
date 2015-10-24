@@ -3,17 +3,37 @@ package http
 import (
 	"polly"
 	"polly/database"
+	"fmt"
 	"strings"
+	"time"
 )
 
 /*
  * Validates a poll message by checking the questions, options and participants.
  * In the case of participants their correct display names and email addresses
  * are set in this function as well. Sequence numbers for options and for the
- * poll itself are also taken care of.
+ * poll itself are also taken care of, as well as creation date and the first
+ * last updated timestamps.
  */
 func isValidPollMessage(db *database.Database, pollMsg *polly.PollMessage,
 	creatorID int64) int {
+
+	// set the creation date and last update time to now
+	now := time.Now()
+	nowMillis := now.UnixNano() / 1000000
+	pollMsg.MetaData.CreationDate = nowMillis
+	pollMsg.MetaData.LastUpdated = nowMillis
+
+	// validate the closing time
+	closingDate := time.Unix(pollMsg.MetaData.ClosingDate/1000, 0)
+	openDuration := closingDate.Sub(now)
+	if openDuration < cMinPollClosingTime ||
+		openDuration > cMaxPollClosingTime {
+
+		return ERR_BAD_CLOSING_DATE
+	}
+
+	fmt.Println("Inserting", pollMsg.MetaData.ClosingDate)
 
 	// validate question type has fitting options
 	switch pollMsg.Question.Type {

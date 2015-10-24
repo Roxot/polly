@@ -45,13 +45,14 @@ const (
 	ERR_INT_CREATE_HTTP  = BASE_INT + iota // 109
 	ERR_INT_DO_HTTP      = BASE_INT + iota // 110
 	ERR_INT_NOTIFICATION = BASE_INT + iota // 111
+	ERR_INT_CP_SCHEDULER = BASE_INT + iota // 112
 )
 
 const (
 	ERR_ILL_POLL_ACCESS  = BASE_ILL + iota // 200
 	ERR_ILL_ADD_OPTION   = BASE_ILL + iota // 201
 	ERR_ILL_TOO_MANY_IDS = BASE_ILL + iota // 202
-
+	ERR_ILL_POLL_CLOSED  = BASE_ILL + iota // 203
 )
 
 const (
@@ -71,6 +72,7 @@ const (
 	ERR_BAD_VOTE_TYPE             = BASE_BAD + iota // 313
 	ERR_BAD_PAGE                  = BASE_BAD + iota // 314
 	ERR_BAD_ID                    = BASE_BAD + iota // 315
+	ERR_BAD_CLOSING_DATE          = BASE_BAD + iota // 316
 )
 
 const (
@@ -94,10 +96,12 @@ var vAPICodeMessages = map[int]string{
 	ERR_INT_CREATE_HTTP:  "Failed to create HTTP request.",
 	ERR_INT_DO_HTTP:      "Failed to do HTTP request.",
 	ERR_INT_NOTIFICATION: "Failed to send notifications.",
+	ERR_INT_CP_SCHEDULER: "Failed to schedule poll closing event.",
 
 	ERR_ILL_POLL_ACCESS:  "No access to poll.",
 	ERR_ILL_ADD_OPTION:   "Not allowed to add options.",
 	ERR_ILL_TOO_MANY_IDS: "Too many identifiers provided.",
+	ERR_ILL_POLL_CLOSED:  "Poll closed.",
 
 	ERR_BAD_JSON:                  "Bad JSON.",
 	ERR_BAD_NO_USER:               "No such user.",
@@ -115,6 +119,7 @@ var vAPICodeMessages = map[int]string{
 	ERR_BAD_VOTE_TYPE:             "Invalid vote type.",
 	ERR_BAD_PAGE:                  "Bad page.",
 	ERR_BAD_ID:                    "Bad ID.",
+	ERR_BAD_CLOSING_DATE:          "Bad closing date.",
 
 	ERR_AUT_NO_AUTH:            "No authentication provided.",
 	ERR_AUT_NO_USER:            "No such user.",
@@ -136,10 +141,12 @@ var vAPICodeHTTPStatuses = map[int]int{
 	ERR_INT_CREATE_HTTP:  http.StatusInternalServerError,
 	ERR_INT_DO_HTTP:      http.StatusInternalServerError,
 	ERR_INT_NOTIFICATION: http.StatusInternalServerError,
+	ERR_INT_CP_SCHEDULER: http.StatusInternalServerError,
 
 	ERR_ILL_POLL_ACCESS:  http.StatusForbidden,
 	ERR_ILL_ADD_OPTION:   http.StatusForbidden,
 	ERR_ILL_TOO_MANY_IDS: http.StatusForbidden,
+	ERR_ILL_POLL_CLOSED:  http.StatusForbidden,
 
 	ERR_BAD_JSON:                  http.StatusBadRequest,
 	ERR_BAD_NO_USER:               http.StatusBadRequest,
@@ -157,6 +164,7 @@ var vAPICodeHTTPStatuses = map[int]int{
 	ERR_BAD_VOTE_TYPE:             http.StatusBadRequest,
 	ERR_BAD_PAGE:                  http.StatusBadRequest,
 	ERR_BAD_ID:                    http.StatusBadRequest,
+	ERR_BAD_CLOSING_DATE:          http.StatusBadRequest,
 
 	ERR_AUT_NO_AUTH:            http.StatusUnauthorized,
 	ERR_AUT_NO_USER:            http.StatusForbidden,
@@ -178,10 +186,12 @@ var vAPICodeHeaderHandler = map[int]fHeaderHandler{ // TODO maybe function fits 
 	ERR_INT_CREATE_HTTP:  setJSONContentTypeHeader,
 	ERR_INT_DO_HTTP:      setJSONContentTypeHeader,
 	ERR_INT_NOTIFICATION: setJSONContentTypeHeader,
+	ERR_INT_CP_SCHEDULER: setJSONContentTypeHeader,
 
 	ERR_ILL_POLL_ACCESS:  setJSONContentTypeHeader,
 	ERR_ILL_ADD_OPTION:   setJSONContentTypeHeader,
 	ERR_ILL_TOO_MANY_IDS: setJSONContentTypeHeader,
+	ERR_ILL_POLL_CLOSED:  setJSONContentTypeHeader,
 
 	ERR_BAD_JSON:                  setJSONContentTypeHeader,
 	ERR_BAD_NO_USER:               setJSONContentTypeHeader,
@@ -199,6 +209,7 @@ var vAPICodeHeaderHandler = map[int]fHeaderHandler{ // TODO maybe function fits 
 	ERR_BAD_VOTE_TYPE:             setJSONContentTypeHeader,
 	ERR_BAD_PAGE:                  setJSONContentTypeHeader,
 	ERR_BAD_ID:                    setJSONContentTypeHeader,
+	ERR_BAD_CLOSING_DATE:          setJSONContentTypeHeader,
 
 	ERR_AUT_NO_AUTH:            setAuthenticationChallengeHeaders,
 	ERR_AUT_NO_USER:            setJSONContentTypeHeader,
@@ -220,10 +231,12 @@ var vAPICodeShouldLog = map[int]bool{ // TODO maybe function fits this better
 	ERR_INT_CREATE_HTTP:  true,
 	ERR_INT_DO_HTTP:      true,
 	ERR_INT_NOTIFICATION: true,
+	ERR_INT_CP_SCHEDULER: true,
 
 	ERR_ILL_POLL_ACCESS:  true,
 	ERR_ILL_ADD_OPTION:   true,
 	ERR_ILL_TOO_MANY_IDS: true,
+	ERR_ILL_POLL_CLOSED:  true,
 
 	ERR_BAD_JSON:                  true,
 	ERR_BAD_NO_USER:               true,
@@ -241,6 +254,7 @@ var vAPICodeShouldLog = map[int]bool{ // TODO maybe function fits this better
 	ERR_BAD_VOTE_TYPE:             true,
 	ERR_BAD_PAGE:                  true,
 	ERR_BAD_ID:                    true,
+	ERR_BAD_CLOSING_DATE:          true,
 
 	ERR_AUT_NO_AUTH:            false,
 	ERR_AUT_NO_USER:            true,

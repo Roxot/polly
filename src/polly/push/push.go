@@ -34,6 +34,8 @@ type IPushClient interface {
 		optionID int64, voteType int) error
 	NotifyForNewPoll(db *database.Database, user *polly.PrivateUser,
 		pollID int64, pollTitle string) error
+	NotifyForClosedEvent(db *database.Database, pollID int64, 
+		title string) error
 }
 
 type sPushClient struct {
@@ -162,6 +164,34 @@ func (pushClient *sPushClient) sendAndroidNotification(deviceGUID string,
 	// check for failures
 	pushClient.logger.Log(cPushClientTag, fmt.Sprint(response), "::1")
 }
+
+func (pushClient *sPushClient) NotifyForClosedEvent(db *database.Database, 
+	pollID int64, title string) error {
+
+	// retrieve all poll participants
+	deviceInfos, err := db.GetDeviceInfosForPoll(pollID)
+	if err != nil {
+		return err
+	}
+
+	// don't notify for empty polls
+	if len(deviceInfos) == 0 {
+		return nil
+	}
+
+	// prepare notification
+	notificationMsg := polly.NotificationMessage{}
+	notificationMsg.DeviceInfos = deviceInfos
+	notificationMsg.PollID = pollID
+	notificationMsg.Type = polly.EVENT_TYPE_POLL_CLOSED
+	notificationMsg.Title = title
+
+	// let the notification handler goroutine take care of the rest
+	pushClient.notificationChannel <- &notificationMsg
+
+	return nil
+}
+
 
 func (pushClient *sPushClient) NotifyForVote(db *database.Database,
 	user *polly.PrivateUser, optionID int64, voteType int) error {

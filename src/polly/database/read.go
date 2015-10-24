@@ -48,6 +48,21 @@ func (db *Database) GetDeviceInfosForPollExcludeCreator(pollID,
 	return deviceInfos, err
 }
 
+func (db *Database) GetDeviceInfosForPoll(pollID int64) ([]polly.DeviceInfo, 
+	error) {
+
+	var deviceInfos []polly.DeviceInfo
+	_, err := db.mapping.Select(&deviceInfos, fmt.Sprintf("select %s.%s, %s.%s"+
+		" from %s, %s where %s.%s=%s.%s and %s.%s=$1;",
+		cUserTableName, cDeviceType, cUserTableName, cDeviceGUID,
+		cUserTableName, cParticipantTableName, cUserTableName, cID,
+		cParticipantTableName, cUserID, cParticipantTableName, cPollID), 
+		pollID)
+
+	return deviceInfos, err
+}
+
+
 func (db *Database) GetPollByID(id int64) (*polly.Poll, error) {
 	var poll polly.Poll
 	err := db.mapping.SelectOne(&poll,
@@ -64,12 +79,13 @@ func (db *Database) GetPollSnapshotsByUserID(userID int64, limit, offset int) (
 
 	var snapshots []polly.PollSnapshot
 	_, err := db.mapping.Select(&snapshots, fmt.Sprintf(
-		"select %s.%s, %s.%s, %s.%s from %s, %s where %s.%s=%s.%s and %s.%s=$1"+
-			"order by %s desc limit %d offset %d;",
+		"select %s.%s, %s.%s, %s.%s, %s.%s from %s, %s where %s.%s=%s.%s and "+
+			"%s.%s=$1 order by %s desc limit %d offset %d;",
 		cPollTableName, cID, cPollTableName, cLastUpdated,
-		cPollTableName, cSequenceNumber, cParticipantTableName, cPollTableName,
-		cParticipantTableName, cPollID, cPollTableName, cID,
-		cParticipantTableName, cUserID, cLastUpdated, limit, offset), userID)
+		cPollTableName, cSequenceNumber, cPollTableName, cClosingDate, 
+		cParticipantTableName, cPollTableName, cParticipantTableName, cPollID,
+		cPollTableName, cID, cParticipantTableName, cUserID, cLastUpdated,
+		limit, offset), userID)
 	return snapshots, err
 }
 
@@ -146,6 +162,13 @@ func (db *Database) GetSequenceNumber(pollID int64) (int, error) {
 	return int(number), err
 }
 
+func (db *Database) GetClosingDate(pollID int64) (int64, error) {
+	number, err := db.mapping.SelectInt(fmt.Sprintf(
+		"select %s from %s where %s=$1;", cClosingDate, cPollTableName, cID),
+		pollID)
+	return number, err
+}
+
 func GetSequenceNumberTX(pollID int64, tx *gorp.Transaction) (int, error) {
 	number, err := tx.SelectInt(fmt.Sprintf(
 		"select %s from %s where %s=$1;", cSequenceNumber, cPollTableName, cID),
@@ -158,7 +181,7 @@ func GetPollSnapshotTX(pollID int64, tx *gorp.Transaction) (*polly.PollSnapshot,
 
 	var snapshot polly.PollSnapshot
 	err := tx.SelectOne(&snapshot, fmt.Sprintf(
-		"select %s, %s, %s from %s where %s=$1;", cID, cLastUpdated,
-		cSequenceNumber, cPollTableName, cID), pollID)
+		"select %s, %s, %s, %s from %s where %s=$1;", cID, cLastUpdated,
+		cSequenceNumber, cClosingDate, cPollTableName, cID), pollID)
 	return &snapshot, err
 }

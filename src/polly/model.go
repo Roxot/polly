@@ -10,9 +10,10 @@ const (
 	VOTE_TYPE_NEW    = 0
 	VOTE_TYPE_UPVOTE = 1
 
-	EVENT_TYPE_NEW_VOTE = 0
-	EVENT_TYPE_UPVOTE   = 1
-	EVENT_TYPE_NEW_POLL = 2
+	EVENT_TYPE_NEW_VOTE    = 0
+	EVENT_TYPE_UPVOTE      = 1
+	EVENT_TYPE_NEW_POLL    = 2
+	EVENT_TYPE_POLL_CLOSED = 3
 
 	NOTIFICATION_INFO_FIELD = "info"
 )
@@ -31,6 +32,7 @@ type Poll struct {
 	ID             int64 `json:"poll_id"`
 	CreatorID      int64 `db:"creator_id" json:"creator_id"`
 	CreationDate   int64 `db:"creation_date" json:"creation_date"`
+	ClosingDate    int64 `db:"closing_date" json:"closing_date"`
 	LastUpdated    int64 `db:"last_updated" json:"last_updated"`
 	SequenceNumber int   `db:"sequence_number" json:"sequence_number"`
 }
@@ -73,6 +75,7 @@ type PublicUser struct {
 
 type PollSnapshot struct {
 	ID             int64 `db:"id" json:"id"`
+	ClosingDate    int64 `db:"closing_date" json:"closing_date"`
 	LastUpdated    int64 `db:"last_updated" json:"last_updated"`
 	SequenceNumber int   `db:"sequence_number" json:"sequence_number"`
 }

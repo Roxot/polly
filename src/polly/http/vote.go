@@ -2,12 +2,12 @@ package http
 
 import (
 	"encoding/json"
-	"fmt"
 	"math/rand"
 	"net/http"
 	"polly"
 	"polly/database"
 	"time"
+	"fmt"
 
 	"polly/internal/github.com/julienschmidt/httprouter"
 	"polly/internal/github.com/lib/pq"
@@ -81,6 +81,22 @@ func (server *sServer) Vote(writer http.ResponseWriter, request *http.Request,
 		return
 	}
 
+	// retrieve the closing date
+	closingDate, err := server.db.GetClosingDate(pollID)
+	if err != nil {
+		server.respondWithError(ERR_INT_DB_GET, err, cVoteTag, writer,
+			request)
+		return
+	}
+
+	// make sure the poll hasn't closed yet
+	currentTime := time.Now().UnixNano() / 1000000
+	if currentTime > closingDate {
+		server.respondWithError(ERR_ILL_POLL_CLOSED, nil, cVoteTag, writer,
+			request)
+		return
+	}
+
 	var optionID int64
 	var option polly.Option
 	var snapshot *polly.PollSnapshot
@@ -106,7 +122,6 @@ func (server *sServer) Vote(writer http.ResponseWriter, request *http.Request,
 		}
 
 		// update the poll last updated and seq number
-		currentTime := time.Now().UnixNano() / 1000000
 		err = database.UpdatePollTX(pollID, currentTime, tx)
 		if err != nil {
 			if pqErr, ok := err.(*pq.Error); ok &&

@@ -6,14 +6,17 @@ import (
 	"polly/database"
 	"polly/log"
 	"polly/push"
+	"polly/internal/github.com/albrow/jobs"
 
 	"polly/internal/github.com/julienschmidt/httprouter"
 )
 
 const (
-	cHTTPServerTag  = "HTTPSERVER"
-	cAPIVersion     = "v0.1"
-	cEndpointFormat = "/api/%s/%s.json"
+	cHTTPServerTag      = "HTTPSERVER"
+	cAPIVersion         = "v0.1"
+	cEndpointFormat     = "/api/%s/%s.json"
+	cClosedPollsJobs    = "CLOSED_POLLS"
+	cClosedPollsRetries = 2 // TODO config
 	// cEndpointWithVarFormat = cEndpointFormat + ":%s"
 )
 
@@ -23,10 +26,11 @@ type IServer interface {
 }
 
 type sServer struct {
-	db         database.Database
-	router     httprouter.Router
-	logger     log.ILogger
-	pushClient push.IPushClient
+	db          database.Database
+	router      httprouter.Router
+	logger      log.ILogger
+	pushClient  push.IPushClient
+	cpScheduler jobs.Type
 }
 
 func NewServer(dbConfig *database.DBConfig, clearDB bool) (IServer, error) {
@@ -65,6 +69,27 @@ func NewServer(dbConfig *database.DBConfig, clearDB bool) (IServer, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	// register the closed poll scheduler
+	cpScheduler, err := jobs.RegisterType(cClosedPollsJobs, cClosedPollsRetries,
+		server.ClosePoll)
+	if err != nil {
+		return nil, err
+	}
+
+	// create a job pool for the closed poll scheduler TODO pass configuration s
+	pool, err := jobs.NewPool(nil)
+	if err != nil {
+		return nil, err
+	}
+
+	// start the job pool for the closed poll scheduler
+	err = pool.Start()
+	if err != nil {
+		return nil, err
+	}
+
+	server.cpScheduler = *cpScheduler
 
 	return &server, nil
 }

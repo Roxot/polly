@@ -1,269 +1,199 @@
 {
 	"comment": "",
+	"ignore": "",
 	"package": [
 		{
-			"canonical": "github.com/alexjlockwood/gcm",
-			"comment": "",
-			"local": "polly/internal/github.com/alexjlockwood/gcm",
+			"path": "github.com/albrow/jobs",
+			"revision": "be37db41e1c588339628223c38cae9c1c5de8280",
+			"revisionTime": "2015-08-24T21:33:58-07:00"
+		},
+		{
+			"path": "github.com/alexjlockwood/gcm",
 			"revision": "3cef374f3d8e0b92ed8815541baeaf1b97302f23",
 			"revisionTime": "2014-04-01T19:55:16-04:00"
 		},
 		{
-			"canonical": "github.com/julienschmidt/httprouter",
-			"comment": "",
-			"local": "polly/internal/github.com/julienschmidt/httprouter",
+			"path": "github.com/julienschmidt/httprouter",
 			"revision": "57ead30b068c74ac89c121814d1234d4727eaf5b",
 			"revisionTime": "2015-02-10T16:24:53+08:00"
 		},
 		{
-			"canonical": "github.com/lib/pq",
-			"comment": "",
-			"local": "polly/internal/github.com/lib/pq",
+			"path": "github.com/lib/pq",
 			"revision": "73672c22431294bd2d012742dfc488523cc631bd",
 			"revisionTime": "2015-02-05T09:42:17+01:00"
 		},
 		{
-			"canonical": "github.com/lib/pq/oid",
-			"comment": "",
-			"local": "polly/internal/github.com/lib/pq/oid",
+			"path": "github.com/lib/pq/oid",
 			"revision": "73672c22431294bd2d012742dfc488523cc631bd",
 			"revisionTime": "2015-02-05T09:42:17+01:00"
 		},
 		{
-			"canonical": "github.com/mattn/go-sqlite3",
-			"comment": "",
-			"local": "polly/internal/github.com/mattn/go-sqlite3",
+			"path": "github.com/mattn/go-sqlite3",
 			"revision": "e5819757da0824da7e9140b1a862cafecf88159c",
 			"revisionTime": "2014-10-24T19:38:05+09:00"
 		},
 		{
-			"canonical": "github.com/mattn/go-sqlite3/sqlite3_test",
-			"comment": "",
-			"local": "polly/internal/github.com/mattn/go-sqlite3/sqlite3_test",
+			"path": "github.com/mattn/go-sqlite3/sqlite3_test",
 			"revision": "e5819757da0824da7e9140b1a862cafecf88159c",
 			"revisionTime": "2014-10-24T19:38:05+09:00"
 		},
 		{
-			"canonical": "github.com/onsi/ginkgo",
-			"comment": "",
-			"local": "polly/internal/github.com/onsi/ginkgo",
+			"path": "github.com/onsi/ginkgo",
 			"revision": "dbb5c6caf33238b57facc1d975b1aaca6b90288c",
 			"revisionTime": "2015-04-03T13:13:10-07:00"
 		},
 		{
-			"canonical": "github.com/onsi/ginkgo/config",
-			"comment": "",
-			"local": "polly/internal/github.com/onsi/ginkgo/config",
+			"path": "github.com/onsi/ginkgo/config",
 			"revision": "dbb5c6caf33238b57facc1d975b1aaca6b90288c",
 			"revisionTime": "2015-04-03T13:13:10-07:00"
 		},
 		{
-			"canonical": "github.com/onsi/ginkgo/internal/codelocation",
-			"comment": "",
-			"local": "polly/internal/github.com/onsi/ginkgo/internal/codelocation",
+			"path": "github.com/onsi/ginkgo/internal/codelocation",
 			"revision": "dbb5c6caf33238b57facc1d975b1aaca6b90288c",
 			"revisionTime": "2015-04-03T13:13:10-07:00"
 		},
 		{
-			"canonical": "github.com/onsi/ginkgo/internal/containernode",
-			"comment": "",
-			"local": "polly/internal/github.com/onsi/ginkgo/internal/containernode",
+			"path": "github.com/onsi/ginkgo/internal/containernode",
 			"revision": "dbb5c6caf33238b57facc1d975b1aaca6b90288c",
 			"revisionTime": "2015-04-03T13:13:10-07:00"
 		},
 		{
-			"canonical": "github.com/onsi/ginkgo/internal/failer",
-			"comment": "",
-			"local": "polly/internal/github.com/onsi/ginkgo/internal/failer",
+			"path": "github.com/onsi/ginkgo/internal/failer",
 			"revision": "dbb5c6caf33238b57facc1d975b1aaca6b90288c",
 			"revisionTime": "2015-04-03T13:13:10-07:00"
 		},
 		{
-			"canonical": "github.com/onsi/ginkgo/internal/leafnodes",
-			"comment": "",
-			"local": "polly/internal/github.com/onsi/ginkgo/internal/leafnodes",
+			"path": "github.com/onsi/ginkgo/internal/leafnodes",
 			"revision": "dbb5c6caf33238b57facc1d975b1aaca6b90288c",
 			"revisionTime": "2015-04-03T13:13:10-07:00"
 		},
 		{
-			"canonical": "github.com/onsi/ginkgo/internal/remote",
-			"comment": "",
-			"local": "polly/internal/github.com/onsi/ginkgo/internal/remote",
+			"path": "github.com/onsi/ginkgo/internal/remote",
 			"revision": "dbb5c6caf33238b57facc1d975b1aaca6b90288c",
 			"revisionTime": "2015-04-03T13:13:10-07:00"
 		},
 		{
-			"canonical": "github.com/onsi/ginkgo/internal/spec",
-			"comment": "",
-			"local": "polly/internal/github.com/onsi/ginkgo/internal/spec",
+			"path": "github.com/onsi/ginkgo/internal/spec",
 			"revision": "dbb5c6caf33238b57facc1d975b1aaca6b90288c",
 			"revisionTime": "2015-04-03T13:13:10-07:00"
 		},
 		{
-			"canonical": "github.com/onsi/ginkgo/internal/specrunner",
-			"comment": "",
-			"local": "polly/internal/github.com/onsi/ginkgo/internal/specrunner",
+			"path": "github.com/onsi/ginkgo/internal/specrunner",
 			"revision": "dbb5c6caf33238b57facc1d975b1aaca6b90288c",
 			"revisionTime": "2015-04-03T13:13:10-07:00"
 		},
 		{
-			"canonical": "github.com/onsi/ginkgo/internal/suite",
-			"comment": "",
-			"local": "polly/internal/github.com/onsi/ginkgo/internal/suite",
+			"path": "github.com/onsi/ginkgo/internal/suite",
 			"revision": "dbb5c6caf33238b57facc1d975b1aaca6b90288c",
 			"revisionTime": "2015-04-03T13:13:10-07:00"
 		},
 		{
-			"canonical": "github.com/onsi/ginkgo/internal/testingtproxy",
-			"comment": "",
-			"local": "polly/internal/github.com/onsi/ginkgo/internal/testingtproxy",
+			"path": "github.com/onsi/ginkgo/internal/testingtproxy",
 			"revision": "dbb5c6caf33238b57facc1d975b1aaca6b90288c",
 			"revisionTime": "2015-04-03T13:13:10-07:00"
 		},
 		{
-			"canonical": "github.com/onsi/ginkgo/internal/writer",
-			"comment": "",
-			"local": "polly/internal/github.com/onsi/ginkgo/internal/writer",
+			"path": "github.com/onsi/ginkgo/internal/writer",
 			"revision": "dbb5c6caf33238b57facc1d975b1aaca6b90288c",
 			"revisionTime": "2015-04-03T13:13:10-07:00"
 		},
 		{
-			"canonical": "github.com/onsi/ginkgo/reporters",
-			"comment": "",
-			"local": "polly/internal/github.com/onsi/ginkgo/reporters",
+			"path": "github.com/onsi/ginkgo/reporters",
 			"revision": "dbb5c6caf33238b57facc1d975b1aaca6b90288c",
 			"revisionTime": "2015-04-03T13:13:10-07:00"
 		},
 		{
-			"canonical": "github.com/onsi/ginkgo/reporters/stenographer",
-			"comment": "",
-			"local": "polly/internal/github.com/onsi/ginkgo/reporters/stenographer",
+			"path": "github.com/onsi/ginkgo/reporters/stenographer",
 			"revision": "dbb5c6caf33238b57facc1d975b1aaca6b90288c",
 			"revisionTime": "2015-04-03T13:13:10-07:00"
 		},
 		{
-			"canonical": "github.com/onsi/ginkgo/types",
-			"comment": "",
-			"local": "polly/internal/github.com/onsi/ginkgo/types",
+			"path": "github.com/onsi/ginkgo/types",
 			"revision": "dbb5c6caf33238b57facc1d975b1aaca6b90288c",
 			"revisionTime": "2015-04-03T13:13:10-07:00"
 		},
 		{
-			"canonical": "github.com/onsi/gomega",
-			"comment": "",
-			"local": "polly/internal/github.com/onsi/gomega",
+			"path": "github.com/onsi/gomega",
 			"revision": "c853a76367c700fe446c27bc7e6fc8209ee4e0a1",
 			"revisionTime": "2015-04-06T13:34:55-07:00"
 		},
 		{
-			"canonical": "github.com/onsi/gomega/format",
-			"comment": "",
-			"local": "polly/internal/github.com/onsi/gomega/format",
+			"path": "github.com/onsi/gomega/format",
 			"revision": "c853a76367c700fe446c27bc7e6fc8209ee4e0a1",
 			"revisionTime": "2015-04-06T13:34:55-07:00"
 		},
 		{
-			"canonical": "github.com/onsi/gomega/gbytes",
-			"comment": "",
-			"local": "polly/internal/github.com/onsi/gomega/gbytes",
+			"path": "github.com/onsi/gomega/gbytes",
 			"revision": "c853a76367c700fe446c27bc7e6fc8209ee4e0a1",
 			"revisionTime": "2015-04-06T13:34:55-07:00"
 		},
 		{
-			"canonical": "github.com/onsi/gomega/ghttp",
-			"comment": "",
-			"local": "polly/internal/github.com/onsi/gomega/ghttp",
+			"path": "github.com/onsi/gomega/ghttp",
 			"revision": "c853a76367c700fe446c27bc7e6fc8209ee4e0a1",
 			"revisionTime": "2015-04-06T13:34:55-07:00"
 		},
 		{
-			"canonical": "github.com/onsi/gomega/internal/assertion",
-			"comment": "",
-			"local": "polly/internal/github.com/onsi/gomega/internal/assertion",
+			"path": "github.com/onsi/gomega/internal/assertion",
 			"revision": "c853a76367c700fe446c27bc7e6fc8209ee4e0a1",
 			"revisionTime": "2015-04-06T13:34:55-07:00"
 		},
 		{
-			"canonical": "github.com/onsi/gomega/internal/asyncassertion",
-			"comment": "",
-			"local": "polly/internal/github.com/onsi/gomega/internal/asyncassertion",
+			"path": "github.com/onsi/gomega/internal/asyncassertion",
 			"revision": "c853a76367c700fe446c27bc7e6fc8209ee4e0a1",
 			"revisionTime": "2015-04-06T13:34:55-07:00"
 		},
 		{
-			"canonical": "github.com/onsi/gomega/internal/fakematcher",
-			"comment": "",
-			"local": "polly/internal/github.com/onsi/gomega/internal/fakematcher",
+			"path": "github.com/onsi/gomega/internal/fakematcher",
 			"revision": "c853a76367c700fe446c27bc7e6fc8209ee4e0a1",
 			"revisionTime": "2015-04-06T13:34:55-07:00"
 		},
 		{
-			"canonical": "github.com/onsi/gomega/internal/testingtsupport",
-			"comment": "",
-			"local": "polly/internal/github.com/onsi/gomega/internal/testingtsupport",
+			"path": "github.com/onsi/gomega/internal/testingtsupport",
 			"revision": "c853a76367c700fe446c27bc7e6fc8209ee4e0a1",
 			"revisionTime": "2015-04-06T13:34:55-07:00"
 		},
 		{
-			"canonical": "github.com/onsi/gomega/matchers",
-			"comment": "",
-			"local": "polly/internal/github.com/onsi/gomega/matchers",
+			"path": "github.com/onsi/gomega/matchers",
 			"revision": "c853a76367c700fe446c27bc7e6fc8209ee4e0a1",
 			"revisionTime": "2015-04-06T13:34:55-07:00"
 		},
 		{
-			"canonical": "github.com/onsi/gomega/matchers/support/goraph/bipartitegraph",
-			"comment": "",
-			"local": "polly/internal/github.com/onsi/gomega/matchers/support/goraph/bipartitegraph",
+			"path": "github.com/onsi/gomega/matchers/support/goraph/bipartitegraph",
 			"revision": "c853a76367c700fe446c27bc7e6fc8209ee4e0a1",
 			"revisionTime": "2015-04-06T13:34:55-07:00"
 		},
 		{
-			"canonical": "github.com/onsi/gomega/matchers/support/goraph/edge",
-			"comment": "",
-			"local": "polly/internal/github.com/onsi/gomega/matchers/support/goraph/edge",
+			"path": "github.com/onsi/gomega/matchers/support/goraph/edge",
 			"revision": "c853a76367c700fe446c27bc7e6fc8209ee4e0a1",
 			"revisionTime": "2015-04-06T13:34:55-07:00"
 		},
 		{
-			"canonical": "github.com/onsi/gomega/matchers/support/goraph/node",
-			"comment": "",
-			"local": "polly/internal/github.com/onsi/gomega/matchers/support/goraph/node",
+			"path": "github.com/onsi/gomega/matchers/support/goraph/node",
 			"revision": "c853a76367c700fe446c27bc7e6fc8209ee4e0a1",
 			"revisionTime": "2015-04-06T13:34:55-07:00"
 		},
 		{
-			"canonical": "github.com/onsi/gomega/matchers/support/goraph/util",
-			"comment": "",
-			"local": "polly/internal/github.com/onsi/gomega/matchers/support/goraph/util",
+			"path": "github.com/onsi/gomega/matchers/support/goraph/util",
 			"revision": "c853a76367c700fe446c27bc7e6fc8209ee4e0a1",
 			"revisionTime": "2015-04-06T13:34:55-07:00"
 		},
 		{
-			"canonical": "github.com/onsi/gomega/types",
-			"comment": "",
-			"local": "polly/internal/github.com/onsi/gomega/types",
+			"path": "github.com/onsi/gomega/types",
 			"revision": "c853a76367c700fe446c27bc7e6fc8209ee4e0a1",
 			"revisionTime": "2015-04-06T13:34:55-07:00"
 		},
 		{
-			"canonical": "github.com/satori/go.uuid",
-			"comment": "",
-			"local": "polly/internal/github.com/satori/go.uuid",
+			"path": "github.com/satori/go.uuid",
 			"revision": "242673bbc820e051ef00033e274d32e08ece9e15",
 			"revisionTime": "2015-02-15T00:26:48+07:00"
 		},
 		{
-			"canonical": "github.com/timehop/apns",
-			"comment": "",
-			"local": "polly/internal/github.com/timehop/apns",
+			"path": "github.com/timehop/apns",
 			"revision": "135f56759da5d4da98054f1819bd2b3c1d1a51b0",
 			"revisionTime": "2015-04-21T11:42:53-06:00"
 		},
 		{
-			"canonical": "gopkg.in/gorp.v1",
-			"comment": "",
-			"local": "polly/internal/gopkg.in/gorp.v1",
+			"path": "gopkg.in/gorp.v1",
 			"revision": "c87af80f3cc5036b55b83d77171e156791085e2e",
 			"revisionTime": "2015-02-04T09:55:30+01:00"
 		}
