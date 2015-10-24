@@ -5,7 +5,7 @@
 package jobs
 
 import (
-	"github.com/garyburd/redigo/redis"
+	"polly/internal/github.com/garyburd/redigo/redis"
 	"reflect"
 	"testing"
 	"time"

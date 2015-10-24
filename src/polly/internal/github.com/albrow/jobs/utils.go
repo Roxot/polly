@@ -5,7 +5,7 @@
 package jobs
 
 import (
-	"github.com/dchest/uniuri"
+	"polly/internal/github.com/dchest/uniuri"
 	"strconv"
 	"time"
 )

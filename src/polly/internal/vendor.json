@@ -13,6 +13,16 @@
 			"revisionTime": "2014-04-01T19:55:16-04:00"
 		},
 		{
+			"path": "github.com/dchest/uniuri",
+			"revision": "53057c437f6ee51004d86e38f45be42273beff05",
+			"revisionTime": "2015-10-22T12:36:14+02:00"
+		},
+		{
+			"path": "github.com/garyburd/redigo/redis",
+			"revision": "3d0709611e0e29c05a4e925e8447b065abb4eef6",
+			"revisionTime": "2015-10-18T11:08:55-07:00"
+		},
+		{
 			"path": "github.com/julienschmidt/httprouter",
 			"revision": "57ead30b068c74ac89c121814d1234d4727eaf5b",
 			"revisionTime": "2015-02-10T16:24:53+08:00"

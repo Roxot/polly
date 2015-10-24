@@ -8,7 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/dustin/go-humanize"
-	"github.com/garyburd/redigo/redis"
+	"polly/internal/github.com/garyburd/redigo/redis"
 	"reflect"
 	"strconv"
 	"sync"

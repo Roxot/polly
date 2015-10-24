@@ -6,7 +6,7 @@ package jobs
 
 import (
 	"fmt"
-	"github.com/garyburd/redigo/redis"
+	"polly/internal/github.com/garyburd/redigo/redis"
 	"reflect"
 	"sync"
 	"testing"

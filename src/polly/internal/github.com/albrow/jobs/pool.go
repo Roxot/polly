@@ -11,7 +11,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/garyburd/redigo/redis"
+	"polly/internal/github.com/garyburd/redigo/redis"
 )
 
 // Pool is a pool of workers. Pool will query the database for queued jobs
