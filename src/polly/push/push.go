@@ -36,6 +36,8 @@ type IPushClient interface {
 		pollID int64, pollTitle string) error
 	NotifyForClosedEvent(db *database.Database, pollID int64, 
 		title string) error
+	 NotifyForUndoneVote(db *database.Database, user *polly.PrivateUser,
+	 	pollID int64) error
 }
 
 type sPushClient struct {
@@ -224,6 +226,37 @@ func (pushClient *sPushClient) NotifyForVote(db *database.Database,
 	notificationMsg.Type = voteType
 	notificationMsg.User = user.DisplayName
 	notificationMsg.Title = option.Value
+
+	// let the notification handler goroutine take care of the rest
+	pushClient.notificationChannel <- &notificationMsg
+
+	return nil
+}
+
+func (pushClient *sPushClient) NotifyForUndoneVote(db *database.Database,
+	user *polly.PrivateUser, pollID int64) error {
+	// TODO user->voter, PrivateUser->PublicUser
+
+	// TODO assert votetype
+
+	// retrieve all poll participants
+	deviceInfos, err := db.GetDeviceInfosForPollExcludeCreator(pollID, user.ID)
+	if err != nil {
+		return err
+	}
+
+	// don't notify for empty polls
+	if len(deviceInfos) == 0 {
+		return nil
+	}
+
+	// prepare notification
+	notificationMsg := polly.NotificationMessage{}
+	notificationMsg.DeviceInfos = deviceInfos
+	notificationMsg.PollID = pollID
+	notificationMsg.Type = polly.EVENT_TYPE_UNDONE_VOTE
+	notificationMsg.User = user.DisplayName
+	notificationMsg.Title = "" // TODO option title?
 
 	// let the notification handler goroutine take care of the rest
 	pushClient.notificationChannel <- &notificationMsg

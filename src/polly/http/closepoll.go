@@ -4,6 +4,7 @@ const (
 	cClosedPollEvent = "closed_poll_event"
 )
 
+// TODO t -> s
 type tPollToClose struct { // TODO should this be here?
 	ID    int64
 	Title string

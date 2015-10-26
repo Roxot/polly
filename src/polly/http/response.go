@@ -73,6 +73,7 @@ const (
 	ERR_BAD_PAGE                  = BASE_BAD + iota // 314
 	ERR_BAD_ID                    = BASE_BAD + iota // 315
 	ERR_BAD_CLOSING_DATE          = BASE_BAD + iota // 316
+	ERR_BAD_NO_ID                 = BASE_BAD + iota // 317
 )
 
 const (
@@ -84,6 +85,8 @@ const (
 )
 
 var vAPICodeMessages = map[int]string{
+	NO_ERR:				  "No error.",
+
 	ERR_INT_DB_ADD:       "Failed to add to database.",
 	ERR_INT_DB_GET:       "Failed to retrieve from database.",
 	ERR_INT_DB_UPDATE:    "Failed to update database.",
@@ -120,6 +123,7 @@ var vAPICodeMessages = map[int]string{
 	ERR_BAD_PAGE:                  "Bad page.",
 	ERR_BAD_ID:                    "Bad ID.",
 	ERR_BAD_CLOSING_DATE:          "Bad closing date.",
+	ERR_BAD_NO_ID:				   "No ID provided.",
 
 	ERR_AUT_NO_AUTH:            "No authentication provided.",
 	ERR_AUT_NO_USER:            "No such user.",
@@ -129,6 +133,8 @@ var vAPICodeMessages = map[int]string{
 }
 
 var vAPICodeHTTPStatuses = map[int]int{
+	NO_ERR:				  http.StatusOK,
+
 	ERR_INT_DB_ADD:       http.StatusInternalServerError,
 	ERR_INT_DB_GET:       http.StatusInternalServerError,
 	ERR_INT_DB_UPDATE:    http.StatusInternalServerError,
@@ -165,6 +171,7 @@ var vAPICodeHTTPStatuses = map[int]int{
 	ERR_BAD_PAGE:                  http.StatusBadRequest,
 	ERR_BAD_ID:                    http.StatusBadRequest,
 	ERR_BAD_CLOSING_DATE:          http.StatusBadRequest,
+	ERR_BAD_NO_ID:				   http.StatusBadRequest,
 
 	ERR_AUT_NO_AUTH:            http.StatusUnauthorized,
 	ERR_AUT_NO_USER:            http.StatusForbidden,
@@ -174,6 +181,8 @@ var vAPICodeHTTPStatuses = map[int]int{
 }
 
 var vAPICodeHeaderHandler = map[int]fHeaderHandler{ // TODO maybe function fits this better
+	NO_ERR:				  setJSONContentTypeHeader,
+
 	ERR_INT_DB_ADD:       setJSONContentTypeHeader,
 	ERR_INT_DB_GET:       setJSONContentTypeHeader,
 	ERR_INT_DB_UPDATE:    setJSONContentTypeHeader,
@@ -210,6 +219,7 @@ var vAPICodeHeaderHandler = map[int]fHeaderHandler{ // TODO maybe function fits 
 	ERR_BAD_PAGE:                  setJSONContentTypeHeader,
 	ERR_BAD_ID:                    setJSONContentTypeHeader,
 	ERR_BAD_CLOSING_DATE:          setJSONContentTypeHeader,
+	ERR_BAD_NO_ID:			       setJSONContentTypeHeader,
 
 	ERR_AUT_NO_AUTH:            setAuthenticationChallengeHeaders,
 	ERR_AUT_NO_USER:            setJSONContentTypeHeader,
@@ -219,6 +229,8 @@ var vAPICodeHeaderHandler = map[int]fHeaderHandler{ // TODO maybe function fits 
 }
 
 var vAPICodeShouldLog = map[int]bool{ // TODO maybe function fits this better
+	NO_ERR:				  false,
+
 	ERR_INT_DB_ADD:       true,
 	ERR_INT_DB_GET:       true,
 	ERR_INT_DB_UPDATE:    true,
@@ -255,6 +267,7 @@ var vAPICodeShouldLog = map[int]bool{ // TODO maybe function fits this better
 	ERR_BAD_PAGE:                  true,
 	ERR_BAD_ID:                    true,
 	ERR_BAD_CLOSING_DATE:          true,
+	ERR_BAD_NO_ID:				   true,
 
 	ERR_AUT_NO_AUTH:            false,
 	ERR_AUT_NO_USER:            true,
@@ -270,6 +283,12 @@ func setJSONContentTypeHeader(writer http.ResponseWriter) {
 func setAuthenticationChallengeHeaders(writer http.ResponseWriter) {
 	setJSONContentTypeHeader(writer)
 	writer.Header().Set("WWW-authenticate", "Basic")
+}
+
+func (server *sServer) respondOkay(writer http.ResponseWriter, 
+	request *http.Request) {
+	// TODO do we want it like this?
+	server.respondWithError(NO_ERR, nil, "", writer, request)
 }
 
 func (server *sServer) respondWithError(errCode int, err error, tag string,

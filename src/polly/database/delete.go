@@ -11,3 +11,10 @@ func DeleteVotesForUserTX(userID, pollID int64, tx *gorp.Transaction) error {
 		cVoteTableName, cUserID, cPollID), userID, pollID)
 	return err
 }
+
+func (db *Database) DeleteVoteByIDForUser(voteID, userID int64) error {
+    _, err := db.mapping.Exec(fmt.Sprintf(
+        "delete from %s where %s=$1 and %s=$2;", cVoteTableName, cID, 
+        cUserID), voteID, userID)
+    return err
+}

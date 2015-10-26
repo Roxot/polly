@@ -116,6 +116,8 @@ func (server *sServer) Start(port string) error {
 		server.Vote)
 	server.router.GET(fmt.Sprintf(cEndpointFormat, cAPIVersion, "users"),
 		server.GetUserBulk)
+	server.router.DELETE(fmt.Sprintf(cEndpointFormat, cAPIVersion, "vote"), 
+		server.UndoVote)
 	server.logger.Log(cHTTPServerTag, "Starting HTTP server", "::1")
 	err = http.ListenAndServe(port, &server.router)
 	return err

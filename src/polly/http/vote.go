@@ -8,6 +8,7 @@ import (
 	"polly/database"
 	"time"
 	"fmt"
+	"strconv"
 
 	"polly/internal/github.com/julienschmidt/httprouter"
 	"polly/internal/github.com/lib/pq"
@@ -15,6 +16,7 @@ import (
 
 const (
 	cVoteTag = "POST/VOTE"
+	cUndoVoteTag = "DELETE/VOTE"
 )
 
 func (server *sServer) Vote(writer http.ResponseWriter, request *http.Request,
@@ -245,7 +247,7 @@ func (server *sServer) Vote(writer http.ResponseWriter, request *http.Request,
 		response.Option = &option
 	}
 
-	// send the response message
+	// marshal the response body
 	responseBody, err := json.MarshalIndent(response, "", "\t")
 	if err != nil {
 		server.respondWithError(ERR_INT_MARSHALL, err, cVoteTag, writer,
@@ -253,10 +255,78 @@ func (server *sServer) Vote(writer http.ResponseWriter, request *http.Request,
 		return
 	}
 
+	// send the response message
 	err = server.respondWithJSONBody(writer, responseBody)
 	if err != nil {
 		server.respondWithError(ERR_INT_WRITE, err, cVoteTag, writer, request)
 		return
 	}
 
+}
+
+func (server *sServer) UndoVote(writer http.ResponseWriter,
+	request *http.Request, params httprouter.Params) {
+
+	// authenticate the user
+	user, errCode := server.authenticateRequest(request)
+	if errCode != NO_ERR {
+		server.respondWithError(errCode, nil, cUndoVoteTag, writer, request)
+		return
+	}
+
+	// convert the id to an integer and make sure its a valid integer value
+	ids := request.URL.Query()[cID]
+	if len(ids) == 0 {
+		server.respondWithError(ERR_BAD_NO_ID, nil, cUndoVoteTag, writer, 
+			request)
+		return
+	}
+
+	// parse the provided id to an integer
+	id, err := strconv.ParseInt(ids[0], 10, 64)
+	if err != nil {
+		server.respondWithError(ERR_BAD_ID, err, cUndoVoteTag, writer, request)
+		return
+	}
+
+	// retrieve the poll id for that vote id
+	pollID, err := server.db.GetPollIDForVoteID(id)
+	if err != nil {
+		server.respondWithError(ERR_BAD_NO_VOTE, err, cUndoVoteTag, writer, 
+			request)
+		return		
+	}
+
+	// retrieve the closing date
+	closingDate, err := server.db.GetClosingDate(pollID)
+	if err != nil {
+		server.respondWithError(ERR_INT_DB_GET, err, cUndoVoteTag, writer,
+			request)
+		return
+	}
+
+	// make sure the poll hasn't closed yet
+	currentTime := time.Now().UnixNano() / 1000000
+	if currentTime > closingDate {
+		server.respondWithError(ERR_ILL_POLL_CLOSED, nil, cUndoVoteTag, writer,
+			request)
+		return
+	}
+
+	// delete the vote
+	err = server.db.DeleteVoteByIDForUser(id, user.ID)
+	if err != nil {
+		server.respondWithError(ERR_BAD_NO_VOTE, err, cUndoVoteTag, writer, 
+			request)
+		return		
+	}
+
+	// notify the poll participants
+	err = server.pushClient.NotifyForUndoneVote(&server.db, user, pollID)
+	if err != nil {
+		// TODO neaten up
+		server.logger.Log(cUndoVoteTag, "Error notifying: "+err.Error(), "::1")
+	}
+
+	server.respondOkay(writer, request)
 }
