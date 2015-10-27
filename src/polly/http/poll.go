@@ -13,6 +13,7 @@ import (
 const (
 	cPostPollTag    = "POST/POLL"
 	cGetPollBulkTag = "GET/POLLS"
+	cLeavePollTag   = "DELETE/POLL"
 )
 
 func (server *sServer) PostPoll(writer http.ResponseWriter, request *http.Request,
@@ -151,4 +152,73 @@ func (server *sServer) GetPollBulk(writer http.ResponseWriter,
 			request)
 		return
 	}
+}
+
+func (server *sServer) LeavePoll(writer http.ResponseWriter,
+	request *http.Request, _ httprouter.Params) {
+
+	// authenticate the request
+	user, errCode := server.authenticateRequest(request)
+	if errCode != NO_ERR {
+		server.respondWithError(errCode, nil, cLeavePollTag, writer, request)
+		return
+	}
+
+	// convert the id to an integer and make sure it's a valid integer value
+	ids := request.URL.Query()[cID]
+	if len(ids) == 0 {
+		server.respondWithError(ERR_BAD_NO_ID, nil, cLeavePollTag, writer, 
+			request)
+		return
+	}
+
+	// parse the provided poll id to an integer
+	pollID, err := strconv.ParseInt(ids[0], 10, 64)
+	if err != nil {
+		server.respondWithError(ERR_BAD_ID, err, cLeavePollTag, writer, request)
+		return
+	}
+
+	// retrieve the closing date
+	closingDate, err := server.db.GetClosingDate(pollID)
+	if err != nil {
+		server.respondWithError(ERR_BAD_NO_POLL, err, cLeavePollTag, writer,
+			request)
+		return
+	}
+
+	// make sure the poll hasn't closed yet
+	currentTime := time.Now().UnixNano() / 1000000
+	if currentTime > closingDate {
+		server.respondWithError(ERR_ILL_POLL_CLOSED, nil, cLeavePollTag, writer,
+			request)
+		return
+	}
+
+	// retrieve the poll question
+	question, err := server.db.GetQuestionByPollID(pollID)
+	if err != nil {
+		server.respondWithError(ERR_INT_DB_GET, err, cLeavePollTag, writer, 
+			request)
+		return
+	}
+
+	// delete the participant from the poll
+	err = server.db.DeleteParticipant(user.ID, pollID)
+	if err != nil { // TODO what if internal?
+		server.respondWithError(ERR_BAD_NO_POLL, err, cLeavePollTag, writer, 
+			request)
+		return		
+	}
+
+	// notify the poll participants
+	err = server.pushClient.NotifyForParticipantLeft(&server.db, user, pollID, 
+		question.Title)
+	if err != nil {
+		// TODO neaten up
+		server.logger.Log(cLeavePollTag, "Error notifying: "+err.Error(), "::1")
+	}
+
+	// respond with a 200 ok
+	server.respondOkay(writer, request)
 }
