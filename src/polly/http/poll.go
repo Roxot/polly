@@ -4,9 +4,13 @@ import (
 	"encoding/json"
 	"net/http"
 	"polly"
+	"polly/database"
 	"strconv"
+	"math/rand"
 	"time"
+	"fmt"
 
+	"polly/internal/github.com/lib/pq"
 	"polly/internal/github.com/julienschmidt/httprouter"
 )
 
@@ -203,12 +207,71 @@ func (server *sServer) LeavePoll(writer http.ResponseWriter,
 		return
 	}
 
-	// delete the participant from the poll
-	err = server.db.DeleteParticipant(user.ID, pollID)
-	if err != nil { // TODO what if internal?
-		server.respondWithError(ERR_BAD_NO_POLL, err, cLeavePollTag, writer, 
-			request)
-		return		
+	retryTransaction := true
+	transactionNumber := rand.Int()
+	for retryTransaction {
+
+		// start a transaction
+		tx, err := server.db.Begin()
+		if err != nil {
+			tx.Rollback()
+			server.respondWithError(ERR_INT_DB_TX_BEGIN, err, cLeavePollTag, 
+				writer, request)
+			return
+		}
+
+		// set the transaction isolation level
+		_, err = tx.Exec("set transaction isolation level serializable;")
+		if err != nil {
+			tx.Rollback()
+			panic(err)
+		}
+
+		// update the poll last updated and seq number
+		err = database.UpdatePollTX(pollID, currentTime, tx)
+		if err != nil {
+			if pqErr, ok := err.(*pq.Error); ok &&
+				pqErr.Code == database.ERR_SERIALIZATION_FAILURE {
+				server.logger.Log(cLeavePollTag, fmt.Sprintf("%d: %s",
+					transactionNumber, "Serialization failure, retrying..."),
+					"::1")
+				continue
+			} else {
+
+				tx.Rollback()
+				server.respondWithError(ERR_INT_DB_UPDATE, err, cLeavePollTag,
+					writer, request)
+				return
+			}
+		}
+
+		// delete the participant from the poll
+		err = server.db.DeleteParticipant(user.ID, pollID)
+		if err != nil { // TODO what if internal?
+			if pqErr, ok := err.(*pq.Error); ok &&
+				pqErr.Code == database.ERR_SERIALIZATION_FAILURE {
+				server.logger.Log(cLeavePollTag, fmt.Sprintf("%d: %s",
+					transactionNumber, "Serialization failure, retrying..."),
+					"::1")
+				continue
+			} else {
+				tx.Rollback()
+				server.respondWithError(ERR_BAD_NO_POLL, err, cLeavePollTag, writer, 
+					request)
+				return		
+			}
+		}
+
+		// commit the transaction
+		err = tx.Commit()
+		if err != nil {
+			tx.Rollback()
+			server.respondWithError(ERR_INT_DB_TX_COMMIT, err, cLeavePollTag, 
+				writer, request)
+			return
+		}
+
+		retryTransaction = false
 	}
 
 	// notify the poll participants
@@ -219,6 +282,6 @@ func (server *sServer) LeavePoll(writer http.ResponseWriter,
 		server.logger.Log(cLeavePollTag, "Error notifying: "+err.Error(), "::1")
 	}
 
-	// respond with a 200 ok
+	// respond with 200 ok
 	server.respondOkay(writer, request)
 }
