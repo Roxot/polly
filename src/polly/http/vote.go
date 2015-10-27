@@ -313,12 +313,81 @@ func (server *sServer) UndoVote(writer http.ResponseWriter,
 		return
 	}
 
-	// delete the vote
-	err = server.db.DeleteVoteByIDForUser(id, user.ID)
-	if err != nil {
-		server.respondWithError(ERR_BAD_NO_VOTE, err, cUndoVoteTag, writer, 
-			request)
-		return		
+	var snapshot *polly.PollSnapshot
+	retryTransaction := true
+	transactionNumber := rand.Int()
+	for retryTransaction {
+
+		// start a transaction
+		tx, err := server.db.Begin()
+		if err != nil {
+			tx.Rollback()
+			server.respondWithError(ERR_INT_DB_TX_BEGIN, err, cUndoVoteTag, 
+				writer, request)
+			return
+		}
+
+		// set the transaction isolation level
+		_, err = tx.Exec("set transaction isolation level serializable;")
+		if err != nil {
+			tx.Rollback()
+			panic(err)
+		}
+
+		// update the poll last updated and seq number
+		err = database.UpdatePollTX(pollID, currentTime, tx)
+		if err != nil {
+			if pqErr, ok := err.(*pq.Error); ok &&
+				pqErr.Code == database.ERR_SERIALIZATION_FAILURE {
+				server.logger.Log(cUndoVoteTag, fmt.Sprintf("%d: %s",
+					transactionNumber, "Serialization failure, retrying..."),
+					"::1")
+				continue
+			} else {
+
+				tx.Rollback()
+				server.respondWithError(ERR_INT_DB_UPDATE, err, cUndoVoteTag,
+					writer, request)
+				return
+			}
+		}
+
+		// retrieve a snapshot of the new poll
+		snapshot, err = database.GetPollSnapshotTX(pollID, tx)
+		if err != nil {
+			tx.Rollback()
+			server.respondWithError(ERR_INT_DB_GET, err, cUndoVoteTag, writer, 
+				request)
+			return
+		}
+
+		// delete the vote
+		err = server.db.DeleteVoteByIDForUser(id, user.ID)
+		if err != nil {
+			if pqErr, ok := err.(*pq.Error); ok &&
+				pqErr.Code == database.ERR_SERIALIZATION_FAILURE {
+				server.logger.Log(cUndoVoteTag, fmt.Sprintf("%d: %s",
+					transactionNumber, "Serialization failure, retrying..."),
+					"::1")
+				continue
+			} else {
+				tx.Rollback()
+				server.respondWithError(ERR_BAD_NO_VOTE, err, cUndoVoteTag,
+					writer, request)
+				return
+			}
+		}
+
+		// commit the transaction
+		err = tx.Commit()
+		if err != nil {
+			tx.Rollback()
+			server.respondWithError(ERR_INT_DB_TX_COMMIT, err, cUndoVoteTag, 
+				writer, request)
+			return
+		}
+
+		retryTransaction = false
 	}
 
 	// notify the poll participants
@@ -328,5 +397,19 @@ func (server *sServer) UndoVote(writer http.ResponseWriter,
 		server.logger.Log(cUndoVoteTag, "Error notifying: "+err.Error(), "::1")
 	}
 
-	server.respondOkay(writer, request)
+	// marshal the response body
+	responseBody, err := json.MarshalIndent(snapshot, "", "\t")
+	if err != nil {
+		server.respondWithError(ERR_INT_MARSHALL, err, cUndoVoteTag, writer,
+			request)
+		return
+	}
+
+	// send the response message
+	err = server.respondWithJSONBody(writer, responseBody)
+	if err != nil {
+		server.respondWithError(ERR_INT_WRITE, err, cUndoVoteTag, writer, 
+			request)
+		return
+	}	
 }
