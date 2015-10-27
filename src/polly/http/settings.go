@@ -7,5 +7,5 @@ const (
 	cBulkPollMax        = cPollListMax
 	cBulkUserMax        = cBulkPollMax
 	cMinPollClosingTime = time.Second * 10
-	cMaxPollClosingTime = time.Hour
+	cMaxPollClosingTime = time.Hour * 168
 )
