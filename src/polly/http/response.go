@@ -53,6 +53,7 @@ const (
 	ERR_ILL_ADD_OPTION   = BASE_ILL + iota // 201
 	ERR_ILL_TOO_MANY_IDS = BASE_ILL + iota // 202
 	ERR_ILL_POLL_CLOSED  = BASE_ILL + iota // 203
+	ERR_ILL_NOT_CREATOR  = BASE_ILL + iota // 204
 )
 
 const (
@@ -105,6 +106,7 @@ var vAPICodeMessages = map[int]string{
 	ERR_ILL_ADD_OPTION:   "Not allowed to add options.",
 	ERR_ILL_TOO_MANY_IDS: "Too many identifiers provided.",
 	ERR_ILL_POLL_CLOSED:  "Poll closed.",
+	ERR_ILL_NOT_CREATOR:  "No creator access to poll.",
 
 	ERR_BAD_JSON:                  "Bad JSON.",
 	ERR_BAD_NO_USER:               "No such user.",
@@ -153,6 +155,7 @@ var vAPICodeHTTPStatuses = map[int]int{
 	ERR_ILL_ADD_OPTION:   http.StatusForbidden,
 	ERR_ILL_TOO_MANY_IDS: http.StatusForbidden,
 	ERR_ILL_POLL_CLOSED:  http.StatusForbidden,
+	ERR_ILL_NOT_CREATOR:  http.StatusForbidden,
 
 	ERR_BAD_JSON:                  http.StatusBadRequest,
 	ERR_BAD_NO_USER:               http.StatusBadRequest,
@@ -180,7 +183,7 @@ var vAPICodeHTTPStatuses = map[int]int{
 	ERR_AUT_BAD_OAUTH_RESPONSE: http.StatusForbidden,
 }
 
-var vAPICodeHeaderHandler = map[int]fHeaderHandler{ // TODO maybe function fits this better
+var vAPICodeHeaderHandler = map[int]fHeaderHandler {
 	NO_ERR:				  setJSONContentTypeHeader,
 
 	ERR_INT_DB_ADD:       setJSONContentTypeHeader,
@@ -201,6 +204,7 @@ var vAPICodeHeaderHandler = map[int]fHeaderHandler{ // TODO maybe function fits 
 	ERR_ILL_ADD_OPTION:   setJSONContentTypeHeader,
 	ERR_ILL_TOO_MANY_IDS: setJSONContentTypeHeader,
 	ERR_ILL_POLL_CLOSED:  setJSONContentTypeHeader,
+	ERR_ILL_NOT_CREATOR:  setJSONContentTypeHeader,
 
 	ERR_BAD_JSON:                  setJSONContentTypeHeader,
 	ERR_BAD_NO_USER:               setJSONContentTypeHeader,
@@ -228,7 +232,7 @@ var vAPICodeHeaderHandler = map[int]fHeaderHandler{ // TODO maybe function fits 
 	ERR_AUT_BAD_OAUTH_RESPONSE: setJSONContentTypeHeader,
 }
 
-var vAPICodeShouldLog = map[int]bool{ // TODO maybe function fits this better
+var vAPICodeShouldLog = map[int]bool{
 	NO_ERR:				  false,
 
 	ERR_INT_DB_ADD:       true,
@@ -249,6 +253,7 @@ var vAPICodeShouldLog = map[int]bool{ // TODO maybe function fits this better
 	ERR_ILL_ADD_OPTION:   true,
 	ERR_ILL_TOO_MANY_IDS: true,
 	ERR_ILL_POLL_CLOSED:  true,
+	ERR_ILL_NOT_CREATOR:  true,
 
 	ERR_BAD_JSON:                  true,
 	ERR_BAD_NO_USER:               true,
@@ -287,7 +292,7 @@ func setAuthenticationChallengeHeaders(writer http.ResponseWriter) {
 
 func (server *sServer) respondOkay(writer http.ResponseWriter, 
 	request *http.Request) {
-	// TODO do we want it like this?
+
 	server.respondWithError(NO_ERR, nil, "", writer, request)
 }
 

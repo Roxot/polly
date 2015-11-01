@@ -4,15 +4,20 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
+	"math/rand"
+	"time"
+	"fmt"
 
 	"polly"
-
+	"polly/database"
+	"polly/internal/github.com/lib/pq"
 	"polly/internal/github.com/julienschmidt/httprouter"
 )
 
 const (
 	cGetUserBulkTag = "GET/USERS"
 	cUpdateUserTag  = "PUT/USER"
+	cAddUserTag     = "POST/ADDUSER"
 )
 
 func (server *sServer) GetUserBulk(writer http.ResponseWriter,
@@ -129,7 +134,7 @@ func (server *sServer) UpdateUser(writer http.ResponseWriter,
 		return
 	}
 
-	// send the user a 200 OK with his user info
+	// send the user a 200 OK with updated user
 	err = server.respondWithJSONBody(writer, responseBody)
 	if err != nil {
 		server.respondWithError(ERR_INT_WRITE, err, cUpdateUserTag, writer,
@@ -137,4 +142,167 @@ func (server *sServer) UpdateUser(writer http.ResponseWriter,
 		return
 	}
 
+}
+
+// POST /api/v0.1/adduser.json
+func (server *sServer) AddUser(writer http.ResponseWriter, 
+	request *http.Request, _ httprouter.Params) {
+
+	// authenticate the user
+	user, errCode := server.authenticateRequest(request)
+	if errCode != NO_ERR {
+		server.respondWithError(errCode, nil, cAddUserTag, writer, request)
+		return
+	}
+
+	// decode the given user
+	var addUserMsg polly.AddUserMessage
+	decoder := json.NewDecoder(request.Body)
+	err := decoder.Decode(&addUserMsg)
+	if err != nil {
+		server.respondWithError(ERR_BAD_JSON, err, cAddUserTag, writer, request)
+		return
+	}
+
+	// retrieve the creator of the poll
+	creatorID, err := server.db.GetPollCreatorID(addUserMsg.PollID)
+	if err != nil {
+		server.respondWithError(ERR_INT_DB_GET, err, cAddUserTag, writer, 
+			request)
+		return
+	}
+
+	// make sure the user is the creator of the poll
+	if creatorID != user.ID {
+		server.respondWithError(ERR_ILL_NOT_CREATOR, nil, cAddUserTag, writer, 
+			request)
+		return
+	}
+
+	// retrieve the closing date
+	closingDate, err := server.db.GetClosingDate(addUserMsg.PollID)
+	if err != nil {
+		server.respondWithError(ERR_INT_DB_GET, err, cAddUserTag, writer,
+			request)
+		return
+	}
+
+	// make sure the poll hasn't closed yet
+	currentTime := time.Now().UnixNano() / 1000000
+	if currentTime > closingDate {
+		server.respondWithError(ERR_ILL_POLL_CLOSED, nil, cAddUserTag, writer,
+			request)
+		return
+	}
+
+	// check if the new user exists
+	newUser, err := server.db.GetUserByID(addUserMsg.User.ID)
+	if err != nil {
+		server.respondWithError(ERR_BAD_NO_USER, err, cAddUserTag, writer, 
+			request)
+		return
+	}
+
+	// get the corresponding question
+	question, err := server.db.GetQuestionByPollID(addUserMsg.PollID)
+	if err != nil {
+		server.respondWithError(ERR_INT_DB_GET, err, cAddUserTag, writer, 
+			request)
+		return
+	}
+
+	retryTransaction := true
+	transactionNumber := rand.Int()
+	for retryTransaction {
+
+		// start a transaction
+		tx, err := server.db.Begin()
+		if err != nil {
+			tx.Rollback()
+			server.respondWithError(ERR_INT_DB_TX_BEGIN, err, cAddUserTag, 
+				writer, request)
+			return
+		}
+
+		// set the transaction isolation level
+		_, err = tx.Exec("set transaction isolation level serializable;")
+		if err != nil {
+			tx.Rollback()
+			panic(err)
+		}
+
+		// update the poll last updated and seq number
+		err = database.UpdatePollTX(addUserMsg.PollID, currentTime, tx)
+		if err != nil {
+			if pqErr, ok := err.(*pq.Error); ok &&
+				pqErr.Code == database.ERR_SERIALIZATION_FAILURE {
+				server.logger.Log(cAddUserTag, fmt.Sprintf("%d: %s",
+					transactionNumber, "Serialization failure, retrying..."),
+					"::1")
+				continue
+			} else {
+
+				tx.Rollback()
+				server.respondWithError(ERR_INT_DB_UPDATE, err, cAddUserTag,
+					writer, request)
+				return
+			}
+		}
+
+		// make sure the user is not already in the poll
+		isParticipant, err := database.ExistsParticipantTX(addUserMsg.User.ID, 
+			addUserMsg.PollID, tx)
+		if err != nil {
+			tx.Rollback()
+			server.respondWithError(ERR_INT_DB_GET, err, cAddUserTag, writer, 
+				request)
+			return
+		} else if isParticipant {
+			tx.Rollback()
+			server.respondWithError(ERR_BAD_DUPLICATE_PARTICIPANT, nil, 
+				cAddUserTag, writer, request)
+			return
+		}
+
+		// add the user to the poll
+		newParticipant := &polly.Participant{ PollID: addUserMsg.PollID, 
+			UserID: addUserMsg.User.ID, }
+		err = database.AddParticipantTX(newParticipant, tx)
+		if err != nil {
+			if pqErr, ok := err.(*pq.Error); ok &&
+				pqErr.Code == database.ERR_SERIALIZATION_FAILURE {
+				server.logger.Log(cAddUserTag, fmt.Sprintf("%d: %s",
+					transactionNumber, "Serialization failure, retrying..."),
+					"::1")
+				continue
+			} else {
+				tx.Rollback()
+				server.respondWithError(ERR_INT_DB_ADD, err, cAddUserTag, writer,
+					request)
+				return
+			}
+		}
+
+		// commit the transaction
+		err = tx.Commit()
+		if err != nil {
+			tx.Rollback()
+			server.respondWithError(ERR_INT_DB_TX_COMMIT, err, cAddUserTag, 
+				writer, request)
+			return
+		}
+
+		retryTransaction = false
+	}
+
+	// notify the users of the poll of the change
+	err = server.pushClient.NotifyForNewParticipant(&server.db, user,
+		addUserMsg.PollID, question.Title, newUser)
+	if err != nil {
+		// TODO neaten up
+		server.logger.Log(cAddUserTag, "Error notifying: "+err.Error(), "::1")
+	}
+
+	// respond with 200 OK
+	server.respondOkay(writer, request)
 }

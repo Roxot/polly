@@ -48,6 +48,31 @@ func (db *Database) GetDeviceInfosForPollExcludeCreator(pollID,
 	return deviceInfos, err
 }
 
+func (db *Database) GetDeviceInfosForPollExcludeCreatorAndUser(pollID,
+	creatorID, userID int64) ([]polly.DeviceInfo, error) {
+
+	var deviceInfos []polly.DeviceInfo
+	_, err := db.mapping.Select(&deviceInfos, fmt.Sprintf("select %s.%s, %s.%s"+
+		" from %s, %s where %s.%s=%s.%s and %s.%s=$1 and %s.%s!=$2 and "+
+		"%s.%s != $3;",
+		cUserTableName, cDeviceType, cUserTableName, cDeviceGUID,
+		cUserTableName, cParticipantTableName, cUserTableName, cID,
+		cParticipantTableName, cUserID, cParticipantTableName, cPollID,
+		cUserTableName, cID, cUserTableName, cID), pollID, creatorID, userID)
+
+	return deviceInfos, err
+}
+
+func (db *Database) GetDeviceInfoForUser(userID int64) (*polly.DeviceInfo, 
+	error) {
+
+	var deviceInfo polly.DeviceInfo
+	err := db.mapping.SelectOne(&deviceInfo, fmt.Sprintf(
+		"select %s, %s from %s where %s=$1;", cDeviceGUID, cDeviceType, 
+		cUserTableName, cID), userID)
+	return &deviceInfo, err
+}
+
 func (db *Database) GetDeviceInfosForPoll(pollID int64) ([]polly.DeviceInfo, 
 	error) {
 
@@ -192,4 +217,9 @@ func GetPollSnapshotTX(pollID int64, tx *gorp.Transaction) (*polly.PollSnapshot,
 		"select %s, %s, %s, %s from %s where %s=$1;", cID, cLastUpdated,
 		cSequenceNumber, cClosingDate, cPollTableName, cID), pollID)
 	return &snapshot, err
+}
+
+func (db *Database) GetPollCreatorID(pollID int64) (int64, error) {
+	return db.mapping.SelectInt(fmt.Sprintf("select %s from %s where %s=$1;",
+		cCreatorID, cPollTableName, cID), pollID)
 }

@@ -16,7 +16,9 @@ const (
 	EVENT_TYPE_POLL_CLOSED      = 3
 	EVENT_TYPE_UNDONE_VOTE      = 4
 	EVENT_TYPE_PARTICIPANT_LEFT = 5
-
+	EVENT_TYPE_NEW_PARTICIPANT  = 6
+	EVENT_TYPE_ADDED_TO_POLL    = 7
+	
 	NOTIFICATION_INFO_FIELD = "info"
 )
 
@@ -120,6 +122,11 @@ type VoteResponseMessage struct {
 type UpdateUserMessage struct {
 	DeviceGUID  *string `json:"device_guid"`
 	DisplayName *string `json:"display_name"`
+}
+
+type AddUserMessage struct {
+	PollID int64      `json:"poll_id"`
+	User   PublicUser `json:"user"`
 }
 
 type PollListMessage struct {

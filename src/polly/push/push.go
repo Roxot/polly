@@ -40,6 +40,8 @@ type IPushClient interface {
 	 	pollID int64) error
 	NotifyForParticipantLeft(db *database.Database, user *polly.PrivateUser,
 		pollID int64, pollTitle string) error
+	NotifyForNewParticipant(db *database.Database, creator *polly.PrivateUser,
+		pollID int64, pollTitle string, newUser *polly.PrivateUser) error
 }
 
 type sPushClient struct {
@@ -320,6 +322,49 @@ func (pushClient *sPushClient) NotifyForParticipantLeft(db *database.Database,
 
 	// let the notification handler goroutine take care of the rest
 	pushClient.notificationChannel <- &notificationMsg
+
+	return nil
+}
+
+func (pushClient *sPushClient) NotifyForNewParticipant(db *database.Database,
+	creator *polly.PrivateUser, pollID int64, pollTitle string, 
+	newUser *polly.PrivateUser) error { 
+
+	// retrieve all existing poll participants device infos
+	deviceInfos, err := db.GetDeviceInfosForPollExcludeCreatorAndUser(pollID,
+		creator.ID, newUser.ID)
+	if err != nil {
+		return err
+	}
+
+	// retrieve the new user's device info
+	newUserDeviceInfo, err := db.GetDeviceInfoForUser(newUser.ID)
+	if err != nil {
+		return err
+	}
+
+	// don't notify for empty polls
+	if len(deviceInfos) == 0 {
+		return nil
+	}
+
+	notificationMsg1 := polly.NotificationMessage{}
+	notificationMsg1.DeviceInfos = deviceInfos
+	notificationMsg1.PollID = pollID
+	notificationMsg1.Type = polly.EVENT_TYPE_NEW_PARTICIPANT
+	notificationMsg1.User = newUser.DisplayName
+	notificationMsg1.Title = pollTitle
+
+	notificationMsg2 := polly.NotificationMessage{}
+	notificationMsg2.DeviceInfos = []polly.DeviceInfo{ *newUserDeviceInfo }
+	notificationMsg2.PollID = pollID
+	notificationMsg2.Type = polly.EVENT_TYPE_ADDED_TO_POLL
+	notificationMsg2.User = creator.DisplayName
+	notificationMsg2.Title = pollTitle
+
+	// let the notification handler goroutine take care of the rest
+	pushClient.notificationChannel <- &notificationMsg1
+	pushClient.notificationChannel <- &notificationMsg2
 
 	return nil
 }
