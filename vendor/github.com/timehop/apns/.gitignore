@@ -21,9 +21,11 @@ _testmain.go
 
 *.exe
 *.test
-*.prof
 
-.DS_Store
+# Example keys
+example/*.key
+example/*.crt
 
-# Polly
-server.log
+# Ginkgo files
+*.coverprofile
+coverage.html

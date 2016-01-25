@@ -1,0 +1,53 @@
+{
+    "ImportPath": "github.com/roxot/polly",
+    "GoVersion": "go1.5",
+    "Packages": [
+        "./..."
+    ],
+    "Deps": [
+        {
+            "ImportPath": "github.com/albrow/jobs",
+            "Comment": "v0.4.2",
+            "Rev": "1db60b6a2fefa276b8966a8ee811d9d68e213f0e"
+        },
+        {
+            "ImportPath": "github.com/alexjlockwood/gcm",
+            "Rev": "2407bc782264326a3d4c71dd1ebeb8ab75221923"
+        },
+        {
+            "ImportPath": "github.com/dchest/uniuri",
+            "Rev": "53057c437f6ee51004d86e38f45be42273beff05"
+        },
+        {
+            "ImportPath": "github.com/garyburd/redigo/internal",
+            "Rev": "836b6e58b3358112c8291565d01c35b8764070d7"
+        },
+        {
+            "ImportPath": "github.com/garyburd/redigo/redis",
+            "Rev": "836b6e58b3358112c8291565d01c35b8764070d7"
+        },
+        {
+            "ImportPath": "github.com/julienschmidt/httprouter",
+            "Comment": "v1.1-16-gabb0dc9",
+            "Rev": "8c199fb6259ffc1af525cc3ad52ee60ba8359669"
+        },
+        {
+            "ImportPath": "github.com/lib/pq",
+            "Comment": "go1.0-cutoff-74-g8ad2b29",
+            "Rev": "8ad2b298cadd691a77015666a5372eae5dbfac8f"
+        },
+        {
+            "ImportPath": "github.com/satori/go.uuid",
+            "Rev": "d41af8bb6a7704f00bc3b7cba9355ae6a5a80048"
+        },
+        {
+            "ImportPath": "github.com/timehop/apns",
+            "Rev": "02b971829dfca0436e051a28d60f11ffec5e3516"
+        },
+        {
+            "ImportPath": "gopkg.in/gorp.v1",
+            "Comment": "v1.7.1",
+            "Rev": "c87af80f3cc5036b55b83d77171e156791085e2e"
+        }
+    ]
+}
