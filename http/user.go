@@ -232,7 +232,8 @@ func (server *sServer) AddUser(writer http.ResponseWriter,
 		}
 
 		// update the poll last updated and seq number
-		err = database.UpdatePollTX(addUserMsg.PollID, currentTime, tx)
+		err = database.UpdatePollTX(addUserMsg.PollID, currentTime,
+			polly.EVENT_TYPE_NEW_PARTICIPANT, newUser.DisplayName, question.Title, tx)
 		if err != nil {
 			if pqErr, ok := err.(*pq.Error); ok &&
 				pqErr.Code == database.ERR_SERIALIZATION_FAILURE {

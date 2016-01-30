@@ -3,12 +3,13 @@ package http
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/roxot/polly"
-	"github.com/roxot/polly/database"
 	"math/rand"
 	"net/http"
 	"strconv"
 	"time"
+
+	"github.com/roxot/polly"
+	"github.com/roxot/polly/database"
 
 	"github.com/julienschmidt/httprouter"
 	"github.com/lib/pq"
@@ -41,6 +42,7 @@ func (server *sServer) Vote(writer http.ResponseWriter, request *http.Request,
 
 	// retrieve the poll id belonging to the option or question id
 	var pollID int64
+	var optionTitle string
 	switch voteMsg.Type {
 	case polly.VOTE_TYPE_NEW:
 		question, err := server.db.GetQuestionByID(voteMsg.ID)
@@ -62,14 +64,16 @@ func (server *sServer) Vote(writer http.ResponseWriter, request *http.Request,
 			return
 		}
 
+		optionTitle = voteMsg.Value
 	case polly.VOTE_TYPE_UPVOTE:
-		pollID, err = server.db.GetPollIDForOptionID(voteMsg.ID)
+		option, err := server.db.GetOptionByID(voteMsg.ID)
 		if err != nil {
 			server.respondWithError(ERR_BAD_NO_OPTION, err, cVoteTag, writer,
 				request)
 			return
 		}
 
+		pollID, optionTitle = option.PollID, option.Value
 	default:
 		server.respondWithError(ERR_BAD_VOTE_TYPE, err, cVoteTag, writer,
 			request)
@@ -124,7 +128,9 @@ func (server *sServer) Vote(writer http.ResponseWriter, request *http.Request,
 		}
 
 		// update the poll last updated and seq number
-		err = database.UpdatePollTX(pollID, currentTime, tx)
+		// user, optionID, voteMsg.Type
+		err = database.UpdatePollTX(pollID, currentTime, voteMsg.Type,
+			user.DisplayName, optionTitle, tx)
 		if err != nil {
 			if pqErr, ok := err.(*pq.Error); ok &&
 				pqErr.Code == database.ERR_SERIALIZATION_FAILURE {
@@ -232,7 +238,7 @@ func (server *sServer) Vote(writer http.ResponseWriter, request *http.Request,
 	}
 
 	// send a notification to other participants
-	err = server.pushClient.NotifyForVote(&server.db, user, optionID,
+	err = server.pushClient.NotifyForVote(&server.db, user, optionTitle, pollID,
 		voteMsg.Type)
 	if err != nil {
 		// TODO neaten up
@@ -289,8 +295,8 @@ func (server *sServer) UndoVote(writer http.ResponseWriter,
 		return
 	}
 
-	// retrieve the poll id for that vote id
-	pollID, err := server.db.GetPollIDForVoteID(id)
+	// retrieve the vote object
+	vote, err := server.db.GetVoteByID(id)
 	if err != nil {
 		server.respondWithError(ERR_BAD_NO_VOTE, err, cUndoVoteTag, writer,
 			request)
@@ -298,7 +304,7 @@ func (server *sServer) UndoVote(writer http.ResponseWriter,
 	}
 
 	// retrieve the closing date
-	closingDate, err := server.db.GetClosingDate(pollID)
+	closingDate, err := server.db.GetClosingDate(vote.PollID)
 	if err != nil {
 		server.respondWithError(ERR_INT_DB_GET, err, cUndoVoteTag, writer,
 			request)
@@ -310,6 +316,13 @@ func (server *sServer) UndoVote(writer http.ResponseWriter,
 	if currentTime > closingDate {
 		server.respondWithError(ERR_ILL_POLL_CLOSED, nil, cUndoVoteTag, writer,
 			request)
+		return
+	}
+
+	// retrieve the belonging option object
+	option, err := server.db.GetOptionByID(vote.OptionID)
+	if err != nil {
+		server.respondWithError(ERR_INT_DB_GET, err, cUndoVoteTag, writer, request)
 		return
 	}
 
@@ -335,7 +348,8 @@ func (server *sServer) UndoVote(writer http.ResponseWriter,
 		}
 
 		// update the poll last updated and seq number
-		err = database.UpdatePollTX(pollID, currentTime, tx)
+		err = database.UpdatePollTX(vote.PollID, currentTime,
+			polly.EVENT_TYPE_UNDONE_VOTE, user.DisplayName, option.Value, tx)
 		if err != nil {
 			if pqErr, ok := err.(*pq.Error); ok &&
 				pqErr.Code == database.ERR_SERIALIZATION_FAILURE {
@@ -353,7 +367,7 @@ func (server *sServer) UndoVote(writer http.ResponseWriter,
 		}
 
 		// retrieve a snapshot of the new poll
-		snapshot, err = database.GetPollSnapshotTX(pollID, tx)
+		snapshot, err = database.GetPollSnapshotTX(vote.PollID, tx)
 		if err != nil {
 			tx.Rollback()
 			server.respondWithError(ERR_INT_DB_GET, err, cUndoVoteTag, writer,
@@ -391,7 +405,8 @@ func (server *sServer) UndoVote(writer http.ResponseWriter,
 	}
 
 	// notify the poll participants
-	err = server.pushClient.NotifyForUndoneVote(&server.db, user, pollID)
+	err = server.pushClient.NotifyForUndoneVote(&server.db, user, option.Value,
+		vote.PollID)
 	if err != nil {
 		// TODO neaten up
 		server.logger.Log(cUndoVoteTag, "Error notifying: "+err.Error(), "::1")

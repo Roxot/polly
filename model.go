@@ -18,7 +18,7 @@ const (
 	EVENT_TYPE_PARTICIPANT_LEFT = 5
 	EVENT_TYPE_NEW_PARTICIPANT  = 6
 	EVENT_TYPE_ADDED_TO_POLL    = 7
-	
+
 	NOTIFICATION_INFO_FIELD = "info"
 )
 
@@ -33,12 +33,15 @@ type PrivateUser struct {
 }
 
 type Poll struct {
-	ID             int64 `json:"poll_id"`
-	CreatorID      int64 `db:"creator_id" json:"creator_id"`
-	CreationDate   int64 `db:"creation_date" json:"creation_date"`
-	ClosingDate    int64 `db:"closing_date" json:"closing_date"`
-	LastUpdated    int64 `db:"last_updated" json:"last_updated"`
-	SequenceNumber int   `db:"sequence_number" json:"sequence_number"`
+	ID             int64  `json:"poll_id"`
+	CreatorID      int64  `db:"creator_id" json:"creator_id"`
+	CreationDate   int64  `db:"creation_date" json:"creation_date"`
+	ClosingDate    int64  `db:"closing_date" json:"closing_date"`
+	LastUpdated    int64  `db:"last_updated" json:"last_updated"`
+	SequenceNumber int    `db:"sequence_number" json:"sequence_number"`
+	LastEventUser  string `db:"last_event_user" json:"last_event_user"`
+	LastEventTitle string `db:"last_event_title" json:"last_event_title"`
+	LastEventType  int    `db:"last_event_type" json:"last_event_type"`
 }
 
 type Question struct {

@@ -8,7 +8,7 @@ const (
 	cVoteTableName        = "votes"
 	cParticipantTableName = "participants"
 	cSequenceNumber       = "sequence_number"
-	cClosingDate 		  = "closing_date"
+	cClosingDate          = "closing_date"
 	cPK                   = "ID"
 	cID                   = "id"
 	cToken                = "token"
@@ -25,4 +25,7 @@ const (
 	cOptionalID           = "optional_id"
 	cOptionID             = "option_id"
 	cUserID               = "user_id"
+	cLastEventType        = "last_event_type"
+	cLastEventUser        = "last_event_user"
+	cLastEventTitle       = "last_event_title"
 )

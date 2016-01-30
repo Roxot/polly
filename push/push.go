@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+
 	"github.com/roxot/polly"
 	"github.com/roxot/polly/database"
 	"github.com/roxot/polly/log"
@@ -31,13 +32,13 @@ const (
 type IPushClient interface {
 	StartErrorLogger(log.ILogger) error
 	NotifyForVote(db *database.Database, user *polly.PrivateUser,
-		optionID int64, voteType int) error
+		optionTitle string, pollID int64, voteType int) error
 	NotifyForNewPoll(db *database.Database, user *polly.PrivateUser,
 		pollID int64, pollTitle string) error
 	NotifyForClosedEvent(db *database.Database, pollID int64,
 		title string) error
 	NotifyForUndoneVote(db *database.Database, user *polly.PrivateUser,
-		pollID int64) error
+		optionTitle string, pollID int64) error
 	NotifyForParticipantLeft(db *database.Database, user *polly.PrivateUser,
 		pollID int64, pollTitle string) error
 	NotifyForNewParticipant(db *database.Database, creator *polly.PrivateUser,
@@ -199,20 +200,13 @@ func (pushClient *sPushClient) NotifyForClosedEvent(db *database.Database,
 }
 
 func (pushClient *sPushClient) NotifyForVote(db *database.Database,
-	user *polly.PrivateUser, optionID int64, voteType int) error {
+	user *polly.PrivateUser, optionTitle string, pollID int64, voteType int) error {
 	// TODO user->voter, PrivateUser->PublicUser
 
 	// TODO assert votetype
 
-	// retrieve option name
-	option, err := db.GetOptionByID(optionID)
-	if err != nil {
-		return err
-	}
-
 	// retrieve all poll participants
-	deviceInfos, err := db.GetDeviceInfosForPollExcludeCreator(option.PollID,
-		user.ID)
+	deviceInfos, err := db.GetDeviceInfosForPollExcludeCreator(pollID, user.ID)
 	if err != nil {
 		return err
 	}
@@ -225,10 +219,10 @@ func (pushClient *sPushClient) NotifyForVote(db *database.Database,
 	// prepare notification
 	notificationMsg := polly.NotificationMessage{}
 	notificationMsg.DeviceInfos = deviceInfos
-	notificationMsg.PollID = option.PollID
+	notificationMsg.PollID = pollID
 	notificationMsg.Type = voteType
 	notificationMsg.User = user.DisplayName
-	notificationMsg.Title = option.Value
+	notificationMsg.Title = optionTitle
 
 	// let the notification handler goroutine take care of the rest
 	pushClient.notificationChannel <- &notificationMsg
@@ -237,7 +231,7 @@ func (pushClient *sPushClient) NotifyForVote(db *database.Database,
 }
 
 func (pushClient *sPushClient) NotifyForUndoneVote(db *database.Database,
-	user *polly.PrivateUser, pollID int64) error {
+	user *polly.PrivateUser, optionTitle string, pollID int64) error {
 	// TODO user->voter, PrivateUser->PublicUser
 
 	// TODO assert votetype
@@ -259,7 +253,7 @@ func (pushClient *sPushClient) NotifyForUndoneVote(db *database.Database,
 	notificationMsg.PollID = pollID
 	notificationMsg.Type = polly.EVENT_TYPE_UNDONE_VOTE
 	notificationMsg.User = user.DisplayName
-	notificationMsg.Title = "" // TODO option title?
+	notificationMsg.Title = optionTitle
 
 	// let the notification handler goroutine take care of the rest
 	pushClient.notificationChannel <- &notificationMsg

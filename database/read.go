@@ -2,6 +2,7 @@ package database
 
 import (
 	"fmt"
+
 	"github.com/roxot/polly"
 
 	_ "github.com/lib/pq"
@@ -185,6 +186,13 @@ func (db *Database) GetVotesByPollID(pollID int64) ([]polly.Vote, error) {
 		fmt.Sprintf("select * from %s where %s = $1;", cVoteTableName, cPollID),
 		pollID)
 	return votes, err
+}
+
+func (db *Database) GetVoteByID(voteID int64) (*polly.Vote, error) {
+	var vote polly.Vote
+	err := db.mapping.SelectOne(&vote,
+		fmt.Sprintf("select * from %s where %s=$1;", cVoteTableName, cID), voteID)
+	return &vote, err
 }
 
 func (db *Database) GetSequenceNumber(pollID int64) (int, error) {
