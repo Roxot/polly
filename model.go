@@ -1,5 +1,7 @@
 package polly
 
+import "strconv"
+
 const (
 	DEVICE_TYPE_ANDROID = 0
 	DEVICE_TYPE_IPHONE  = 1
@@ -151,4 +153,9 @@ type NotificationMessage struct {
 type ErrorMessage struct {
 	Code    int    `json:"code"`
 	Message string `json:"message"`
+}
+
+/* Helper functions. */
+func FormatUserWithID(user string, userID int64) string {
+	return user + ":" + strconv.FormatInt(userID, 10)
 }

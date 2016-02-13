@@ -221,7 +221,7 @@ func (pushClient *sPushClient) NotifyForVote(db *database.Database,
 	notificationMsg.DeviceInfos = deviceInfos
 	notificationMsg.PollID = pollID
 	notificationMsg.Type = voteType
-	notificationMsg.User = user.DisplayName
+	notificationMsg.User = polly.FormatUserWithID(user.DisplayName, user.ID)
 	notificationMsg.Title = optionTitle
 
 	// let the notification handler goroutine take care of the rest
@@ -252,7 +252,7 @@ func (pushClient *sPushClient) NotifyForUndoneVote(db *database.Database,
 	notificationMsg.DeviceInfos = deviceInfos
 	notificationMsg.PollID = pollID
 	notificationMsg.Type = polly.EVENT_TYPE_UNDONE_VOTE
-	notificationMsg.User = user.DisplayName
+	notificationMsg.User = polly.FormatUserWithID(user.DisplayName, user.ID)
 	notificationMsg.Title = optionTitle
 
 	// let the notification handler goroutine take care of the rest
@@ -281,7 +281,7 @@ func (pushClient *sPushClient) NotifyForNewPoll(db *database.Database,
 	notificationMsg.DeviceInfos = deviceInfos
 	notificationMsg.PollID = pollID
 	notificationMsg.Type = polly.EVENT_TYPE_NEW_POLL
-	notificationMsg.User = user.DisplayName
+	notificationMsg.User = polly.FormatUserWithID(user.DisplayName, user.ID)
 	notificationMsg.Title = pollTitle
 
 	// let the notification handler goroutine take care of the rest
@@ -310,7 +310,7 @@ func (pushClient *sPushClient) NotifyForParticipantLeft(db *database.Database,
 	notificationMsg.DeviceInfos = deviceInfos
 	notificationMsg.PollID = pollID
 	notificationMsg.Type = polly.EVENT_TYPE_PARTICIPANT_LEFT
-	notificationMsg.User = user.DisplayName
+	notificationMsg.User = polly.FormatUserWithID(user.DisplayName, user.ID)
 	notificationMsg.Title = pollTitle
 
 	// let the notification handler goroutine take care of the rest
@@ -345,14 +345,16 @@ func (pushClient *sPushClient) NotifyForNewParticipant(db *database.Database,
 	notificationMsg1.DeviceInfos = deviceInfos
 	notificationMsg1.PollID = pollID
 	notificationMsg1.Type = polly.EVENT_TYPE_NEW_PARTICIPANT
-	notificationMsg1.User = newUser.DisplayName
+	notificationMsg1.User = polly.FormatUserWithID(newUser.DisplayName,
+		newUser.ID)
 	notificationMsg1.Title = pollTitle
 
 	notificationMsg2 := polly.NotificationMessage{}
 	notificationMsg2.DeviceInfos = []polly.DeviceInfo{*newUserDeviceInfo}
 	notificationMsg2.PollID = pollID
 	notificationMsg2.Type = polly.EVENT_TYPE_ADDED_TO_POLL
-	notificationMsg2.User = creator.DisplayName
+	notificationMsg2.User = polly.FormatUserWithID(creator.DisplayName,
+		creator.ID)
 	notificationMsg2.Title = pollTitle
 
 	// let the notification handler goroutine take care of the rest
