@@ -16,7 +16,7 @@ import (
 
 const (
 	cIOSGateway         = apns.SandboxGateway // TODO all this should be in a config file
-	cCertDir            = "certs/"
+	cCertDir            = "cert/"
 	cIOSCertFile        = cCertDir + "apns-dev-cert.pem"
 	cIOSKeyFile         = cCertDir + "apns-dev-key.key"
 	cAndroidServerToken = "AIzaSyCi-zeWU_moOdFtUWggHXMulWGQK72wBuk"
