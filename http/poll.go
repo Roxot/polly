@@ -3,12 +3,13 @@ package http
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/roxot/polly"
-	"github.com/roxot/polly/database"
 	"math/rand"
 	"net/http"
 	"strconv"
 	"time"
+
+	"github.com/roxot/polly"
+	"github.com/roxot/polly/database"
 
 	"github.com/julienschmidt/httprouter"
 	"github.com/lib/pq"
@@ -50,6 +51,9 @@ func (server *sServer) PostPoll(writer http.ResponseWriter, request *http.Reques
 
 	// insert poll
 	pollMsg.MetaData.CreatorID = user.ID
+	pollMsg.MetaData.LastEventType = polly.EVENT_TYPE_NEW_POLL
+	pollMsg.MetaData.LastEventUser = user.DisplayName
+	pollMsg.MetaData.LastEventTitle = pollMsg.Question.Title
 	pollMsg.Votes = make([]polly.Vote, 0)
 	err = server.db.InsertPollMessage(&pollMsg)
 	if err != nil {
@@ -228,7 +232,9 @@ func (server *sServer) LeavePoll(writer http.ResponseWriter,
 		}
 
 		// update the poll last updated and seq number
-		err = database.UpdatePollTX(pollID, currentTime, tx)
+		err = database.UpdatePollTX(pollID, currentTime,
+			polly.EVENT_TYPE_PARTICIPANT_LEFT,
+			polly.FormatUserWithID(user.DisplayName, user.ID), question.Title, tx)
 		if err != nil {
 			if pqErr, ok := err.(*pq.Error); ok &&
 				pqErr.Code == database.ERR_SERIALIZATION_FAILURE {
