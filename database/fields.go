@@ -27,5 +27,6 @@ const (
 	cUserID               = "user_id"
 	cLastEventType        = "last_event_type"
 	cLastEventUser        = "last_event_user"
+	cLastEventUserID      = "last_event_user_id"
 	cLastEventTitle       = "last_event_title"
 )

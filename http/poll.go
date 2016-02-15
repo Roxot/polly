@@ -53,6 +53,7 @@ func (server *sServer) PostPoll(writer http.ResponseWriter, request *http.Reques
 	pollMsg.MetaData.CreatorID = user.ID
 	pollMsg.MetaData.LastEventType = polly.EVENT_TYPE_NEW_POLL
 	pollMsg.MetaData.LastEventUser = user.DisplayName
+	pollMsg.MetaData.LastEventUserID = user.ID
 	pollMsg.MetaData.LastEventTitle = pollMsg.Question.Title
 	pollMsg.Votes = make([]polly.Vote, 0)
 	err = server.db.InsertPollMessage(&pollMsg)
@@ -233,8 +234,8 @@ func (server *sServer) LeavePoll(writer http.ResponseWriter,
 
 		// update the poll last updated and seq number
 		err = database.UpdatePollTX(pollID, currentTime,
-			polly.EVENT_TYPE_PARTICIPANT_LEFT,
-			polly.FormatUserWithID(user.DisplayName, user.ID), question.Title, tx)
+			polly.EVENT_TYPE_PARTICIPANT_LEFT, user.DisplayName, user.ID,
+			question.Title, tx)
 		if err != nil {
 			if pqErr, ok := err.(*pq.Error); ok &&
 				pqErr.Code == database.ERR_SERIALIZATION_FAILURE {

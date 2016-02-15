@@ -130,7 +130,7 @@ func (server *sServer) Vote(writer http.ResponseWriter, request *http.Request,
 		// update the poll last updated and seq number
 		// user, optionID, voteMsg.Type
 		err = database.UpdatePollTX(pollID, currentTime, voteMsg.Type,
-			polly.FormatUserWithID(user.DisplayName, user.ID), optionTitle, tx)
+			user.DisplayName, user.ID, optionTitle, tx)
 		if err != nil {
 			if pqErr, ok := err.(*pq.Error); ok &&
 				pqErr.Code == database.ERR_SERIALIZATION_FAILURE {
@@ -349,8 +349,7 @@ func (server *sServer) UndoVote(writer http.ResponseWriter,
 
 		// update the poll last updated and seq number
 		err = database.UpdatePollTX(vote.PollID, currentTime,
-			polly.EVENT_TYPE_UNDONE_VOTE,
-			polly.FormatUserWithID(user.DisplayName, user.ID), option.Value, tx)
+			polly.EVENT_TYPE_UNDONE_VOTE, user.DisplayName, user.ID, option.Value, tx)
 		if err != nil {
 			if pqErr, ok := err.(*pq.Error); ok &&
 				pqErr.Code == database.ERR_SERIALIZATION_FAILURE {

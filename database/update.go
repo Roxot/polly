@@ -48,13 +48,15 @@ func (db *Database) UpdateSequenceNumber(pollID int64) error {
 }
 
 /* Updates a poll its last updated and sequence number. */
-func UpdatePollTX(pollID, lastUpdated int64, lastEventType int, lastEventUser,
-	lastEventTitle string, tx *gorp.Transaction) error {
+func UpdatePollTX(pollID, lastUpdated int64, lastEventType int,
+	lastEventUser string, lastEventUserID int64, lastEventTitle string,
+	tx *gorp.Transaction) error {
 	_, err := tx.Exec(fmt.Sprintf(
-		"update %s set %s=%s+1, %s=$1, %s=$2, %s=$3, %s=$4 where %s=$5;",
+		"update %s set %s=%s+1, %s=$1, %s=$2, %s=$3, %s=$4 %s=$5 where %s=$6;",
 		cPollTableName, cSequenceNumber, cSequenceNumber, cLastUpdated,
-		cLastEventType, cLastEventUser, cLastEventTitle, cID), lastUpdated,
-		lastEventType, lastEventUser, lastEventTitle, pollID)
+		cLastEventType, cLastEventUser, cLastEventUserID, cLastEventTitle, cID),
+		lastUpdated, lastEventType, lastEventUser, lastEventUserID, lastEventTitle,
+		pollID)
 	return err
 }
 
