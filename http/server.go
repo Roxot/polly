@@ -14,7 +14,7 @@ import (
 const (
 	cHTTPServerTag      = "HTTPSERVER"
 	cAPIVersion         = "v0.1"
-	cEndpointFormat     = "/api/%s/%s.json"
+	cEndpointFormat     = "/%s/%s.json"
 	cClosedPollsJobs    = "CLOSED_POLLS"
 	cClosedPollsRetries = 2 // TODO config
 	// cEndpointWithVarFormat = cEndpointFormat + ":%s"

@@ -1,0 +1,6 @@
+api.getpollyapp.com
+root /var/www/api.getpollyapp.com
+
+proxy /v0.1 localhost:8080 {
+  max_fails 0
+}
