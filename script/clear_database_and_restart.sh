@@ -11,7 +11,7 @@ do
         done
 
 echo "Building server..."
-go install pollyserver
+go install github.com/roxot/polly/cmd/pollyserver
 
 echo "Starting server..."
 pollyserver -cleardb=true 2> /dev/null &
