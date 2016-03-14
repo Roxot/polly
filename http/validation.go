@@ -34,10 +34,14 @@ func isValidPollMessage(db *database.Database, pollMsg *polly.PollMessage,
 
 	// validate question type has fitting options
 	switch pollMsg.Question.Type {
+	case polly.QUESTION_TYPE_MOVIE_MC:
+		fallthrough
 	case polly.QUESTION_TYPE_MC:
 		if pollMsg.Options == nil || len(pollMsg.Options) == 0 {
 			return ERR_BAD_EMPTY_POLL
 		}
+	case polly.QUESTION_TYPE_MOVIE_OPEN:
+		fallthrough
 	case polly.QUESTION_TYPE_OPEN:
 		// skip
 	default:
