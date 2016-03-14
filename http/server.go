@@ -123,6 +123,6 @@ func (server *sServer) Start(port string) error {
 	server.router.POST(fmt.Sprintf(cEndpointFormat, cAPIVersion, "adduser"),
 		server.AddUser)
 	server.logger.Log(cHTTPServerTag, "Starting HTTP server", "::1")
-	err = http.ListenAndServeTLS(port, "/home/polly/.caddy/letsencrypt/sites/api.getpollyapp.com/api.getpollyapp.com.crt", "/home/polly/.caddy/letsencrypt/sites/api.getpollyapp.com/api.getpollyapp.com.key", &server.router)
+	 err = http.ListenAndServe(port, &server.router)
 	return err
 }
