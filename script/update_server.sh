@@ -2,4 +2,4 @@
 
 echo "Updating codebase..."
 git pull
-$POLLY_HOME/scripts/restart_server.sh
+$POLLY_HOME/script/restart_server.sh
