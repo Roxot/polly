@@ -54,7 +54,9 @@ func (server *sServer) Vote(writer http.ResponseWriter, request *http.Request,
 		}
 
 		pollID = question.ID
-		if question.Type != polly.QUESTION_TYPE_OPEN {
+		if question.Type != polly.QUESTION_TYPE_OPEN &&
+			question.Type != polly.QUESTION_TYPE_MOVIE_OPEN {
+
 			server.respondWithError(ERR_ILL_ADD_OPTION, nil, cVoteTag, writer,
 				request)
 			return
