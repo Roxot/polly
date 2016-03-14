@@ -1,7 +1,7 @@
-https://getpollyapp.com, https://www.getpollyapp.com {
+https://api.getpollyapp.com {
     root /var/www/getpollyapp.com
 
-    proxy / localhost:8080 {
+    proxy /v0.1/ localhost:8080 {
       max_fails 0
     }
 }
