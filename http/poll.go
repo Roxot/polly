@@ -173,7 +173,7 @@ func (server *sServer) LeavePoll(writer http.ResponseWriter,
 		return
 	}
 
-	// convert the id to an integer and make sure it's a valid integer value
+	// convert the id to an integer
 	ids := request.URL.Query()[cID]
 	if len(ids) == 0 {
 		server.respondWithError(ERR_BAD_NO_ID, nil, cLeavePollTag, writer,
@@ -244,9 +244,25 @@ func (server *sServer) LeavePoll(writer http.ResponseWriter,
 					"::1")
 				continue
 			} else {
-
 				tx.Rollback()
 				server.respondWithError(ERR_INT_DB_UPDATE, err, cLeavePollTag,
+					writer, request)
+				return
+			}
+		}
+
+		// delete the participant's votes
+		err = server.db.DeleteVotesForUserTX(user.ID, pollID)
+		if err != nil {
+			if pqErr, ok := err.(*pq.Error); ok &&
+				pqErr.Code == database.ERR_SERIALIZATION_FAILURE {
+				server.logger.Log(cLeavePollTag, fmt.Sprintf("%d: %s",
+					transactionNumber, "Serialization failure, retrying..."),
+					"::1")
+				continue
+			} else {
+				tx.Rollback()
+				server.respondWithError(ERR_INT_DB_DELETE, err, cLeavePollTag,
 					writer, request)
 				return
 			}
@@ -263,8 +279,8 @@ func (server *sServer) LeavePoll(writer http.ResponseWriter,
 				continue
 			} else {
 				tx.Rollback()
-				server.respondWithError(ERR_BAD_NO_POLL, err, cLeavePollTag, writer,
-					request)
+				server.respondWithError(ERR_BAD_NO_POLL, err, cLeavePollTag,
+					writer, request)
 				return
 			}
 		}
