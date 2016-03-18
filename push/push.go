@@ -22,7 +22,7 @@ const (
 	cAndroidServerToken = "AIzaSyCi-zeWU_moOdFtUWggHXMulWGQK72wBuk"
 
 	cPushClientTag         = "PUSHCLIENT"
-	cPushServerLogFmt      = "Failed to send notification %d: %s"
+	cPushServerLogFmt      = "Failed to send notification %s: %s"
 	cIOSSilentNotification = 1
 
 	cAndroidRetries                = 2
