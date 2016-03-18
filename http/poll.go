@@ -252,7 +252,7 @@ func (server *sServer) LeavePoll(writer http.ResponseWriter,
 		}
 
 		// delete the participant's votes
-		err = server.db.DeleteVotesForUserTX(user.ID, pollID)
+		err = database.DeleteVotesForUserTX(user.ID, pollID, tx)
 		if err != nil {
 			if pqErr, ok := err.(*pq.Error); ok &&
 				pqErr.Code == database.ERR_SERIALIZATION_FAILURE {
