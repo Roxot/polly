@@ -10,8 +10,8 @@ import (
 	"github.com/roxot/polly/database"
 	"github.com/roxot/polly/log"
 
-	"github.com/alexjlockwood/gcm"
 	"github.com/timehop/apns"
+	"github.com/yogyrahmawan/gcm"
 )
 
 const (
@@ -159,6 +159,7 @@ func (pushClient *sPushClient) sendAndroidNotification(deviceGUID string,
 		"title": notificationMsg.Title}
 	regIDs := []string{deviceGUID}
 	msg := gcm.NewMessage(data, regIDs...)
+	msg.Priority = gcm.HighPriority
 
 	// send the notification to the GCM server
 	response, err := pushClient.androidClient.Send(msg, cAndroidRetries)
