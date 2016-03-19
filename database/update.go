@@ -42,7 +42,7 @@ func (db *Database) UpdateToken(userID int64, token string) error {
 }
 
 func (db *Database) UpdateSequenceNumber(pollID int64) error {
-	_, err := db.mapping.Exec(fmt.Sprintf("update %d set %s=%s+1 where %s=$1;",
+	_, err := db.mapping.Exec(fmt.Sprintf("update %s set %s=%s+1 where %s=$1;",
 		cPollTableName, cSequenceNumber, cSequenceNumber, cID), pollID)
 	return err
 }
