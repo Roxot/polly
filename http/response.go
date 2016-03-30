@@ -47,6 +47,7 @@ const (
 	ERR_INT_DO_HTTP      = BASE_INT + iota // 110
 	ERR_INT_NOTIFICATION = BASE_INT + iota // 111
 	ERR_INT_CP_SCHEDULER = BASE_INT + iota // 112
+	ERR_INT_PARSE_INT    = BASE_INT + iota // 113
 )
 
 const (
@@ -103,6 +104,7 @@ var vAPICodeMessages = map[int]string{
 	ERR_INT_DO_HTTP:      "Failed to do HTTP request.",
 	ERR_INT_NOTIFICATION: "Failed to send notifications.",
 	ERR_INT_CP_SCHEDULER: "Failed to schedule poll closing event.",
+	ERR_INT_PARSE_INT:    "Failed to parse integer.",
 
 	ERR_ILL_POLL_ACCESS:  "No access to poll.",
 	ERR_ILL_ADD_OPTION:   "Not allowed to add options.",
@@ -153,6 +155,7 @@ var vAPICodeHTTPStatuses = map[int]int{
 	ERR_INT_DO_HTTP:      http.StatusInternalServerError,
 	ERR_INT_NOTIFICATION: http.StatusInternalServerError,
 	ERR_INT_CP_SCHEDULER: http.StatusInternalServerError,
+	ERR_INT_PARSE_INT:    http.StatusInternalServerError,
 
 	ERR_ILL_POLL_ACCESS:  http.StatusForbidden,
 	ERR_ILL_ADD_OPTION:   http.StatusForbidden,
@@ -203,6 +206,7 @@ var vAPICodeHeaderHandler = map[int]fHeaderHandler{
 	ERR_INT_DO_HTTP:      setJSONContentTypeHeader,
 	ERR_INT_NOTIFICATION: setJSONContentTypeHeader,
 	ERR_INT_CP_SCHEDULER: setJSONContentTypeHeader,
+	ERR_INT_PARSE_INT:    setJSONContentTypeHeader,
 
 	ERR_ILL_POLL_ACCESS:  setJSONContentTypeHeader,
 	ERR_ILL_ADD_OPTION:   setJSONContentTypeHeader,
@@ -253,6 +257,7 @@ var vAPICodeShouldLog = map[int]bool{
 	ERR_INT_DO_HTTP:      true,
 	ERR_INT_NOTIFICATION: true,
 	ERR_INT_CP_SCHEDULER: true,
+	ERR_INT_PARSE_INT:    true,
 
 	ERR_ILL_POLL_ACCESS:  true,
 	ERR_ILL_ADD_OPTION:   true,

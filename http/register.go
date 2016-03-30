@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/roxot/polly"
@@ -19,7 +20,7 @@ const (
 )
 
 type sFacebookResponse struct {
-	ID int64 `json:"id"`
+	ID string `json:"id"`
 }
 
 func (server *sServer) Register(writer http.ResponseWriter,
@@ -146,5 +147,11 @@ func verifyFacebookUser(token string) (int64, int, error) {
 		return 0, ERR_INT_DEMARSHALL, err
 	}
 
-	return respBody.ID, NO_ERR, nil
+	// Parse the Facebook ID as a 64 bit integer
+	id, err := strconv.ParseInt(respBody.ID, 10, 64)
+	if err != nil {
+		return 0, ERR_INT_PARSE_INT, nil
+	}
+
+	return id, NO_ERR, nil
 }
