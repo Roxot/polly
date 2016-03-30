@@ -57,6 +57,13 @@ func (server *sServer) Register(writer http.ResponseWriter,
 		return
 	}
 
+	// make sure a display name is set
+	if len(user.DisplayName) == 0 {
+		server.respondWithError(ERR_BAD_NO_DISPLAY_NAME, nil, cRegisterTag,
+			writer, request)
+		return
+	}
+
 	existentUser, err := server.db.GetUserByID(id)
 	if err == nil {
 

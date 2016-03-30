@@ -3,9 +3,10 @@ package http
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/roxot/polly"
 	"net"
 	"net/http"
+
+	"github.com/roxot/polly"
 )
 
 type fHeaderHandler func(writer http.ResponseWriter)
@@ -75,6 +76,7 @@ const (
 	ERR_BAD_ID                    = BASE_BAD + iota // 315
 	ERR_BAD_CLOSING_DATE          = BASE_BAD + iota // 316
 	ERR_BAD_NO_ID                 = BASE_BAD + iota // 317
+	ERR_BAD_NO_DISPLAY_NAME       = BASE_BAD + iota // 318
 )
 
 const (
@@ -126,6 +128,7 @@ var vAPICodeMessages = map[int]string{
 	ERR_BAD_ID:                    "Bad ID.",
 	ERR_BAD_CLOSING_DATE:          "Bad closing date.",
 	ERR_BAD_NO_ID:                 "No ID provided.",
+	ERR_BAD_NO_DISPLAY_NAME:       "No display name provided.",
 
 	ERR_AUT_NO_AUTH:            "No authentication provided.",
 	ERR_AUT_NO_USER:            "No such user.",
@@ -175,6 +178,7 @@ var vAPICodeHTTPStatuses = map[int]int{
 	ERR_BAD_ID:                    http.StatusBadRequest,
 	ERR_BAD_CLOSING_DATE:          http.StatusBadRequest,
 	ERR_BAD_NO_ID:                 http.StatusBadRequest,
+	ERR_BAD_NO_DISPLAY_NAME:       http.StatusBadRequest,
 
 	ERR_AUT_NO_AUTH:            http.StatusUnauthorized,
 	ERR_AUT_NO_USER:            http.StatusForbidden,
@@ -224,6 +228,7 @@ var vAPICodeHeaderHandler = map[int]fHeaderHandler{
 	ERR_BAD_ID:                    setJSONContentTypeHeader,
 	ERR_BAD_CLOSING_DATE:          setJSONContentTypeHeader,
 	ERR_BAD_NO_ID:                 setJSONContentTypeHeader,
+	ERR_BAD_NO_DISPLAY_NAME:       setJSONContentTypeHeader,
 
 	ERR_AUT_NO_AUTH:            setAuthenticationChallengeHeaders,
 	ERR_AUT_NO_USER:            setJSONContentTypeHeader,
@@ -273,6 +278,7 @@ var vAPICodeShouldLog = map[int]bool{
 	ERR_BAD_ID:                    true,
 	ERR_BAD_CLOSING_DATE:          true,
 	ERR_BAD_NO_ID:                 true,
+	ERR_BAD_NO_DISPLAY_NAME:       true,
 
 	ERR_AUT_NO_AUTH:            false,
 	ERR_AUT_NO_USER:            true,
