@@ -3,9 +3,10 @@ package http
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/roxot/polly"
 	"net"
 	"net/http"
+
+	"github.com/roxot/polly"
 )
 
 type fHeaderHandler func(writer http.ResponseWriter)
@@ -46,6 +47,7 @@ const (
 	ERR_INT_DO_HTTP      = BASE_INT + iota // 110
 	ERR_INT_NOTIFICATION = BASE_INT + iota // 111
 	ERR_INT_CP_SCHEDULER = BASE_INT + iota // 112
+	ERR_INT_PARSE_INT    = BASE_INT + iota // 113
 )
 
 const (
@@ -75,14 +77,15 @@ const (
 	ERR_BAD_ID                    = BASE_BAD + iota // 315
 	ERR_BAD_CLOSING_DATE          = BASE_BAD + iota // 316
 	ERR_BAD_NO_ID                 = BASE_BAD + iota // 317
+	ERR_BAD_NO_DISPLAY_NAME       = BASE_BAD + iota // 318
 )
 
 const (
 	ERR_AUT_NO_AUTH            = BASE_AUT + iota // 400
 	ERR_AUT_NO_USER            = BASE_AUT + iota // 401
 	ERR_AUT_BAD_TOKEN          = BASE_AUT + iota // 402
-	ERR_AUT_NO_OAUTH_HEADERS   = BASE_AUT + iota // 403
-	ERR_AUT_BAD_OAUTH_RESPONSE = BASE_AUT + iota // 404
+	ERR_AUT_NO_FACEBOOK_TOKEN  = BASE_AUT + iota // 403
+	ERR_AUT_BAD_FACEBOOK_TOKEN = BASE_AUT + iota // 404
 )
 
 var vAPICodeMessages = map[int]string{
@@ -101,6 +104,7 @@ var vAPICodeMessages = map[int]string{
 	ERR_INT_DO_HTTP:      "Failed to do HTTP request.",
 	ERR_INT_NOTIFICATION: "Failed to send notifications.",
 	ERR_INT_CP_SCHEDULER: "Failed to schedule poll closing event.",
+	ERR_INT_PARSE_INT:    "Failed to parse integer.",
 
 	ERR_ILL_POLL_ACCESS:  "No access to poll.",
 	ERR_ILL_ADD_OPTION:   "Not allowed to add options.",
@@ -126,12 +130,13 @@ var vAPICodeMessages = map[int]string{
 	ERR_BAD_ID:                    "Bad ID.",
 	ERR_BAD_CLOSING_DATE:          "Bad closing date.",
 	ERR_BAD_NO_ID:                 "No ID provided.",
+	ERR_BAD_NO_DISPLAY_NAME:       "No display name provided.",
 
 	ERR_AUT_NO_AUTH:            "No authentication provided.",
 	ERR_AUT_NO_USER:            "No such user.",
 	ERR_AUT_BAD_TOKEN:          "Bad token.",
-	ERR_AUT_NO_OAUTH_HEADERS:   "No OAuth Echo headers provided.",
-	ERR_AUT_BAD_OAUTH_RESPONSE: "OAuth authentication failed.",
+	ERR_AUT_NO_FACEBOOK_TOKEN:  "No Facebook token provided.",
+	ERR_AUT_BAD_FACEBOOK_TOKEN: "Bad Facebook token.",
 }
 
 var vAPICodeHTTPStatuses = map[int]int{
@@ -150,6 +155,7 @@ var vAPICodeHTTPStatuses = map[int]int{
 	ERR_INT_DO_HTTP:      http.StatusInternalServerError,
 	ERR_INT_NOTIFICATION: http.StatusInternalServerError,
 	ERR_INT_CP_SCHEDULER: http.StatusInternalServerError,
+	ERR_INT_PARSE_INT:    http.StatusInternalServerError,
 
 	ERR_ILL_POLL_ACCESS:  http.StatusForbidden,
 	ERR_ILL_ADD_OPTION:   http.StatusForbidden,
@@ -175,12 +181,13 @@ var vAPICodeHTTPStatuses = map[int]int{
 	ERR_BAD_ID:                    http.StatusBadRequest,
 	ERR_BAD_CLOSING_DATE:          http.StatusBadRequest,
 	ERR_BAD_NO_ID:                 http.StatusBadRequest,
+	ERR_BAD_NO_DISPLAY_NAME:       http.StatusBadRequest,
 
 	ERR_AUT_NO_AUTH:            http.StatusUnauthorized,
 	ERR_AUT_NO_USER:            http.StatusForbidden,
 	ERR_AUT_BAD_TOKEN:          http.StatusForbidden,
-	ERR_AUT_NO_OAUTH_HEADERS:   http.StatusForbidden,
-	ERR_AUT_BAD_OAUTH_RESPONSE: http.StatusForbidden,
+	ERR_AUT_NO_FACEBOOK_TOKEN:  http.StatusBadRequest,
+	ERR_AUT_BAD_FACEBOOK_TOKEN: http.StatusForbidden,
 }
 
 var vAPICodeHeaderHandler = map[int]fHeaderHandler{
@@ -199,6 +206,7 @@ var vAPICodeHeaderHandler = map[int]fHeaderHandler{
 	ERR_INT_DO_HTTP:      setJSONContentTypeHeader,
 	ERR_INT_NOTIFICATION: setJSONContentTypeHeader,
 	ERR_INT_CP_SCHEDULER: setJSONContentTypeHeader,
+	ERR_INT_PARSE_INT:    setJSONContentTypeHeader,
 
 	ERR_ILL_POLL_ACCESS:  setJSONContentTypeHeader,
 	ERR_ILL_ADD_OPTION:   setJSONContentTypeHeader,
@@ -224,12 +232,13 @@ var vAPICodeHeaderHandler = map[int]fHeaderHandler{
 	ERR_BAD_ID:                    setJSONContentTypeHeader,
 	ERR_BAD_CLOSING_DATE:          setJSONContentTypeHeader,
 	ERR_BAD_NO_ID:                 setJSONContentTypeHeader,
+	ERR_BAD_NO_DISPLAY_NAME:       setJSONContentTypeHeader,
 
 	ERR_AUT_NO_AUTH:            setAuthenticationChallengeHeaders,
 	ERR_AUT_NO_USER:            setJSONContentTypeHeader,
 	ERR_AUT_BAD_TOKEN:          setJSONContentTypeHeader,
-	ERR_AUT_NO_OAUTH_HEADERS:   setJSONContentTypeHeader,
-	ERR_AUT_BAD_OAUTH_RESPONSE: setJSONContentTypeHeader,
+	ERR_AUT_NO_FACEBOOK_TOKEN:  setJSONContentTypeHeader,
+	ERR_AUT_BAD_FACEBOOK_TOKEN: setJSONContentTypeHeader,
 }
 
 var vAPICodeShouldLog = map[int]bool{
@@ -248,6 +257,7 @@ var vAPICodeShouldLog = map[int]bool{
 	ERR_INT_DO_HTTP:      true,
 	ERR_INT_NOTIFICATION: true,
 	ERR_INT_CP_SCHEDULER: true,
+	ERR_INT_PARSE_INT:    true,
 
 	ERR_ILL_POLL_ACCESS:  true,
 	ERR_ILL_ADD_OPTION:   true,
@@ -273,12 +283,13 @@ var vAPICodeShouldLog = map[int]bool{
 	ERR_BAD_ID:                    true,
 	ERR_BAD_CLOSING_DATE:          true,
 	ERR_BAD_NO_ID:                 true,
+	ERR_BAD_NO_DISPLAY_NAME:       true,
 
 	ERR_AUT_NO_AUTH:            false,
 	ERR_AUT_NO_USER:            true,
 	ERR_AUT_BAD_TOKEN:          true,
-	ERR_AUT_NO_OAUTH_HEADERS:   true,
-	ERR_AUT_BAD_OAUTH_RESPONSE: true,
+	ERR_AUT_NO_FACEBOOK_TOKEN:  true,
+	ERR_AUT_BAD_FACEBOOK_TOKEN: true,
 }
 
 func setJSONContentTypeHeader(writer http.ResponseWriter) {
