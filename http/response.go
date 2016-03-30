@@ -81,8 +81,8 @@ const (
 	ERR_AUT_NO_AUTH            = BASE_AUT + iota // 400
 	ERR_AUT_NO_USER            = BASE_AUT + iota // 401
 	ERR_AUT_BAD_TOKEN          = BASE_AUT + iota // 402
-	ERR_AUT_NO_OAUTH_HEADERS   = BASE_AUT + iota // 403
-	ERR_AUT_BAD_OAUTH_RESPONSE = BASE_AUT + iota // 404
+	ERR_AUT_NO_FACEBOOK_TOKEN  = BASE_AUT + iota // 403
+	ERR_AUT_BAD_FACEBOOK_TOKEN = BASE_AUT + iota // 404
 )
 
 var vAPICodeMessages = map[int]string{
@@ -130,8 +130,8 @@ var vAPICodeMessages = map[int]string{
 	ERR_AUT_NO_AUTH:            "No authentication provided.",
 	ERR_AUT_NO_USER:            "No such user.",
 	ERR_AUT_BAD_TOKEN:          "Bad token.",
-	ERR_AUT_NO_OAUTH_HEADERS:   "No OAuth Echo headers provided.",
-	ERR_AUT_BAD_OAUTH_RESPONSE: "OAuth authentication failed.",
+	ERR_AUT_NO_FACEBOOK_TOKEN:  "No Facebook token provided.",
+	ERR_AUT_BAD_FACEBOOK_TOKEN: "Bad Facebook token.",
 }
 
 var vAPICodeHTTPStatuses = map[int]int{
@@ -179,8 +179,8 @@ var vAPICodeHTTPStatuses = map[int]int{
 	ERR_AUT_NO_AUTH:            http.StatusUnauthorized,
 	ERR_AUT_NO_USER:            http.StatusForbidden,
 	ERR_AUT_BAD_TOKEN:          http.StatusForbidden,
-	ERR_AUT_NO_OAUTH_HEADERS:   http.StatusForbidden,
-	ERR_AUT_BAD_OAUTH_RESPONSE: http.StatusForbidden,
+	ERR_AUT_NO_FACEBOOK_TOKEN:  http.StatusBadRequest,
+	ERR_AUT_BAD_FACEBOOK_TOKEN: http.StatusForbidden,
 }
 
 var vAPICodeHeaderHandler = map[int]fHeaderHandler{
@@ -228,8 +228,8 @@ var vAPICodeHeaderHandler = map[int]fHeaderHandler{
 	ERR_AUT_NO_AUTH:            setAuthenticationChallengeHeaders,
 	ERR_AUT_NO_USER:            setJSONContentTypeHeader,
 	ERR_AUT_BAD_TOKEN:          setJSONContentTypeHeader,
-	ERR_AUT_NO_OAUTH_HEADERS:   setJSONContentTypeHeader,
-	ERR_AUT_BAD_OAUTH_RESPONSE: setJSONContentTypeHeader,
+	ERR_AUT_NO_FACEBOOK_TOKEN:  setJSONContentTypeHeader,
+	ERR_AUT_BAD_FACEBOOK_TOKEN: setJSONContentTypeHeader,
 }
 
 var vAPICodeShouldLog = map[int]bool{
@@ -277,8 +277,8 @@ var vAPICodeShouldLog = map[int]bool{
 	ERR_AUT_NO_AUTH:            false,
 	ERR_AUT_NO_USER:            true,
 	ERR_AUT_BAD_TOKEN:          true,
-	ERR_AUT_NO_OAUTH_HEADERS:   true,
-	ERR_AUT_BAD_OAUTH_RESPONSE: true,
+	ERR_AUT_NO_FACEBOOK_TOKEN:  true,
+	ERR_AUT_BAD_FACEBOOK_TOKEN: true,
 }
 
 func setJSONContentTypeHeader(writer http.ResponseWriter) {
