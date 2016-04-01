@@ -8,10 +8,11 @@ import (
 )
 
 type Config struct {
-	DBConfig              database.Config
-	TruncateDB            bool
-	Port                  string
-	ClosedPollPushRetries uint
+	DBConfig                   database.Config
+	TruncateDB                 bool
+	Port                       string
+	ClosedPollPushRetries      uint
+	VerifyRegisterWithFacebook bool
 }
 
 func ConfigFromFile(filename string) (*Config, error) {

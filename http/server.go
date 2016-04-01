@@ -31,7 +31,7 @@ type sServer struct {
 	logger      log.ILogger
 	pushClient  push.IPushClient
 	cpScheduler jobs.Type
-	port        string
+	config      Config
 }
 
 func NewServer(config *Config) (IServer, error) {
@@ -64,7 +64,7 @@ func NewServer(config *Config) (IServer, error) {
 	server.logger = log.NewLogger()
 	server.db = *db
 	server.router = *httprouter.New()
-	server.port = config.Port
+	server.config = *config
 
 	// start the push notification server's error logging
 	err = pushClient.StartErrorLogger(server.logger)
@@ -126,6 +126,6 @@ func (server *sServer) Start() error {
 	server.router.POST(fmt.Sprintf(cEndpointFormat, cAPIVersion, "adduser"),
 		server.AddUser)
 	server.logger.Log(cHTTPServerTag, "Starting HTTP server", "::1")
-	err = http.ListenAndServe(server.port, &server.router)
+	err = http.ListenAndServe(server.config.Port, &server.router)
 	return err
 }

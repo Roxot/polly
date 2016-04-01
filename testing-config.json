@@ -7,5 +7,6 @@
     },
     "TruncateDB": true,
     "Port": ":6060",
-    "ClosedPollPushRetries": 2
+    "ClosedPollPushRetries": 2,
+    "VerifyRegisterWithFacebook": false
 }
