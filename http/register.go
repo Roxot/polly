@@ -71,6 +71,8 @@ func (server *sServer) Register(writer http.ResponseWriter,
 		// we're dealing with an already existing user, generate a new token
 		// and update his or her device type
 		existentUser.DeviceType = user.DeviceType
+		// TODO update profile pic && display name
+		// TODO stuff is not updated here? bug?
 		existentUser.Token = uuid.NewV4().String()
 		err = server.db.UpdateToken(existentUser.ID, existentUser.Token)
 		if err != nil {
