@@ -1,46 +1,36 @@
 package main
 
 import (
-	"flag"
+	"fmt"
 	"log"
+	"os"
 
-	"github.com/roxot/polly/database"
 	"github.com/roxot/polly/http"
 )
 
-const (
-	cPsqlUser     = "polly"
-	cPsqlPassword = "w01V3s"
-	cDBName       = "pollydb"
-	cPort         = ":8080"
-
-	cFlagClearDB = "cleardb"
-)
-
 func main() {
-
-	var clearDB bool
-	flag.BoolVar(&clearDB, cFlagClearDB, false,
-		"Set to true to reset the database.")
-	flag.Parse()
-
-	dbConfig := database.DBConfig{}
-	dbConfig.User = cPsqlUser
-	dbConfig.Password = cPsqlPassword
-	dbConfig.Name = cDBName
-
-	log.Println("Opening database...")
-	srv, err := http.NewServer(&dbConfig, clearDB)
-	if err != nil {
-		panic(err)
-	} else {
-		log.Println("Database opened successfully.")
+	if len(os.Args) < 2 {
+		printUsage()
+		return
 	}
 
-	log.Printf("Starting HTTP server on port %s...\n", cPort)
-	err = srv.Start(cPort)
+	config, err := http.ConfigFromFile(os.Args[1])
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 
+	srv, err := http.NewServer(config)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	log.Printf("Starting HTTP server on port %s...\n", config.Port)
+	if err := srv.Start(); err != nil {
+		log.Fatal(err)
+	}
+
+}
+
+func printUsage() {
+	fmt.Println("Usage: pollyserver <config>")
 }

@@ -2,26 +2,26 @@ package http
 
 import (
 	"fmt"
+	"net/http"
+
 	"github.com/albrow/jobs"
 	"github.com/roxot/polly/database"
 	"github.com/roxot/polly/log"
 	"github.com/roxot/polly/push"
-	"net/http"
 
 	"github.com/julienschmidt/httprouter"
 )
 
 const (
-	cHTTPServerTag      = "HTTPSERVER"
-	cAPIVersion         = "v0.1"
-	cEndpointFormat     = "/%s/%s.json"
-	cClosedPollsJobs    = "CLOSED_POLLS"
-	cClosedPollsRetries = 2 // TODO config
+	cHTTPServerTag   = "HTTPSERVER"
+	cAPIVersion      = "v0.1"
+	cEndpointFormat  = "/%s/%s.json"
+	cClosedPollsJobs = "CLOSED_POLLS"
 	// cEndpointWithVarFormat = cEndpointFormat + ":%s"
 )
 
 type IServer interface {
-	Start(port string) error
+	Start() error
 	// Stop() TODO ?
 }
 
@@ -31,18 +31,19 @@ type sServer struct {
 	logger      log.ILogger
 	pushClient  push.IPushClient
 	cpScheduler jobs.Type
+	port        string
 }
 
-func NewServer(dbConfig *database.DBConfig, clearDB bool) (IServer, error) {
+func NewServer(config *Config) (IServer, error) {
 	var err error
 	server := sServer{}
 
-	db, err := database.NewDatabase(dbConfig)
+	db, err := database.NewDatabase(&config.DBConfig)
 	if err != nil {
 		return nil, err
 	}
 
-	if clearDB {
+	if config.TruncateDB {
 		err = db.DropTablesIfExists()
 		if err != nil {
 			return nil, err
@@ -71,8 +72,8 @@ func NewServer(dbConfig *database.DBConfig, clearDB bool) (IServer, error) {
 	}
 
 	// register the closed poll scheduler
-	cpScheduler, err := jobs.RegisterType(cClosedPollsJobs, cClosedPollsRetries,
-		server.ClosePoll)
+	cpScheduler, err := jobs.RegisterType(cClosedPollsJobs,
+		config.ClosedPollPushRetries, server.ClosePoll)
 	if err != nil {
 		return nil, err
 	}
@@ -95,13 +96,14 @@ func NewServer(dbConfig *database.DBConfig, clearDB bool) (IServer, error) {
 }
 
 // is sync
-func (server *sServer) Start(port string) error {
+func (server *sServer) Start() error {
 	var err error
 	err = server.logger.Start()
 	if err != nil {
 		return err
 	}
 
+	// TODO endpoint formatting to function
 	server.router.POST(fmt.Sprintf(cEndpointFormat, cAPIVersion, "register"),
 		server.Register)
 	server.router.PUT(fmt.Sprintf(cEndpointFormat, cAPIVersion, "user"),
@@ -123,6 +125,6 @@ func (server *sServer) Start(port string) error {
 	server.router.POST(fmt.Sprintf(cEndpointFormat, cAPIVersion, "adduser"),
 		server.AddUser)
 	server.logger.Log(cHTTPServerTag, "Starting HTTP server", "::1")
-	 err = http.ListenAndServe(port, &server.router)
+	err = http.ListenAndServe(server.port, &server.router)
 	return err
 }

@@ -3,34 +3,32 @@ package database
 import (
 	"database/sql"
 	"fmt"
+
 	"github.com/roxot/polly"
 
 	_ "github.com/lib/pq"
 	"gopkg.in/gorp.v1"
 )
 
-const (
-	cSSLMode = "disable"
-)
-
 type Database struct {
 	mapping gorp.DbMap
 }
 
-type DBConfig struct {
-	Name     string
+type Config struct {
+	DBName   string
 	User     string
 	Password string
+	SSLMode  string
 }
 
-func NewDatabase(dbConfig *DBConfig) (*Database, error) {
+func NewDatabase(config *Config) (*Database, error) {
 	db := Database{}
 
 	// open the given postgres database
 	sqlDB, err := sql.Open("postgres", fmt.Sprintf(
 		"user=%s password=%s dbname=%s sslmode=%s",
-		dbConfig.User, dbConfig.Password, dbConfig.Name,
-		cSSLMode))
+		config.User, config.Password, config.DBName,
+		config.SSLMode))
 
 	// return any errors
 	if err != nil {

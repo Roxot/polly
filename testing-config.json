@@ -1,0 +1,11 @@
+{
+    "DBConfig": {
+        "DBName": "pollytestdb",
+        "User": "polly",
+        "Password": "",
+        "SSLMode": "disable"
+    },
+    "TruncateDB": true,
+    "Port": ":6060",
+    "ClosedPollPushRetries": 2
+}
