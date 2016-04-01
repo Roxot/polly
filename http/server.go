@@ -64,6 +64,7 @@ func NewServer(config *Config) (IServer, error) {
 	server.logger = log.NewLogger()
 	server.db = *db
 	server.router = *httprouter.New()
+	server.port = config.Port
 
 	// start the push notification server's error logging
 	err = pushClient.StartErrorLogger(server.logger)
