@@ -239,7 +239,9 @@ func (server *sServer) AddUser(writer http.ResponseWriter,
 		_, err = tx.Exec("set transaction isolation level serializable;")
 		if err != nil {
 			tx.Rollback()
-			panic(err)
+			server.respondWithError(ERR_INT_DB_TX_SET_TX_LEVEL, err,
+				cAddUserTag, writer, request)
+			return
 		}
 
 		// update the poll last updated and seq number

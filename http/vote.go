@@ -126,7 +126,9 @@ func (server *sServer) Vote(writer http.ResponseWriter, request *http.Request,
 		_, err = tx.Exec("set transaction isolation level serializable;")
 		if err != nil {
 			tx.Rollback()
-			panic(err)
+			server.respondWithError(ERR_INT_DB_TX_SET_TX_LEVEL, err,
+				cVoteTag, writer, request)
+			return
 		}
 
 		// update the poll last updated and seq number
@@ -346,7 +348,9 @@ func (server *sServer) UndoVote(writer http.ResponseWriter,
 		_, err = tx.Exec("set transaction isolation level serializable;")
 		if err != nil {
 			tx.Rollback()
-			panic(err)
+			server.respondWithError(ERR_INT_DB_TX_SET_TX_LEVEL, err,
+				cUndoVoteTag, writer, request)
+			return
 		}
 
 		// update the poll last updated and seq number
