@@ -34,20 +34,21 @@ const (
 )
 
 const (
-	ERR_INT_DB_ADD       = BASE_INT + iota // 100
-	ERR_INT_DB_GET       = BASE_INT + iota // 101
-	ERR_INT_DB_UPDATE    = BASE_INT + iota // 102
-	ERR_INT_DB_DELETE    = BASE_INT + iota // 103
-	ERR_INT_DB_TX_BEGIN  = BASE_INT + iota // 104
-	ERR_INT_DB_TX_COMMIT = BASE_INT + iota // 105
-	ERR_INT_MARSHALL     = BASE_INT + iota // 106
-	ERR_INT_DEMARSHALL   = BASE_INT + iota // 107
-	ERR_INT_WRITE        = BASE_INT + iota // 108
-	ERR_INT_CREATE_HTTP  = BASE_INT + iota // 109
-	ERR_INT_DO_HTTP      = BASE_INT + iota // 110
-	ERR_INT_NOTIFICATION = BASE_INT + iota // 111
-	ERR_INT_CP_SCHEDULER = BASE_INT + iota // 112
-	ERR_INT_PARSE_INT    = BASE_INT + iota // 113
+	ERR_INT_DB_ADD             = BASE_INT + iota // 100
+	ERR_INT_DB_GET             = BASE_INT + iota // 101
+	ERR_INT_DB_UPDATE          = BASE_INT + iota // 102
+	ERR_INT_DB_DELETE          = BASE_INT + iota // 103
+	ERR_INT_DB_TX_BEGIN        = BASE_INT + iota // 104
+	ERR_INT_DB_TX_COMMIT       = BASE_INT + iota // 105
+	ERR_INT_DB_TX_SET_TX_LEVEL = BASE_INT + iota // 106
+	ERR_INT_MARSHALL           = BASE_INT + iota // 107
+	ERR_INT_DEMARSHALL         = BASE_INT + iota // 108
+	ERR_INT_WRITE              = BASE_INT + iota // 109
+	ERR_INT_CREATE_HTTP        = BASE_INT + iota // 110
+	ERR_INT_DO_HTTP            = BASE_INT + iota // 111
+	ERR_INT_NOTIFICATION       = BASE_INT + iota // 112
+	ERR_INT_CP_SCHEDULER       = BASE_INT + iota // 113
+	ERR_INT_PARSE_INT          = BASE_INT + iota // 114
 )
 
 const (
@@ -91,20 +92,21 @@ const (
 var vAPICodeMessages = map[int]string{
 	NO_ERR: "No error.",
 
-	ERR_INT_DB_ADD:       "Failed to add to database.",
-	ERR_INT_DB_GET:       "Failed to retrieve from database.",
-	ERR_INT_DB_UPDATE:    "Failed to update database.",
-	ERR_INT_DB_DELETE:    "Failed to delete from database.",
-	ERR_INT_DB_TX_BEGIN:  "Failed to start transaction.",
-	ERR_INT_DB_TX_COMMIT: "Failed to commit transaction.",
-	ERR_INT_MARSHALL:     "Failed to marshall response.",
-	ERR_INT_DEMARSHALL:   "Failed to demarshall request.",
-	ERR_INT_WRITE:        "Failed to write response.",
-	ERR_INT_CREATE_HTTP:  "Failed to create HTTP request.",
-	ERR_INT_DO_HTTP:      "Failed to do HTTP request.",
-	ERR_INT_NOTIFICATION: "Failed to send notifications.",
-	ERR_INT_CP_SCHEDULER: "Failed to schedule poll closing event.",
-	ERR_INT_PARSE_INT:    "Failed to parse integer.",
+	ERR_INT_DB_ADD:             "Failed to add to database.",
+	ERR_INT_DB_GET:             "Failed to retrieve from database.",
+	ERR_INT_DB_UPDATE:          "Failed to update database.",
+	ERR_INT_DB_DELETE:          "Failed to delete from database.",
+	ERR_INT_DB_TX_BEGIN:        "Failed to start transaction.",
+	ERR_INT_DB_TX_COMMIT:       "Failed to commit transaction.",
+	ERR_INT_DB_TX_SET_TX_LEVEL: "Failed to set transaction level.",
+	ERR_INT_MARSHALL:           "Failed to marshall response.",
+	ERR_INT_DEMARSHALL:         "Failed to demarshall request.",
+	ERR_INT_WRITE:              "Failed to write response.",
+	ERR_INT_CREATE_HTTP:        "Failed to create HTTP request.",
+	ERR_INT_DO_HTTP:            "Failed to do HTTP request.",
+	ERR_INT_NOTIFICATION:       "Failed to send notifications.",
+	ERR_INT_CP_SCHEDULER:       "Failed to schedule poll closing event.",
+	ERR_INT_PARSE_INT:          "Failed to parse integer.",
 
 	ERR_ILL_POLL_ACCESS:  "No access to poll.",
 	ERR_ILL_ADD_OPTION:   "Not allowed to add options.",
@@ -142,20 +144,21 @@ var vAPICodeMessages = map[int]string{
 var vAPICodeHTTPStatuses = map[int]int{
 	NO_ERR: http.StatusOK,
 
-	ERR_INT_DB_ADD:       http.StatusInternalServerError,
-	ERR_INT_DB_GET:       http.StatusInternalServerError,
-	ERR_INT_DB_UPDATE:    http.StatusInternalServerError,
-	ERR_INT_DB_DELETE:    http.StatusInternalServerError,
-	ERR_INT_DB_TX_BEGIN:  http.StatusInternalServerError,
-	ERR_INT_DB_TX_COMMIT: http.StatusInternalServerError,
-	ERR_INT_MARSHALL:     http.StatusInternalServerError,
-	ERR_INT_DEMARSHALL:   http.StatusInternalServerError,
-	ERR_INT_WRITE:        http.StatusInternalServerError,
-	ERR_INT_CREATE_HTTP:  http.StatusInternalServerError,
-	ERR_INT_DO_HTTP:      http.StatusInternalServerError,
-	ERR_INT_NOTIFICATION: http.StatusInternalServerError,
-	ERR_INT_CP_SCHEDULER: http.StatusInternalServerError,
-	ERR_INT_PARSE_INT:    http.StatusInternalServerError,
+	ERR_INT_DB_ADD:             http.StatusInternalServerError,
+	ERR_INT_DB_GET:             http.StatusInternalServerError,
+	ERR_INT_DB_UPDATE:          http.StatusInternalServerError,
+	ERR_INT_DB_DELETE:          http.StatusInternalServerError,
+	ERR_INT_DB_TX_BEGIN:        http.StatusInternalServerError,
+	ERR_INT_DB_TX_COMMIT:       http.StatusInternalServerError,
+	ERR_INT_DB_TX_SET_TX_LEVEL: http.StatusInternalServerError,
+	ERR_INT_MARSHALL:           http.StatusInternalServerError,
+	ERR_INT_DEMARSHALL:         http.StatusInternalServerError,
+	ERR_INT_WRITE:              http.StatusInternalServerError,
+	ERR_INT_CREATE_HTTP:        http.StatusInternalServerError,
+	ERR_INT_DO_HTTP:            http.StatusInternalServerError,
+	ERR_INT_NOTIFICATION:       http.StatusInternalServerError,
+	ERR_INT_CP_SCHEDULER:       http.StatusInternalServerError,
+	ERR_INT_PARSE_INT:          http.StatusInternalServerError,
 
 	ERR_ILL_POLL_ACCESS:  http.StatusForbidden,
 	ERR_ILL_ADD_OPTION:   http.StatusForbidden,
@@ -193,20 +196,21 @@ var vAPICodeHTTPStatuses = map[int]int{
 var vAPICodeHeaderHandler = map[int]fHeaderHandler{
 	NO_ERR: setJSONContentTypeHeader,
 
-	ERR_INT_DB_ADD:       setJSONContentTypeHeader,
-	ERR_INT_DB_GET:       setJSONContentTypeHeader,
-	ERR_INT_DB_UPDATE:    setJSONContentTypeHeader,
-	ERR_INT_DB_DELETE:    setJSONContentTypeHeader,
-	ERR_INT_DB_TX_BEGIN:  setJSONContentTypeHeader,
-	ERR_INT_DB_TX_COMMIT: setJSONContentTypeHeader,
-	ERR_INT_MARSHALL:     setJSONContentTypeHeader,
-	ERR_INT_DEMARSHALL:   setJSONContentTypeHeader,
-	ERR_INT_WRITE:        setJSONContentTypeHeader,
-	ERR_INT_CREATE_HTTP:  setJSONContentTypeHeader,
-	ERR_INT_DO_HTTP:      setJSONContentTypeHeader,
-	ERR_INT_NOTIFICATION: setJSONContentTypeHeader,
-	ERR_INT_CP_SCHEDULER: setJSONContentTypeHeader,
-	ERR_INT_PARSE_INT:    setJSONContentTypeHeader,
+	ERR_INT_DB_ADD:             setJSONContentTypeHeader,
+	ERR_INT_DB_GET:             setJSONContentTypeHeader,
+	ERR_INT_DB_UPDATE:          setJSONContentTypeHeader,
+	ERR_INT_DB_DELETE:          setJSONContentTypeHeader,
+	ERR_INT_DB_TX_BEGIN:        setJSONContentTypeHeader,
+	ERR_INT_DB_TX_COMMIT:       setJSONContentTypeHeader,
+	ERR_INT_DB_TX_SET_TX_LEVEL: setJSONContentTypeHeader,
+	ERR_INT_MARSHALL:           setJSONContentTypeHeader,
+	ERR_INT_DEMARSHALL:         setJSONContentTypeHeader,
+	ERR_INT_WRITE:              setJSONContentTypeHeader,
+	ERR_INT_CREATE_HTTP:        setJSONContentTypeHeader,
+	ERR_INT_DO_HTTP:            setJSONContentTypeHeader,
+	ERR_INT_NOTIFICATION:       setJSONContentTypeHeader,
+	ERR_INT_CP_SCHEDULER:       setJSONContentTypeHeader,
+	ERR_INT_PARSE_INT:          setJSONContentTypeHeader,
 
 	ERR_ILL_POLL_ACCESS:  setJSONContentTypeHeader,
 	ERR_ILL_ADD_OPTION:   setJSONContentTypeHeader,
@@ -244,20 +248,21 @@ var vAPICodeHeaderHandler = map[int]fHeaderHandler{
 var vAPICodeShouldLog = map[int]bool{
 	NO_ERR: false,
 
-	ERR_INT_DB_ADD:       true,
-	ERR_INT_DB_GET:       true,
-	ERR_INT_DB_UPDATE:    true,
-	ERR_INT_DB_DELETE:    true,
-	ERR_INT_DB_TX_BEGIN:  true,
-	ERR_INT_DB_TX_COMMIT: true,
-	ERR_INT_MARSHALL:     true,
-	ERR_INT_DEMARSHALL:   true,
-	ERR_INT_WRITE:        true,
-	ERR_INT_CREATE_HTTP:  true,
-	ERR_INT_DO_HTTP:      true,
-	ERR_INT_NOTIFICATION: true,
-	ERR_INT_CP_SCHEDULER: true,
-	ERR_INT_PARSE_INT:    true,
+	ERR_INT_DB_ADD:             true,
+	ERR_INT_DB_GET:             true,
+	ERR_INT_DB_UPDATE:          true,
+	ERR_INT_DB_DELETE:          true,
+	ERR_INT_DB_TX_BEGIN:        true,
+	ERR_INT_DB_TX_COMMIT:       true,
+	ERR_INT_DB_TX_SET_TX_LEVEL: true,
+	ERR_INT_MARSHALL:           true,
+	ERR_INT_DEMARSHALL:         true,
+	ERR_INT_WRITE:              true,
+	ERR_INT_CREATE_HTTP:        true,
+	ERR_INT_DO_HTTP:            true,
+	ERR_INT_NOTIFICATION:       true,
+	ERR_INT_CP_SCHEDULER:       true,
+	ERR_INT_PARSE_INT:          true,
 
 	ERR_ILL_POLL_ACCESS:  true,
 	ERR_ILL_ADD_OPTION:   true,
