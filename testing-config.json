@@ -1,7 +1,7 @@
 {
     "DBConfig": {
         "DBName": "pollytestdb",
-        "User": "polly",
+        "User": "pollytest",
         "Password": "",
         "SSLMode": "disable"
     },
