@@ -15,6 +15,7 @@ const (
 	cDisplayName          = "display_name"
 	cDeviceType           = "device_type"
 	cDeviceGUID           = "device_guid"
+	cProfilePic           = "profile_pic"
 	cCreatorID            = "creator_id"
 	cCreationDate         = "creation_date"
 	cLastUpdated          = "last_updated"

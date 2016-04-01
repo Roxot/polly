@@ -126,6 +126,17 @@ func (server *sServer) UpdateUser(writer http.ResponseWriter,
 		}
 	}
 
+	// update profile pic
+	if updateUserMsg.ProfilePic != nil {
+		user.ProfilePic = *(updateUserMsg.ProfilePic)
+		err = server.db.UpdateProfilePic(user.ID, user.ProfilePic)
+		if err != nil {
+			server.respondWithError(ERR_INT_DB_UPDATE, err, cUpdateUserTag,
+				writer, request)
+			return
+		}
+	}
+
 	// create the response body
 	responseBody, err := json.MarshalIndent(user, "", "\t")
 	if err != nil {

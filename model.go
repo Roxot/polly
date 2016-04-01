@@ -32,6 +32,7 @@ type PrivateUser struct {
 	DisplayName string `db:"display_name" json:"display_name"`
 	DeviceType  int    `db:"device_type" json:"device_type"`
 	DeviceGUID  string `db:"device_guid" json:"device_guid"`
+	ProfilePic  string `db:"profile_pic" json:"profile_pic"`
 }
 
 type Poll struct {
@@ -81,6 +82,7 @@ type Participant struct {
 type PublicUser struct {
 	ID          int64  `json:"id"`
 	DisplayName string `json:"display_name"`
+	ProfilePic  string `db:"profile_pic" json:"profile_pic"`
 }
 
 type PollSnapshot struct {
@@ -128,6 +130,7 @@ type VoteResponseMessage struct {
 type UpdateUserMessage struct {
 	DeviceGUID  *string `json:"device_guid"`
 	DisplayName *string `json:"display_name"`
+	ProfilePic  *string `json:"profile_pic"`
 }
 
 type AddUserMessage struct {

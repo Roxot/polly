@@ -29,6 +29,12 @@ func (db *Database) UpdateDisplayName(userID int64, displayName string) error {
 	return err
 }
 
+func (db *Database) UpdateProfilePic(userID int64, profilePic string) error {
+	_, err := db.mapping.Exec(fmt.Sprintf("update %s set %s=$1 where %s=$2;",
+		cUserTableName, cProfilePic, cID), profilePic, userID)
+	return err
+}
+
 func (db *Database) UpdateDeviceGUID(userID int64, deviceGUID string) error {
 	_, err := db.mapping.Exec(fmt.Sprintf("update %s set %s=$1 where %s=$2;",
 		cUserTableName, cDeviceGUID, cID), deviceGUID, userID)
