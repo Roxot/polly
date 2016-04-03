@@ -25,6 +25,7 @@ func (db *Database) GetPublicUserByID(id int64) (*polly.PublicUser, error) {
 
 	publicUser.ID = privateUser.ID
 	publicUser.DisplayName = privateUser.DisplayName
+	publicUser.ProfilePic = privateUser.ProfilePic
 	return &publicUser, nil
 }
 
