@@ -1,10 +1,11 @@
 package http
 
 import (
-	"github.com/roxot/polly"
-	"github.com/roxot/polly/database"
 	"strings"
 	"time"
+
+	"github.com/roxot/polly"
+	"github.com/roxot/polly/database"
 )
 
 /*
@@ -87,6 +88,7 @@ func isValidPollMessage(db *database.Database, pollMsg *polly.PollMessage,
 			return ERR_BAD_NO_USER
 		} else {
 			pollMsg.Participants[i].DisplayName = dbUser.DisplayName
+			pollMsg.Participants[i].ProfilePic = dbUser.ProfilePic
 		}
 
 		// check if user is creator
