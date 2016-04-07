@@ -105,4 +105,28 @@ func TestUserCRUD(t *testing.T) {
 		t.Errorf("Expected updated user and saved user not equal: %v, %v",
 			expectedUser, *savedUser)
 	}
+
+	// Test counting the number of users.
+
+	count, err := testDB.CountUsers()
+	if err != nil {
+		t.Error("Failed to count the number of users", err)
+	} else if count != 2 {
+		t.Errorf("Unexpected user count, expected %d, got %d", 2, count)
+	}
+
+	// Test deleting a user.
+
+	err = testDB.DeleteUser(user.ID)
+	if err != nil {
+		t.Error("Failed to delete user from the database", err)
+	}
+
+	count, err = testDB.CountUsers()
+	if err != nil {
+		t.Error("Failed to count the number of users", err)
+	} else if count != 1 {
+		t.Errorf("Unexpected user count after deletion, expected %d, got %d",
+			1, count)
+	}
 }

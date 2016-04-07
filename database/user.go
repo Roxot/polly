@@ -1,10 +1,6 @@
 package database
 
-import (
-	"errors"
-
-	"github.com/roxot/polly"
-)
+import "github.com/roxot/polly"
 
 func (db *DB) GetUser(id int64) (*polly.User, error) {
 	user := new(polly.User)
@@ -13,10 +9,6 @@ func (db *DB) GetUser(id int64) (*polly.User, error) {
 }
 
 func (db *DB) UpdateUser(user *polly.NillableUser) error {
-	if user.ID <= 0 {
-		return errors.New("Invalid user ID.")
-	}
-
 	tx, err := db.Begin()
 	if err != nil {
 		tx.Rollback()
@@ -83,21 +75,13 @@ func (db *DB) InsertUser(user *polly.User) error {
 		user.ProfilePic).Scan(&user.ID)
 }
 
-// func AddUserTX(user *polly.User, tx *gorp.Transaction) error {
-// 	// return tx.Insert(user)
-// 	return nil
-// }
+func (db *DB) DeleteUser(id int64) error {
+	_, err := db.Exec("DELETE FROM users WHERE id=$1", id)
+	return err
+}
 
-// func (db *DB) GetPublicUserByID(id int64) (publicUser *polly.PublicUser,
-// 	err error) {
-// 	publicUser = new(polly.PublicUser)
-// 	privateUser, err := db.GetUserByID(id)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	publicUser.ID = privateUser.ID
-// 	publicUser.DisplayName = privateUser.DisplayName
-// 	publicUser.ProfilePic = privateUser.ProfilePic
-// 	return &publicUser, nil
-// }
+func (db *DB) CountUsers() (int, error) {
+	var count int
+	err := db.Get(&count, "SELECT count(*) FROM users")
+	return count, err
+}
