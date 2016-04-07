@@ -42,7 +42,7 @@ func (server *sServer) Register(writer http.ResponseWriter,
 	}
 
 	// decode the sent user info
-	var user polly.PrivateUser
+	var user polly.User
 	decoder := json.NewDecoder(request.Body)
 	err = decoder.Decode(&user)
 	if err != nil {
