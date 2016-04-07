@@ -1,6 +1,10 @@
 package database
 
-import "github.com/roxot/polly"
+import (
+	"errors"
+
+	"github.com/roxot/polly"
+)
 
 func (db *DB) GetUser(id int64) (*polly.User, error) {
 	user := new(polly.User)
@@ -9,6 +13,10 @@ func (db *DB) GetUser(id int64) (*polly.User, error) {
 }
 
 func (db *DB) UpdateUser(user *polly.NillableUser) error {
+	if user.ID <= 0 {
+		return errors.New("Invalid user ID.")
+	}
+
 	tx, err := db.Begin()
 	if err != nil {
 		tx.Rollback()

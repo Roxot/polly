@@ -1,7 +1,6 @@
 package database
 
 import (
-	"fmt"
 	"reflect"
 	"testing"
 
@@ -80,7 +79,7 @@ func TestUserCRUD(t *testing.T) {
 	}
 
 	if !reflect.DeepEqual(expectedUser, *savedUser) {
-		t.Errorf("Inserted user and saved user not equal: %v, %v",
+		t.Errorf("Expected updated user and saved user not equal: %v, %v",
 			expectedUser, *savedUser)
 	}
 
@@ -90,8 +89,8 @@ func TestUserCRUD(t *testing.T) {
 	nillableUser = polly.NillableUser{
 		ProfilePic: &expectedUser.ProfilePic,
 	}
+	nillableUser.ID = expectedUser.ID
 
-	fmt.Println(nillableUser, *(nillableUser.ProfilePic))
 	err = testDB.UpdateUser(&nillableUser)
 	if err != nil {
 		t.Error("Failed to update user:", err)
@@ -103,7 +102,7 @@ func TestUserCRUD(t *testing.T) {
 	}
 
 	if !reflect.DeepEqual(expectedUser, *savedUser) {
-		t.Errorf("Inserted user and saved user not equal: %v, %v",
+		t.Errorf("Expected updated user and saved user not equal: %v, %v",
 			expectedUser, *savedUser)
 	}
 }
