@@ -1,5 +1,7 @@
 package polly
 
+import "fmt"
+
 const (
 	baseInternalErr  = 100
 	baseIllegalOpErr = 200
@@ -118,7 +120,7 @@ type Error struct {
 }
 
 func (err *Error) Error() string {
-	return err.Message
+	return fmt.Sprintf("Polly error %d: %s", err.Code, err.Message)
 }
 
 // Some comment TODO

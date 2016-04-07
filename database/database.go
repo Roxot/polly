@@ -1,6 +1,6 @@
 // The database takes care of preparing the database for use by creating tables
 // for all database-stored Polly objects. It also provides convenience DB and Tx
-// implementations that provide common operations on the database such as CRUD
+// structs that provide common operations on the database such as CRUD
 // operations on database-stored Polly objects.
 package database
 
