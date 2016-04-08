@@ -1,6 +1,6 @@
-// The database takes care of preparing the database for use by creating tables
-// for all database-stored Polly objects. It also provides convenience DB and Tx
-// structs that provide common operations on the database such as CRUD
+// Package database takes care of preparing the database for use by creating
+// tables for all database-stored Polly objects. It also provides convenience DB
+// and Tx structs that provide common operations on the database such as CRUD
 // operations on database-stored Polly objects.
 package database
 
@@ -8,15 +8,17 @@ import (
 	"fmt"
 
 	"github.com/jmoiron/sqlx"
+
+	// Register the pq postgres database driver.
 	_ "github.com/lib/pq"
 )
 
-// A superset of sql.DB that provides common Polly operations.
+// DB is a superset of sqlx.DB that provides common Polly operations.
 type DB struct {
 	*sqlx.DB
 }
 
-// A superset of sqlx.Tx that provides common Polly operations.
+// Tx is a superset of sqlx.Tx that provides common Polly operations.
 type Tx struct {
 	*sqlx.Tx
 }
@@ -52,4 +54,13 @@ func Connect(config *Config) (*DB, error) {
 func (db *DB) Initialize() error {
 	_, err := db.Exec(schema)
 	return err
+}
+
+// Begin starts a transaction and returns a *database.Tx instead of a *sql.Tx.
+func (db *DB) Begin() (*Tx, error) {
+	tx, err := db.Beginx()
+	if err != nil {
+		return nil, err
+	}
+	return &Tx{tx}, nil
 }

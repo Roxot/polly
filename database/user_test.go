@@ -7,11 +7,43 @@ import (
 	"github.com/roxot/polly"
 )
 
-func TestUserCRUD(t *testing.T) {
-	err := testDB.Initialize()
-	if err != nil {
+type userDB interface {
+	InsertUser(user *polly.User) error
+	GetUser(id int64) (*polly.User, error)
+	UpdateUser(user *polly.NillableUser) error
+	DeleteUser(id int64) error
+	CountUsers() (int, error)
+}
+
+func TestDBUserCRUD(t *testing.T) {
+	if err := testDB.Initialize(); err != nil {
 		t.Error("Could not intitialize database:", err)
 	}
+
+	testUserCRUD(testDB, t)
+	testDB.MustExec(dropTables)
+}
+
+func TestTxUserCRUD(t *testing.T) {
+	if err := testDB.Initialize(); err != nil {
+		t.Error("Could not intitialize database:", err)
+	}
+
+	tx, err := testDB.Begin()
+	if err != nil {
+		t.Error("Could not start transaction", err)
+	}
+
+	testUserCRUD(tx, t)
+
+	if err := tx.Commit(); err != nil {
+		t.Error("Could not commit transaction", err)
+	}
+
+	testDB.MustExec(dropTables)
+}
+
+func testUserCRUD(db userDB, t *testing.T) {
 
 	// Test user insertion and retrieval.
 
@@ -23,12 +55,11 @@ func TestUserCRUD(t *testing.T) {
 		ProfilePic:  "SomeURL",
 	}
 
-	err = testDB.InsertUser(&user)
-	if err != nil {
+	if err := db.InsertUser(&user); err != nil {
 		t.Error("Failed to insert user:", err)
 	}
 
-	savedUser, err := testDB.GetUser(user.ID)
+	savedUser, err := db.GetUser(user.ID)
 	if err != nil {
 		t.Error("Couldn't find user:", err)
 	}
@@ -41,8 +72,7 @@ func TestUserCRUD(t *testing.T) {
 	// Test auto incrementing IDs.
 
 	oldID := user.ID
-	err = testDB.InsertUser(&user)
-	if err != nil {
+	if err := db.InsertUser(&user); err != nil {
 		t.Error("Failed to insert user:", err)
 	} else if user.ID <= oldID {
 		t.Errorf("ID not incrementing, expected %d, got %d", oldID+1, user.ID)
@@ -68,12 +98,11 @@ func TestUserCRUD(t *testing.T) {
 	}
 	nillableUser.ID = user.ID
 
-	err = testDB.UpdateUser(&nillableUser)
-	if err != nil {
+	if err := db.UpdateUser(&nillableUser); err != nil {
 		t.Error("Failed to update user:", err)
 	}
 
-	savedUser, err = testDB.GetUser(expectedUser.ID)
+	savedUser, err = db.GetUser(expectedUser.ID)
 	if err != nil {
 		t.Error("Couldn't find user:", err)
 	}
@@ -91,12 +120,11 @@ func TestUserCRUD(t *testing.T) {
 	}
 	nillableUser.ID = expectedUser.ID
 
-	err = testDB.UpdateUser(&nillableUser)
-	if err != nil {
+	if err := db.UpdateUser(&nillableUser); err != nil {
 		t.Error("Failed to update user:", err)
 	}
 
-	savedUser, err = testDB.GetUser(expectedUser.ID)
+	savedUser, err = db.GetUser(expectedUser.ID)
 	if err != nil {
 		t.Error("Couldn't find user:", err)
 	}
@@ -108,8 +136,7 @@ func TestUserCRUD(t *testing.T) {
 
 	// Test counting the number of users.
 
-	count, err := testDB.CountUsers()
-	if err != nil {
+	if count, err := db.CountUsers(); err != nil {
 		t.Error("Failed to count the number of users", err)
 	} else if count != 2 {
 		t.Errorf("Unexpected user count, expected %d, got %d", 2, count)
@@ -117,13 +144,11 @@ func TestUserCRUD(t *testing.T) {
 
 	// Test deleting a user.
 
-	err = testDB.DeleteUser(user.ID)
-	if err != nil {
+	if err := db.DeleteUser(user.ID); err != nil {
 		t.Error("Failed to delete user from the database", err)
 	}
 
-	count, err = testDB.CountUsers()
-	if err != nil {
+	if count, err := db.CountUsers(); err != nil {
 		t.Error("Failed to count the number of users", err)
 	} else if count != 1 {
 		t.Errorf("Unexpected user count after deletion, expected %d, got %d",
