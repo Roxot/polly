@@ -341,11 +341,6 @@ func (pushClient *sPushClient) NotifyForNewParticipant(db *database.Database,
 		return err
 	}
 
-	// don't notify for empty polls
-	if len(deviceInfos) == 0 {
-		return nil
-	}
-
 	notificationMsg1 := polly.NotificationMessage{}
 	notificationMsg1.DeviceInfos = deviceInfos
 	notificationMsg1.PollID = pollID
