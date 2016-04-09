@@ -10,68 +10,56 @@ const (
 )
 
 const (
-	ErrCodeDBAdd             = baseInternalErr + iota // 100
-	ErrCodeDBGet             = baseInternalErr + iota // 101
-	ErrCodeDBUpdate          = baseInternalErr + iota // 102
-	ErrCodeDBDelete          = baseInternalErr + iota // 103
-	ErrCodeDBBeginTx         = baseInternalErr + iota // 104
-	ErrCodeDBCommitTx        = baseInternalErr + iota // 105
-	ErrCodeDBSetTxLevel      = baseInternalErr + iota // 106
-	ErrCodeMarshal           = baseInternalErr + iota // 107
-	ErrCodeDemarshal         = baseInternalErr + iota // 108
-	ErrCodeWriteResponse     = baseInternalErr + iota // 109
-	ErrCodeCreateHTTPRequest = baseInternalErr + iota // 110
-	ErrCodeDoHTTPRequest     = baseInternalErr + iota // 111
-	ErrCodeSendNotification  = baseInternalErr + iota // 112
-	ErrCodeScheduleClose     = baseInternalErr + iota // 113
-	ErrCodeParseInt          = baseInternalErr + iota // 114
+	ErrCodeDatabase          = baseInternalErr + iota // 100
+	ErrCodeMarshal                                    // 103
+	ErrCodeDemarshal                                  // 104
+	ErrCodeWriteResponse                              // 105
+	ErrCodeCreateHTTPRequest                          // 106
+	ErrCodeDoHTTPRequest                              // 107
+	ErrCodeSendNotification                           // 108
+	ErrCodeScheduleClose                              // 109
+	ErrCodeParseInt                                   // 110
 )
 
 const (
 	ErrCodeIllegalPollAccess = baseIllegalOpErr + iota // 200
-	ErrCodeIllegalAddOption  = baseIllegalOpErr + iota // 201
-	ErrCodeTooManyIDs        = baseIllegalOpErr + iota // 202
-	ErrCodePollClosed        = baseIllegalOpErr + iota // 203
-	ErrCodeNotCreator        = baseIllegalOpErr + iota // 204
+	ErrCodeIllegalAddOption                            // 201
+	ErrCodeTooManyIDs                                  // 202
+	ErrCodePollClosed                                  // 203
+	ErrCodeNotCreator                                  // 204
 )
 
 const (
 	ErrCodeBadJSON              = baseBadReqErr + iota // 300
-	ErrCodeNoUser               = baseBadReqErr + iota // 301
-	ErrCodeNoPoll               = baseBadReqErr + iota // 302
-	ErrCodeNoQuestion           = baseBadReqErr + iota // 303
-	ErrCodeNoOption             = baseBadReqErr + iota // 304
-	ErrCodeNoVote               = baseBadReqErr + iota // 305
-	ErrCodeBadDeviceType        = baseBadReqErr + iota // 306
-	ErrCodeEmptyPoll            = baseBadReqErr + iota // 307
-	ErrCodeBadPollType          = baseBadReqErr + iota // 308
-	ErrCodeDuplicateParticipant = baseBadReqErr + iota // 309
-	ErrCodeBadCreator           = baseBadReqErr + iota // 310
-	ErrCodeEmptyQuestion        = baseBadReqErr + iota // 311
-	ErrCodeEmptyOption          = baseBadReqErr + iota // 312
-	ErrCodeBadVoteType          = baseBadReqErr + iota // 313
-	ErrCodeBadPage              = baseBadReqErr + iota // 314
-	ErrCodeBadID                = baseBadReqErr + iota // 315
-	ErrCodeBadClosingDate       = baseBadReqErr + iota // 316
-	ErrCodeNoID                 = baseBadReqErr + iota // 317
-	ErrCodeNoDisplayName        = baseBadReqErr + iota // 318
+	ErrCodeNoUser                                      // 301
+	ErrCodeNoPoll                                      // 302
+	ErrCodeNoQuestion                                  // 303
+	ErrCodeNoOption                                    // 304
+	ErrCodeNoVote                                      // 305
+	ErrCodeBadDeviceType                               // 306
+	ErrCodeEmptyPoll                                   // 307
+	ErrCodeBadPollType                                 // 308
+	ErrCodeDuplicateParticipant                        // 309
+	ErrCodeBadCreator                                  // 310
+	ErrCodeEmptyQuestion                               // 311
+	ErrCodeEmptyOption                                 // 312
+	ErrCodeBadVoteType                                 // 313
+	ErrCodeBadPage                                     // 314
+	ErrCodeBadID                                       // 315
+	ErrCodeBadClosingDate                              // 316
+	ErrCodeNoID                                        // 317
+	ErrCodeNoDisplayName                               // 318
 )
 
 const (
 	ErrCodeMissingAuth = baseAuthErr + iota // 400
-	ErrCodeAuthFailed  = baseAuthErr + iota // 401
-	ErrCodeNoFBToken   = baseAuthErr + iota // 402
-	ErrCodeBadFBToken  = baseAuthErr + iota // 403
+	ErrCodeAuthFailed                       // 401
+	ErrCodeNoFBToken                        // 402
+	ErrCodeBadFBToken                       // 403
 )
 
 var errorMessages = map[int]string{
-	ErrCodeDBAdd:             "Failed to add to database.",
-	ErrCodeDBGet:             "Failed to retrieve from database.",
-	ErrCodeDBUpdate:          "Failed to update database.",
-	ErrCodeDBDelete:          "Failed to delete from database.",
-	ErrCodeDBBeginTx:         "Failed to start transaction.",
-	ErrCodeDBCommitTx:        "Failed to commit transaction.",
-	ErrCodeDBSetTxLevel:      "Failed to set transaction level.",
+	ErrCodeDatabase:          "Internal database error.",
 	ErrCodeMarshal:           "Failed to marshal response.",
 	ErrCodeDemarshal:         "Failed to demarshal request.",
 	ErrCodeWriteResponse:     "Failed to write response.",
@@ -115,6 +103,7 @@ var errorMessages = map[int]string{
 
 // Some comment TODO
 type Error struct {
+	Err     error
 	Message string
 	Code    int
 }
@@ -124,8 +113,9 @@ func (err *Error) Error() string {
 }
 
 // Some comment TODO
-func NewError(code int) error {
+func NewError(err error, code int) error {
 	return &Error{
+		Err:     err,
 		Code:    code,
 		Message: errorMessages[code],
 	}
