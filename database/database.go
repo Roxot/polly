@@ -40,6 +40,19 @@ var schema = `
 		device_guid  text,
 		profile_pic  text
 	);
+
+	CREATE TABLE IF NOT EXISTS polls (
+		id                 bigserial PRIMARY KEY,
+		creator_id         bigint references users(id),
+		creation_date      timestamp,
+		closing_date       timestamp,
+		last_updated       timestamp,
+		sequence_number    integer,
+		last_event_user    text,
+		last_event_user_id bigint references users(id),
+		last_event_title   text,
+		last_event_type    int
+	);
 `
 
 // Connect opens and connects to a database.

@@ -15,13 +15,8 @@ var testConfig = &Config{
 }
 
 var dropTables = `
-	DROP TABLE IF EXISTS users;
-	DROP TABLE IF EXISTS participants;
 	DROP TABLE IF EXISTS polls;
-	DROP TABLE IF EXISTS questions;
 	DROP TABLE IF EXISTS users;
-	DROP TABLE IF EXISTS verification_tokens;
-	DROP TABLE IF EXISTS votes;
 `
 
 var testDB *DB
