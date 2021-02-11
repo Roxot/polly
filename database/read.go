@@ -1,233 +1,227 @@
 package database
 
-import (
-	"fmt"
+// import (
+// 	"fmt"
 
-	"github.com/roxot/polly"
+// 	"github.com/roxot/polly"
 
-	_ "github.com/lib/pq"
-	"gopkg.in/gorp.v1"
-)
+// 	_ "github.com/lib/pq"
+// 	"gopkg.in/gorp.v1"
+// )
 
-func (db *Database) GetUserByID(id int64) (*polly.PrivateUser, error) {
-	var user polly.PrivateUser
-	err := db.mapping.SelectOne(&user,
-		fmt.Sprintf("select * from %s where %s=$1;", cUserTableName, cID), id)
-	return &user, err
-}
+// func (db *Database) GetOptionByID(id int64) (*polly.Option, error) {
+// 	var option polly.Option
+// 	err := db.mapping.SelectOne(&option,
+// 		fmt.Sprintf("select * from %s where %s=$1;", cOptionTableName, cID), id)
+// 	return &option, err
+// }
 
-func (db *Database) GetPublicUserByID(id int64) (*polly.PublicUser, error) {
-	publicUser := polly.PublicUser{}
-	privateUser, err := db.GetUserByID(id)
-	if err != nil {
-		return nil, err
-	}
+// func (db *Database) GetDeviceInfosForPollExcludeCreator(pollID,
+// 	creatorID int64) ([]polly.DeviceInfo, error) {
 
-	publicUser.ID = privateUser.ID
-	publicUser.DisplayName = privateUser.DisplayName
-	publicUser.ProfilePic = privateUser.ProfilePic
-	return &publicUser, nil
-}
+// 	var deviceInfos []polly.DeviceInfo
+// 	_, err := db.mapping.Select(&deviceInfos, fmt.Sprintf("select %s.%s, %s.%s"+
+// 		" from %s, %s where %s.%s=%s.%s and %s.%s=$1 and %s.%s!=$2;",
+// 		cUserTableName, cDeviceType, cUserTableName, cDeviceGUID,
+// 		cUserTableName, cParticipantTableName, cUserTableName, cID,
+// 		cParticipantTableName, cUserID, cParticipantTableName, cPollID,
+// 		cUserTableName, cID), pollID, creatorID)
 
-func (db *Database) GetOptionByID(id int64) (*polly.Option, error) {
-	var option polly.Option
-	err := db.mapping.SelectOne(&option,
-		fmt.Sprintf("select * from %s where %s=$1;", cOptionTableName, cID), id)
-	return &option, err
-}
+// 	return deviceInfos, err
+// }
 
-func (db *Database) GetDeviceInfosForPollExcludeCreator(pollID,
-	creatorID int64) ([]polly.DeviceInfo, error) {
+// func (db *Database) GetDeviceInfosForPollExcludeCreatorAndUser(pollID,
+// 	creatorID, userID int64) ([]polly.DeviceInfo, error) {
 
-	var deviceInfos []polly.DeviceInfo
-	_, err := db.mapping.Select(&deviceInfos, fmt.Sprintf("select %s.%s, %s.%s"+
-		" from %s, %s where %s.%s=%s.%s and %s.%s=$1 and %s.%s!=$2;",
-		cUserTableName, cDeviceType, cUserTableName, cDeviceGUID,
-		cUserTableName, cParticipantTableName, cUserTableName, cID,
-		cParticipantTableName, cUserID, cParticipantTableName, cPollID,
-		cUserTableName, cID), pollID, creatorID)
+// 	var deviceInfos []polly.DeviceInfo
+// 	_, err := db.mapping.Select(&deviceInfos, fmt.Sprintf("select %s.%s, %s.%s"+
+// 		" from %s, %s where %s.%s=%s.%s and %s.%s=$1 and %s.%s!=$2 and "+
+// 		"%s.%s != $3;",
+// 		cUserTableName, cDeviceType, cUserTableName, cDeviceGUID,
+// 		cUserTableName, cParticipantTableName, cUserTableName, cID,
+// 		cParticipantTableName, cUserID, cParticipantTableName, cPollID,
+// 		cUserTableName, cID, cUserTableName, cID), pollID, creatorID, userID)
 
-	return deviceInfos, err
-}
+// 	return deviceInfos, err
+// }
 
-func (db *Database) GetDeviceInfosForPollExcludeCreatorAndUser(pollID,
-	creatorID, userID int64) ([]polly.DeviceInfo, error) {
+// func (db *Database) GetPublicUserByID(id int64) (publicUser *polly.PublicUser,
+// 	err error) {
+// 	publicUser = new(polly.PublicUser)
+// 	privateUser, err := db.GetUserByID(id)
+// 	if err != nil {
+// 		return nil, err
+// 	}
 
-	var deviceInfos []polly.DeviceInfo
-	_, err := db.mapping.Select(&deviceInfos, fmt.Sprintf("select %s.%s, %s.%s"+
-		" from %s, %s where %s.%s=%s.%s and %s.%s=$1 and %s.%s!=$2 and "+
-		"%s.%s != $3;",
-		cUserTableName, cDeviceType, cUserTableName, cDeviceGUID,
-		cUserTableName, cParticipantTableName, cUserTableName, cID,
-		cParticipantTableName, cUserID, cParticipantTableName, cPollID,
-		cUserTableName, cID, cUserTableName, cID), pollID, creatorID, userID)
+// 	publicUser.ID = privateUser.ID
+// 	publicUser.DisplayName = privateUser.DisplayName
+// 	publicUser.ProfilePic = privateUser.ProfilePic
+// 	return publicUser, nil
+// }
 
-	return deviceInfos, err
-}
+// func (db *Database) GetDeviceInfoForUser(userID int64) (*polly.DeviceInfo,
+// 	error) {
 
-func (db *Database) GetDeviceInfoForUser(userID int64) (*polly.DeviceInfo,
-	error) {
+// 	var deviceInfo polly.DeviceInfo
+// 	err := db.mapping.SelectOne(&deviceInfo, fmt.Sprintf(
+// 		"select %s, %s from %s where %s=$1;", cDeviceGUID, cDeviceType,
+// 		cUserTableName, cID), userID)
+// 	return &deviceInfo, err
+// }
 
-	var deviceInfo polly.DeviceInfo
-	err := db.mapping.SelectOne(&deviceInfo, fmt.Sprintf(
-		"select %s, %s from %s where %s=$1;", cDeviceGUID, cDeviceType,
-		cUserTableName, cID), userID)
-	return &deviceInfo, err
-}
+// func (db *Database) GetDeviceInfosForPoll(pollID int64) ([]polly.DeviceInfo,
+// 	error) {
 
-func (db *Database) GetDeviceInfosForPoll(pollID int64) ([]polly.DeviceInfo,
-	error) {
+// 	var deviceInfos []polly.DeviceInfo
+// 	_, err := db.mapping.Select(&deviceInfos, fmt.Sprintf("select %s.%s, %s.%s"+
+// 		" from %s, %s where %s.%s=%s.%s and %s.%s=$1;",
+// 		cUserTableName, cDeviceType, cUserTableName, cDeviceGUID,
+// 		cUserTableName, cParticipantTableName, cUserTableName, cID,
+// 		cParticipantTableName, cUserID, cParticipantTableName, cPollID),
+// 		pollID)
 
-	var deviceInfos []polly.DeviceInfo
-	_, err := db.mapping.Select(&deviceInfos, fmt.Sprintf("select %s.%s, %s.%s"+
-		" from %s, %s where %s.%s=%s.%s and %s.%s=$1;",
-		cUserTableName, cDeviceType, cUserTableName, cDeviceGUID,
-		cUserTableName, cParticipantTableName, cUserTableName, cID,
-		cParticipantTableName, cUserID, cParticipantTableName, cPollID),
-		pollID)
+// 	return deviceInfos, err
+// }
 
-	return deviceInfos, err
-}
+// func (db *Database) GetPollByID(id int64) (*polly.Poll, error) {
+// 	var poll polly.Poll
+// 	err := db.mapping.SelectOne(&poll,
+// 		fmt.Sprintf("select * from %s where %s=$1;", cPollTableName, cID), id)
+// 	return &poll, err
+// }
 
-func (db *Database) GetPollByID(id int64) (*polly.Poll, error) {
-	var poll polly.Poll
-	err := db.mapping.SelectOne(&poll,
-		fmt.Sprintf("select * from %s where %s=$1;", cPollTableName, cID), id)
-	return &poll, err
-}
+// /*
+//  * Returns the ordered-by-last-updated list of poll snapshots. Limits the
+//  * results on the given limit and from the given offset.
+//  */
+// func (db *Database) GetPollSnapshotsByUserID(userID int64, limit, offset int) (
+// 	[]polly.PollSnapshot, error) {
 
-/*
- * Returns the ordered-by-last-updated list of poll snapshots. Limits the
- * results on the given limit and from the given offset.
- */
-func (db *Database) GetPollSnapshotsByUserID(userID int64, limit, offset int) (
-	[]polly.PollSnapshot, error) {
+// 	var snapshots []polly.PollSnapshot
+// 	_, err := db.mapping.Select(&snapshots, fmt.Sprintf(
+// 		"select %s.%s, %s.%s, %s.%s, %s.%s from %s, %s where %s.%s=%s.%s and "+
+// 			"%s.%s=$1 order by %s desc limit %d offset %d;",
+// 		cPollTableName, cID, cPollTableName, cLastUpdated,
+// 		cPollTableName, cSequenceNumber, cPollTableName, cClosingDate,
+// 		cParticipantTableName, cPollTableName, cParticipantTableName, cPollID,
+// 		cPollTableName, cID, cParticipantTableName, cUserID, cLastUpdated,
+// 		limit, offset), userID)
+// 	return snapshots, err
+// }
 
-	var snapshots []polly.PollSnapshot
-	_, err := db.mapping.Select(&snapshots, fmt.Sprintf(
-		"select %s.%s, %s.%s, %s.%s, %s.%s from %s, %s where %s.%s=%s.%s and "+
-			"%s.%s=$1 order by %s desc limit %d offset %d;",
-		cPollTableName, cID, cPollTableName, cLastUpdated,
-		cPollTableName, cSequenceNumber, cPollTableName, cClosingDate,
-		cParticipantTableName, cPollTableName, cParticipantTableName, cPollID,
-		cPollTableName, cID, cParticipantTableName, cUserID, cLastUpdated,
-		limit, offset), userID)
-	return snapshots, err
-}
+// func (db *Database) GetPollsByUserID(userID int64) ([]polly.Poll, error) {
+// 	var polls []polly.Poll
+// 	_, err := db.mapping.Select(&polls,
+// 		fmt.Sprintf("select id from %s where %s=$1;", cPollTableName,
+// 			cCreatorID), userID)
+// 	return polls, err
+// }
 
-func (db *Database) GetPollsByUserID(userID int64) ([]polly.Poll, error) {
-	var polls []polly.Poll
-	_, err := db.mapping.Select(&polls,
-		fmt.Sprintf("select id from %s where %s=$1;", cPollTableName,
-			cCreatorID), userID)
-	return polls, err
-}
+// func (db *Database) GetPollIDForOptionID(optionID int64) (int64, error) {
+// 	var option polly.Option
+// 	err := db.mapping.SelectOne(&option,
+// 		fmt.Sprintf("select %s from %s where %s=$1;", cPollID,
+// 			cOptionTableName, cID), optionID)
+// 	return option.PollID, err
+// }
 
-func (db *Database) GetPollIDForOptionID(optionID int64) (int64, error) {
-	var option polly.Option
-	err := db.mapping.SelectOne(&option,
-		fmt.Sprintf("select %s from %s where %s=$1;", cPollID,
-			cOptionTableName, cID), optionID)
-	return option.PollID, err
-}
+// func (db *Database) GetPollIDForQuestionID(questionID int64) (int64, error) {
+// 	var question polly.Question
+// 	err := db.mapping.SelectOne(&question,
+// 		fmt.Sprintf("select %s from %s where %s=$1;", cPollID,
+// 			cQuestionTableName, cID), questionID)
+// 	return question.PollID, err
+// }
 
-func (db *Database) GetPollIDForQuestionID(questionID int64) (int64, error) {
-	var question polly.Question
-	err := db.mapping.SelectOne(&question,
-		fmt.Sprintf("select %s from %s where %s=$1;", cPollID,
-			cQuestionTableName, cID), questionID)
-	return question.PollID, err
-}
+// func (db *Database) GetPollIDForVoteID(voteID int64) (int64, error) {
+// 	var vote polly.Vote
+// 	err := db.mapping.SelectOne(&vote, // TODO selectInt?
+// 		fmt.Sprintf("select %s from %s where %s=$1;", cPollID,
+// 			cVoteTableName, cID), voteID)
+// 	return vote.PollID, err
+// }
 
-func (db *Database) GetPollIDForVoteID(voteID int64) (int64, error) {
-	var vote polly.Vote
-	err := db.mapping.SelectOne(&vote, // TODO selectInt?
-		fmt.Sprintf("select %s from %s where %s=$1;", cPollID,
-			cVoteTableName, cID), voteID)
-	return vote.PollID, err
-}
+// func (db *Database) GetQuestionByPollID(pollID int64) (*polly.Question, error) {
+// 	var question polly.Question
+// 	err := db.mapping.SelectOne(&question,
+// 		fmt.Sprintf("select * from %s where %s = $1;", cQuestionTableName,
+// 			cPollID), pollID)
+// 	return &question, err
+// }
 
-func (db *Database) GetQuestionByPollID(pollID int64) (*polly.Question, error) {
-	var question polly.Question
-	err := db.mapping.SelectOne(&question,
-		fmt.Sprintf("select * from %s where %s = $1;", cQuestionTableName,
-			cPollID), pollID)
-	return &question, err
-}
+// func (db *Database) GetQuestionByID(questionID int64) (*polly.Question, error) {
+// 	var question polly.Question
+// 	err := db.mapping.SelectOne(&question,
+// 		fmt.Sprintf("select * from %s where %s = $1;", cQuestionTableName,
+// 			cID), questionID)
+// 	return &question, err
+// }
 
-func (db *Database) GetQuestionByID(questionID int64) (*polly.Question, error) {
-	var question polly.Question
-	err := db.mapping.SelectOne(&question,
-		fmt.Sprintf("select * from %s where %s = $1;", cQuestionTableName,
-			cID), questionID)
-	return &question, err
-}
+// func (db *Database) GetOptionsByPollID(pollID int64) ([]polly.Option, error) {
+// 	var options []polly.Option
+// 	_, err := db.mapping.Select(&options,
+// 		fmt.Sprintf("select * from %s where %s = $1;", cOptionTableName,
+// 			cPollID), pollID)
+// 	return options, err
+// }
 
-func (db *Database) GetOptionsByPollID(pollID int64) ([]polly.Option, error) {
-	var options []polly.Option
-	_, err := db.mapping.Select(&options,
-		fmt.Sprintf("select * from %s where %s = $1;", cOptionTableName,
-			cPollID), pollID)
-	return options, err
-}
+// func (db *Database) GetParticipantsByPollID(pollID int64) (
+// 	[]polly.Participant, error) {
 
-func (db *Database) GetParticipantsByPollID(pollID int64) (
-	[]polly.Participant, error) {
+// 	var participants []polly.Participant
+// 	_, err := db.mapping.Select(&participants,
+// 		fmt.Sprintf("select * from %s where %s = $1;", cParticipantTableName,
+// 			cPollID), pollID)
+// 	return participants, err
+// }
 
-	var participants []polly.Participant
-	_, err := db.mapping.Select(&participants,
-		fmt.Sprintf("select * from %s where %s = $1;", cParticipantTableName,
-			cPollID), pollID)
-	return participants, err
-}
+// func (db *Database) GetVotesByPollID(pollID int64) ([]polly.Vote, error) {
+// 	var votes []polly.Vote
+// 	_, err := db.mapping.Select(&votes,
+// 		fmt.Sprintf("select * from %s where %s = $1;", cVoteTableName, cPollID),
+// 		pollID)
+// 	return votes, err
+// }
 
-func (db *Database) GetVotesByPollID(pollID int64) ([]polly.Vote, error) {
-	var votes []polly.Vote
-	_, err := db.mapping.Select(&votes,
-		fmt.Sprintf("select * from %s where %s = $1;", cVoteTableName, cPollID),
-		pollID)
-	return votes, err
-}
+// func (db *Database) GetVoteByID(voteID int64) (*polly.Vote, error) {
+// 	var vote polly.Vote
+// 	err := db.mapping.SelectOne(&vote,
+// 		fmt.Sprintf("select * from %s where %s=$1;", cVoteTableName, cID), voteID)
+// 	return &vote, err
+// }
 
-func (db *Database) GetVoteByID(voteID int64) (*polly.Vote, error) {
-	var vote polly.Vote
-	err := db.mapping.SelectOne(&vote,
-		fmt.Sprintf("select * from %s where %s=$1;", cVoteTableName, cID), voteID)
-	return &vote, err
-}
+// func (db *Database) GetSequenceNumber(pollID int64) (int, error) {
+// 	number, err := db.mapping.SelectInt(fmt.Sprintf(
+// 		"select %s from %s where %s=$1;", cSequenceNumber, cPollTableName, cID),
+// 		pollID)
+// 	return int(number), err
+// }
 
-func (db *Database) GetSequenceNumber(pollID int64) (int, error) {
-	number, err := db.mapping.SelectInt(fmt.Sprintf(
-		"select %s from %s where %s=$1;", cSequenceNumber, cPollTableName, cID),
-		pollID)
-	return int(number), err
-}
+// func (db *Database) GetClosingDate(pollID int64) (int64, error) {
+// 	number, err := db.mapping.SelectInt(fmt.Sprintf(
+// 		"select %s from %s where %s=$1;", cClosingDate, cPollTableName, cID),
+// 		pollID)
+// 	return number, err
+// }
 
-func (db *Database) GetClosingDate(pollID int64) (int64, error) {
-	number, err := db.mapping.SelectInt(fmt.Sprintf(
-		"select %s from %s where %s=$1;", cClosingDate, cPollTableName, cID),
-		pollID)
-	return number, err
-}
+// func GetSequenceNumberTX(pollID int64, tx *gorp.Transaction) (int, error) {
+// 	number, err := tx.SelectInt(fmt.Sprintf(
+// 		"select %s from %s where %s=$1;", cSequenceNumber, cPollTableName, cID),
+// 		pollID)
+// 	return int(number), err
+// }
 
-func GetSequenceNumberTX(pollID int64, tx *gorp.Transaction) (int, error) {
-	number, err := tx.SelectInt(fmt.Sprintf(
-		"select %s from %s where %s=$1;", cSequenceNumber, cPollTableName, cID),
-		pollID)
-	return int(number), err
-}
+// func GetPollSnapshotTX(pollID int64, tx *gorp.Transaction) (*polly.PollSnapshot,
+// 	error) {
 
-func GetPollSnapshotTX(pollID int64, tx *gorp.Transaction) (*polly.PollSnapshot,
-	error) {
+// 	var snapshot polly.PollSnapshot
+// 	err := tx.SelectOne(&snapshot, fmt.Sprintf(
+// 		"select %s, %s, %s, %s from %s where %s=$1;", cID, cLastUpdated,
+// 		cSequenceNumber, cClosingDate, cPollTableName, cID), pollID)
+// 	return &snapshot, err
+// }
 
-	var snapshot polly.PollSnapshot
-	err := tx.SelectOne(&snapshot, fmt.Sprintf(
-		"select %s, %s, %s, %s from %s where %s=$1;", cID, cLastUpdated,
-		cSequenceNumber, cClosingDate, cPollTableName, cID), pollID)
-	return &snapshot, err
-}
-
-func (db *Database) GetPollCreatorID(pollID int64) (int64, error) {
-	return db.mapping.SelectInt(fmt.Sprintf("select %s from %s where %s=$1;",
-		cCreatorID, cPollTableName, cID), pollID)
-}
+// func (db *Database) GetPollCreatorID(pollID int64) (int64, error) {
+// 	return db.mapping.SelectInt(fmt.Sprintf("select %s from %s where %s=$1;",
+// 		cCreatorID, cPollTableName, cID), pollID)
+// }

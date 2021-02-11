@@ -7,7 +7,7 @@ import (
 )
 
 func (server *sServer) authenticateRequest(request *http.Request) (
-	*polly.PrivateUser, int) {
+	*polly.User, int) {
 
 	idStr, token, ok := request.BasicAuth()
 	if !ok {

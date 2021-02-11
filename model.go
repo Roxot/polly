@@ -26,13 +26,22 @@ const (
 
 /* Polly primitives */
 
-type PrivateUser struct {
+type User struct {
 	ID          int64  `json:"id"`
 	Token       string `json:"token"`
 	DisplayName string `db:"display_name" json:"display_name"`
 	DeviceType  int    `db:"device_type" json:"device_type"`
 	DeviceGUID  string `db:"device_guid" json:"device_guid"`
 	ProfilePic  string `db:"profile_pic" json:"profile_pic"`
+}
+
+type NillableUser struct {
+	ID          int64
+	Token       *string
+	DisplayName *string
+	DeviceType  *int
+	DeviceGUID  *string
+	ProfilePic  *string
 }
 
 type Poll struct {

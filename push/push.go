@@ -31,18 +31,18 @@ const (
 
 type IPushClient interface {
 	StartErrorLogger(log.ILogger) error
-	NotifyForVote(db *database.Database, user *polly.PrivateUser,
+	NotifyForVote(db *database.Database, user *polly.User,
 		optionTitle string, pollID int64, voteType int) error
-	NotifyForNewPoll(db *database.Database, user *polly.PrivateUser,
+	NotifyForNewPoll(db *database.Database, user *polly.User,
 		pollID int64, pollTitle string) error
 	NotifyForClosedEvent(db *database.Database, pollID int64,
 		title string) error
-	NotifyForUndoneVote(db *database.Database, user *polly.PrivateUser,
+	NotifyForUndoneVote(db *database.Database, user *polly.User,
 		optionTitle string, pollID int64) error
-	NotifyForParticipantLeft(db *database.Database, user *polly.PrivateUser,
+	NotifyForParticipantLeft(db *database.Database, user *polly.User,
 		pollID int64, pollTitle string) error
-	NotifyForNewParticipant(db *database.Database, creator *polly.PrivateUser,
-		pollID int64, pollTitle string, newUser *polly.PrivateUser) error
+	NotifyForNewParticipant(db *database.Database, creator *polly.User,
+		pollID int64, pollTitle string, newUser *polly.User) error
 }
 
 type sPushClient struct {
@@ -201,7 +201,7 @@ func (pushClient *sPushClient) NotifyForClosedEvent(db *database.Database,
 }
 
 func (pushClient *sPushClient) NotifyForVote(db *database.Database,
-	user *polly.PrivateUser, optionTitle string, pollID int64, voteType int) error {
+	user *polly.User, optionTitle string, pollID int64, voteType int) error {
 	// TODO user->voter, PrivateUser->PublicUser
 
 	// TODO assert votetype
@@ -233,7 +233,7 @@ func (pushClient *sPushClient) NotifyForVote(db *database.Database,
 }
 
 func (pushClient *sPushClient) NotifyForUndoneVote(db *database.Database,
-	user *polly.PrivateUser, optionTitle string, pollID int64) error {
+	user *polly.User, optionTitle string, pollID int64) error {
 	// TODO user->voter, PrivateUser->PublicUser
 
 	// TODO assert votetype
@@ -265,7 +265,7 @@ func (pushClient *sPushClient) NotifyForUndoneVote(db *database.Database,
 }
 
 func (pushClient *sPushClient) NotifyForNewPoll(db *database.Database,
-	user *polly.PrivateUser, pollID int64, pollTitle string) error { // TODO public user?
+	user *polly.User, pollID int64, pollTitle string) error { // TODO public user?
 
 	// retrieve all poll participants
 	deviceInfos, err := db.GetDeviceInfosForPollExcludeCreator(pollID,
@@ -295,7 +295,7 @@ func (pushClient *sPushClient) NotifyForNewPoll(db *database.Database,
 }
 
 func (pushClient *sPushClient) NotifyForParticipantLeft(db *database.Database,
-	user *polly.PrivateUser, pollID int64, pollTitle string) error { // TODO public user?
+	user *polly.User, pollID int64, pollTitle string) error { // TODO public user?
 
 	// retrieve all poll participants
 	deviceInfos, err := db.GetDeviceInfosForPollExcludeCreator(pollID,
@@ -325,8 +325,8 @@ func (pushClient *sPushClient) NotifyForParticipantLeft(db *database.Database,
 }
 
 func (pushClient *sPushClient) NotifyForNewParticipant(db *database.Database,
-	creator *polly.PrivateUser, pollID int64, pollTitle string,
-	newUser *polly.PrivateUser) error {
+	creator *polly.User, pollID int64, pollTitle string,
+	newUser *polly.User) error {
 
 	// retrieve all existing poll participants device infos
 	deviceInfos, err := db.GetDeviceInfosForPollExcludeCreatorAndUser(pollID,
