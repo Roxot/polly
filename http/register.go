@@ -26,19 +26,27 @@ type sFacebookResponse struct {
 func (server *sServer) Register(writer http.ResponseWriter,
 	request *http.Request, _ httprouter.Params) {
 
-	// retrieve the Facebook auth token
-	fbToken := request.Header.Get("X-Verify-Credentials-Authorization")
-	if len(fbToken) == 0 {
-		server.respondWithError(ERR_AUT_NO_FACEBOOK_TOKEN, nil, cRegisterTag,
-			writer, request)
-		return
-	}
+	var id int64 = 0
+	var errCode int
+	var err error
 
-	// verify the Facebook auth token
-	id, errCode, err := verifyFacebookUser(fbToken)
-	if errCode != NO_ERR {
-		server.respondWithError(errCode, err, cRegisterTag, writer, request)
-		return
+	// for testing purposes we want to disable this
+	if server.config.VerifyRegisterWithFacebook {
+
+		// retrieve the Facebook auth token
+		fbToken := request.Header.Get("X-Verify-Credentials-Authorization")
+		if len(fbToken) == 0 {
+			server.respondWithError(ERR_AUT_NO_FACEBOOK_TOKEN, nil, cRegisterTag,
+				writer, request)
+			return
+		}
+
+		// verify the Facebook auth token
+		id, errCode, err = verifyFacebookUser(fbToken)
+		if errCode != NO_ERR {
+			server.respondWithError(errCode, err, cRegisterTag, writer, request)
+			return
+		}
 	}
 
 	// decode the sent user info
